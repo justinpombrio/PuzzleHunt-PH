@@ -1,1 +1,1 @@
-# PuzzleHunt-PH
+# Puzzle Hunt: PH
