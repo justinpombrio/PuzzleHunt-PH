@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../ph.xsl"?>
+
+<page>
+  <title>Leaderboard</title>
+  <subtitle>
+    No, no, the goal is to be on TOP of the leaderboard.
+  </subtitle>
+  <content>
+    <p>
+      LEADERBOARD GOES HERE
+    </p>
+  </content>
+</page>

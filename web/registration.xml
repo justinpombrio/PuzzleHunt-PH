@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../ph.xsl"?>
+
+<page>
+  <title>Team Registration</title>
+  <form>
+    <description>Register Team</description>
+    <action>register</action>
+    <input type="text" id="name">
+      Team name
+    </input>
+    <input type="text" id="password">
+      Password
+    </input>
+    <input type="text" id="password_verify">
+      Repeat password
+    </input>
+    <input type="text" id="member_1">
+      Team member (email address)
+    </input>
+    <input type="text" id="member_2">
+      Team member
+    </input>
+    <input type="text" id="member_3">
+      Team member
+    </input>
+    <input type="text" id="member_4">
+      Team member
+    </input>
+  </form>
+</page>

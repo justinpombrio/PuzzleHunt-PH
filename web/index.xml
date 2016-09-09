@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../ph.xsl"?>
+
+<page>
+  <title>Crumbs Puzzle Hunt, 2016</title>
+  <subtitle>Alex Walker &amp; Sara Schulz</subtitle>
+  <content>
+    <section>
+      <p>
+        CRUMBS is a puzzle hunt.
+      </p>
+      <p>
+        CRUMBS is the best puzzle hunt.
+      </p>
+      <p>
+        CRUMBS is the puzzliest puzzle hunt for puzzlers you'll ever puzzle.
+      </p>
+    </section>
+    <h2>The Puzzles</h2>
+    <p>
+      Here are all of the puzzles:
+    </p>
+  </content>
+  <list-all-puzzles/>
+</page>

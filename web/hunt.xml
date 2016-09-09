@@ -1,0 +1,14 @@
+<hunt>
+  <name>Crumbs Puzzle Hunt</name>
+  <all-puzzles>
+    <puzzles id="group_1" name="Primary Puzzles">
+      <puzzle id="zero" name="Puzzle The Zeroth"/>
+      <puzzle id="one" name="Puzzle The First"/>
+      <puzzle id="two" name="Puzzle The Second"/>
+    </puzzles>
+    <puzzles id="group_2" name="Secondary Puzzles">
+      <puzzle id="three" name="Puzzle The Third"/>
+      <puzzle id="four" name="Puzzle The Fourth"/>
+    </puzzles>
+  </all-puzzles>
+</hunt>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../ph.xsl"?>
+
+<page>
+  <title>Submit an Answer</title>
+  <form>
+    <description>Submit Answer</description>
+    <action>guess</action>
+    <input type="text" id="name">
+      Team name
+    </input>
+    <input type="text" id="password">
+      Password
+    </input>
+    <input type="puzzle" id="puzzle">
+      Puzzle
+    </input>
+    <input type="text" id="guess">
+      Answer
+    </input>
+  </form>
+</page>
