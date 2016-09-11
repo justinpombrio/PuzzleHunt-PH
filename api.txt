@@ -28,7 +28,7 @@ Puzzle
 
 Hint
   puzzleID
-  number: String
+  number: UInt
   penalty: UInt
   waveID
   key: String
@@ -56,3 +56,179 @@ Stats
   score: UInt
   solveTime: UInt|null
   guesses: UInt
+
+
+REQUEST/RESPONSE FORMAT
+
+Requests:
+  POST { action: "...", user: "Puzzler"|"Master", ... }
+
+Responses:
+    { status: "Success", ... }
+  | { status: "Failure", message: "the-error-message" }
+
+
+PUZZLER ACTIONS
+
+getStats {
+  team: Team.name|"All"|"Sum",
+  puzzle: Puzzle.name|"All"|"Sum"
+}
+-> {
+  score,
+  solveTime,
+  guesses
+}
+(or lists thereof, with an additional `team` or `puzzle` field)
+
+registerTeam {
+  name: Team.name,
+  password: Team.password,
+  members: [{
+    name: Member.name,
+    email: Member.email
+  }]
+}
+
+viewTeam {
+  name: Team.name
+}
+-> {
+  members: [{
+    name: Member.name
+  }]
+}
+
+viewOwnTeam {
+  name: Team.name,
+  password: Team.password
+}
+-> {
+  guesses: Team.guesses,
+  members: [{
+    name: Member.name,
+    email: Member.email
+  }]
+}
+
+changePassword {
+  name: Team.name,
+  password: Team.password,
+  newPassword
+}
+-> null
+
+changeMembers {
+  name: Team.name,
+  password: Team.password,
+  members: [{
+    name: Member.name,
+    email: Member.email
+  }]
+}
+-> null
+
+submitGuess {
+  team: Team.name,
+  password: Team.password,
+  puzzle: Puzzle.name,
+  guess: String
+}
+-> "Correct"|"Incorrect"
+
+getPuzzles null
+-> {
+  puzzles: [{
+    name: Puzzle.name,
+    number: Puzzle.number,
+    points: Puzzle.points,
+    wave: Wave.name,
+    key: Puzzle.key,
+    hints: [{
+      number: Hint.number,
+      penalty: Hint.penalty,
+      key: Hint.key
+    }]
+  }]
+}
+
+
+MASTER ACTIONS
+
+getHunt null
+-> {
+  name: Hunt.name,
+  teamSize: Hunt.teamSize,
+  initGuesses: Hunt.initGuesses
+}
+
+setHunt {
+  name: Hunt.name,
+  teamSize: Hunt.teamSize,
+  initGuesses: Hunt.initGuesses
+}
+-> null
+
+getPuzzles null
+-> {
+  puzzles: [{
+    name: Puzzle.name,
+    number: Puzzle.number,
+    points: Puzzle.points,
+    wave: Wave.name,
+    answer: Puzzle.answer,
+    key: Puzzle.key
+  }]
+}
+
+setPuzzles {
+  puzzles: [{
+    name: Puzzle.name,
+    number: Puzzle.number,
+    points: Puzzle.points,
+    wave: Wave.name,
+    answer: Puzzle.answer
+  }]
+}
+-> null
+
+getHints null
+-> {
+  number: Hint.number,
+  penalty: Hint.penalty,
+  wave: Wave.name,
+  key: Hint.key
+}
+
+setHints {
+  number: Hint.number,
+  penalty: Hint.penalty,
+  wave: Wave.name
+}
+-> null
+
+getWaves null
+-> {
+  waves: [{
+    name: Wave.name,
+    time: Wave.time,
+    guesses: Wave.guesses
+  }]
+}
+
+setWaves {
+  waves: [{
+    name: Wave.name,
+    time: Wave.time,
+    guesses: Wave.guesses
+  }]
+}
+-> null
+
+getMembers null
+-> {
+  members: [{
+    name: Member.name,
+    email: Member.email
+  }]
+}
