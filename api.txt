@@ -46,8 +46,8 @@ Guess
   time: Timestamp
 
 Solve
-  teamId
-  puzzleId
+  teamID
+  puzzleID
   time: Timestamp
 
 Stats
