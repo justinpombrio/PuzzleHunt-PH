@@ -1,0 +1,58 @@
+
+DATABASES
+
+Hunt
+  name: String
+  teamSize: UInt
+  initGuesses: UInt
+
+Team
+  teamID: Uniq
+  password: String
+  name: String
+  guesses: UInt
+
+Member
+  teamID: Uniq
+  name: String
+  email: String
+
+Puzzle
+  puzzleID: Uniq
+  name: String
+  number: String
+  points: UInt
+  answer: String
+  waveID
+  key: String
+
+Hint
+  puzzleID
+  number: String
+  penalty: UInt
+  waveID
+  key: String
+  
+Wave
+  waveID
+  name: String|null
+  time: Timestamp
+  guesses: UInt
+
+Guess
+  teamID
+  puzzleID
+  guess: String
+  time: Timestamp
+
+Solve
+  teamId
+  puzzleId
+  time: Timestamp
+
+Stats
+  teamID
+  puzzleID
+  score: UInt
+  solveTime: UInt|null
+  guesses: UInt
