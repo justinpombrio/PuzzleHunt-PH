@@ -2,6 +2,8 @@
 
 <xsl:transform version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
+  <xsl:strip-space elements="*"/>
+
   <xsl:template match="title">
     <h1><xsl:copy-of select="node()"/></h1>
   </xsl:template>
@@ -33,14 +35,21 @@
       <xsl:for-each select="input">
         <xsl:if test="contains(@type, 'text')">
           <p>
-            <xsl:value-of select="."/>:
+            <xsl:value-of select="normalize-space(.)"/>:
+            <br/>
+            <input type="text" name="{@id}"/>
+          </p>
+        </xsl:if>
+        <xsl:if test="contains(@type, 'number')">
+          <p>
+            <xsl:value-of select="normalize-space(.)"/>:
             <br/>
             <input type="text" name="{@id}"/>
           </p>
         </xsl:if>
         <xsl:if test="contains(@type, 'puzzle')">
           <p>
-            <xsl:value-of select="."/>:
+            <xsl:value-of select="normalize-space(.)"/>:
             <br/>
             <select id="puzzle_select">
               <xsl:for-each select="document('hunt.xml')//puzzle[@id]">
@@ -52,7 +61,7 @@
                 Select a puzzle
               </option>
             </select>
-          </p>
+            </p>
         </xsl:if>
       </xsl:for-each>
       <input type="submit" value="{description}"/>
@@ -87,7 +96,7 @@
     </xsl:if>
   </xsl:template>
 
-  <xsl:template match="page">
+  <xsl:template name="Header">
     <xsl:variable name="hunt-name" select="document('hunt.xml')/hunt/name"/>
     <xsl:variable name="puzzle-list">
       <xsl:for-each select="document('hunt.xml')//puzzle[@id]/@id">
@@ -95,17 +104,22 @@
         <xsl:text>,</xsl:text>
       </xsl:for-each>
     </xsl:variable>
+    <title>
+      <xsl:value-of select="$hunt-name"/>
+    </title>
+    <link rel="stylesheet" type="text/css" href="../css/style.css"/>
+    <script type="text/javascript">
+      var PUZZLES = '<xsl:value-of select="$puzzle-list"/>'.split(",");
+      PUZZLES.pop();
+    </script>
+    <script type="text/javascript" src="/ph.js"/>
+  </xsl:template>
+
+  <xsl:template match="page">
+    <xsl:variable name="hunt-name" select="document('hunt.xml')/hunt/name"/>
     <html>
       <head>
-        <title>
-          <xsl:value-of select="$hunt-name"/>
-        </title>
-        <link rel="stylesheet" type="text/css" href="../css/style.css"/>
-        <script type="text/javascript">
-          var PUZZLES = '<xsl:value-of select="$puzzle-list"/>'.split(",");
-          PUZZLES.pop();
-        </script>
-        <script type="text/javascript" src="/ph.js"/>
+        <xsl:call-template name="Header"/>
       </head>
       <body>
         <ul class="nav">
@@ -118,7 +132,6 @@
           <li class="nav3"><a href="/leaderboard.xml">Leaderboard</a></li>
           <li class="nav4"><a href="/puzzles.xml">Puzzles</a></li>
         </ul>
-
         <article>
           <xsl:apply-templates select="*"/>
           <footer>
@@ -126,6 +139,28 @@
                href="https://github.com/justinpombrio/PuzzleHunt-PH">
               * Made with Puzzle Hunt: PH *
             </a>
+          </footer>
+        </article>
+      </body>
+    </html>
+  </xsl:template>
+  
+  <xsl:template match="master-page">
+    <html>
+      <head>
+        <xsl:call-template name="Header"/>
+      </head>
+      <body>
+        <ul class="nav">
+          <li class="nav1"><a href="/master/hunt.xml">Hunt</a></li>
+          <li class="nav2"><a href="/master/puzzles.xml">Puzzles</a></li>
+          <li class="nav3"><a href="/master/hints.xml">Hints</a></li>
+          <li class="nav4"><a href="/master/waves.xml">Waves</a></li>
+        </ul>
+        <article>
+          <xsl:apply-templates select="*"/>
+          <footer>
+            * Welcome, master. *
           </footer>
         </article>
       </body>

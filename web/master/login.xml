@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../ph.xsl"?>
+
+<page>
+  <title>Master Login</title>
+  <form>
+    <description>Login as Master</description>
+    <action>register</action>
+    <input type="text" id="password">
+      Master Password
+    </input>
+  </form>
+</page>

@@ -146,7 +146,7 @@ figcaption { float: right;
 
 a:link, a:visited { color: inherit; }
 
-footer {
+footer, .note {
     font-size: 1.1rem;
     font-style: italic;
     text-align: right;

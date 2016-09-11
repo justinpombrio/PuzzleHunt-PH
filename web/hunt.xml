@@ -1,5 +1,5 @@
 <hunt>
-  <name>Crumbs Puzzle Hunt</name>
+  <name>Crums Puzzle Hunt</name>
   <all-puzzles>
     <puzzles id="group_1" name="Primary Puzzles">
       <puzzle id="zero" name="Puzzle The Zeroth"/>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../ph.xsl"?>
+
+<master-page>
+  <title>Hunt Info</title>
+  <form>
+    <description>Update</description>
+    <action>SetHunt</action>
+    <input type="text" id="name">
+      Name of the hunt
+    </input>
+    <input type="number" id="team-size">
+      Maximum team size
+    </input>
+    <input type="number" id="init-guesses">
+      How many guesses each team starts with
+    </input>
+  </form>
+</master-page>
