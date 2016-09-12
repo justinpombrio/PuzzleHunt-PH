@@ -4,8 +4,6 @@
 <page>
   <title>Submit an Answer</title>
   <form>
-    <description>Submit Answer</description>
-    <action>guess</action>
     <input type="text" id="name">
       Team name
     </input>
@@ -18,5 +16,8 @@
     <input type="text" id="guess">
       Answer
     </input>
+    <submit-button action="guess">
+      Submit Answer
+    </submit-button>
   </form>
 </page>

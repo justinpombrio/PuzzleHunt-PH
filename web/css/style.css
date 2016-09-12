@@ -47,7 +47,7 @@ body {
     padding: 0em;
     width: 87.5%;
 /*    padding-left: 12.5%; */
-    max-width: 50em;
+    max-width: 60em;
     color: #111;
     font-family: et-book, Palatino, "Palatino Linotype", "Palatino LT STD", "Book Antiqua", Georgia, serif;
     border: 3px solid #554;
@@ -81,7 +81,7 @@ p.subtitle { font-style: italic;
              display: block;
              line-height: 1; }
 
-p, ol, ul { font-size: 1.4rem; }
+p, ol, ul, th, td { font-size: 1.4rem; }
 
 p { line-height: 2rem;
     margin-top: 1.4rem;
@@ -124,6 +124,14 @@ h1 code, h2 code, h3 code { font-size: 0.80em; }
 
 pre { padding-left: 2.5%;
       overflow-x: auto; }
+
+input.multi-form-cell.short-text {
+    width: 3rem;
+}
+
+input.multi-form-cell.long-text {
+    width: 10rem;
+}
 
 figure { padding: 0;
          border: 0;

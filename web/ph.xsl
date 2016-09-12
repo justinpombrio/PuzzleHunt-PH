@@ -24,23 +24,86 @@
     <p><a href="/guess.xml?puzzle={id}">Submit an answer</a></p>
   </xsl:template>
 
+
+  
+  <!--******************** FORMS ********************-->
+
+  <xsl:template name="PuzzleInput">
+    <select id="puzzle-input">
+      <script type="text/javascript" defer="defer">
+        setupDropdown();
+      </script>
+      <xsl:for-each select="document('hunt.xml')//puzzle[@id]">
+        <option value="{@id}">
+          <xsl:value-of select="@name"/>
+        </option>
+      </xsl:for-each>
+      <option value="" selected="selected">
+        Select a puzzle
+      </option>
+    </select>
+  </xsl:template>
+
+  <xsl:template match="multi-form">
+    <form action="{submit-button/@action}">
+      <p>
+        <table>
+          <xsl:for-each select="input">
+            <tr>
+              <td><b><xsl:value-of select="@name"/>:</b></td>
+              <td><xsl:value-of select="."/></td>
+            </tr>
+          </xsl:for-each>
+        </table>
+      </p>
+      <p>
+        <table>
+          <tbody id="multi-form-rows">
+            <script>
+              setupMultiform();
+            </script>
+            <tr>
+              <xsl:for-each select="input">
+                <th><xsl:value-of select="normalize-space(@name)"/></th>
+              </xsl:for-each>
+            </tr>
+            <tr id="row-template" style="display:none">
+              <xsl:for-each select="input">
+                <td>
+                  <xsl:if test="contains(@type, 'short-text')">
+                    <input type="text"
+                           name="{@id}"
+                           class="multi-form-cell short-text"/>
+                  </xsl:if>
+                  <xsl:if test="contains(@type, 'long-text')">
+                    <input type="text"
+                           name="{@id}"
+                           class="multi-form-cell long-text"/>
+                  </xsl:if>
+                  <xsl:if test="contains(@type, 'generated')">
+                    <input type="text"
+                           name="{@id}"
+                           disabled="true"
+                           class="multi-form-cell long-text"/>
+                  </xsl:if>
+                </td>
+              </xsl:for-each>
+              <td>
+                <a href="#" onclick="deleteRow(this)">delete</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <a href="#" onclick="addRow(this)">add row</a>
+      </p>
+      <input type="submit" value="{normalize-space(submit-button)}"/>
+    </form>
+  </xsl:template>
+
   <xsl:template match="form">
-    <script type="text/javascript" defer="defer">
-      document.addEventListener("DOMContentLoaded", function() {
-        var dropdown = document.getElementById("puzzle_select");
-        setDropdownOption(dropdown, QUERY['puzzle']);
-      });
-    </script>
-    <form action="{action}">
+    <form action="{submit-button/@action}">
       <xsl:for-each select="input">
         <xsl:if test="contains(@type, 'text')">
-          <p>
-            <xsl:value-of select="normalize-space(.)"/>:
-            <br/>
-            <input type="text" name="{@id}"/>
-          </p>
-        </xsl:if>
-        <xsl:if test="contains(@type, 'number')">
           <p>
             <xsl:value-of select="normalize-space(.)"/>:
             <br/>
@@ -51,20 +114,11 @@
           <p>
             <xsl:value-of select="normalize-space(.)"/>:
             <br/>
-            <select id="puzzle_select">
-              <xsl:for-each select="document('hunt.xml')//puzzle[@id]">
-                <option value="{@id}">
-                  <xsl:value-of select="@name"/>
-                </option>
-              </xsl:for-each>
-              <option value="" selected="selected">
-                Select a puzzle
-              </option>
-            </select>
+            <xsl:call-template name="PuzzleInput"/>
             </p>
         </xsl:if>
       </xsl:for-each>
-      <input type="submit" value="{description}"/>
+      <input type="submit" value="{normalize-space(submit-button)}"/>
     </form>
   </xsl:template>
 

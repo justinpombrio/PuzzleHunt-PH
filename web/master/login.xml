@@ -4,10 +4,11 @@
 <page>
   <title>Master Login</title>
   <form>
-    <description>Login as Master</description>
-    <action>register</action>
     <input type="text" id="password">
       Master Password
     </input>
+    <submit-button action="LoginAsMaster">
+      Login as Master
+    </submit-button>
   </form>
 </page>

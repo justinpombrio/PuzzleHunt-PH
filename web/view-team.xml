@@ -4,13 +4,14 @@
 <page>
   <title>View Your Team</title>
   <form>
-    <description>View Team</description>
-    <action>view-team</action>
     <input type="text" id="name">
       Team name
     </input>
     <input type="text" id="password">
       Password
     </input>
+    <submit-button action="ViewOwnTeam">
+      View Team
+    </submit-button>
   </form>
 </page>

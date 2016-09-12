@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../ph.xsl"?>
+
+<master-page>
+  <title>Waves</title>
+  <multi-form>
+    <input type="long-text" id="name" name="Name">
+      The name of the wave
+    </input>
+    <input type="long-text" id="time" name="Release">
+      When the wave will occur
+    </input>
+    <input type="short-text" id="guesses" name="Guesses">
+      How many guesses to provide to all teams when the wave occurs
+    </input>
+    <submit-button action="SetWaves">
+      Update
+    </submit-button>
+  </multi-form>
+</master-page>

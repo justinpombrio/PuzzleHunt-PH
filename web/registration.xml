@@ -4,7 +4,7 @@
 <page>
   <title>Team Registration</title>
   <form>
-    <description>Register Team</description>
+    <button_text>Register Team</button_text>
     <action>register</action>
     <input type="text" id="name">
       Team name
