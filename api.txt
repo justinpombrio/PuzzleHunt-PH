@@ -5,6 +5,7 @@ Hunt
   name: String
   teamSize: UInt
   initGuesses: UInt
+  password: String
 
 Team
   teamID: Uniq
@@ -154,6 +155,14 @@ getPuzzles null
 
 
 MASTER ACTIONS
+
+login {
+  password: Hunt.password
+}
+-> null
+
+logout null
+-> null
 
 getHunt null
 -> {
