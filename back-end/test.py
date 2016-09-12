@@ -188,6 +188,10 @@ def viewOwnTeam():
 
     return success(c, db, {"guesses": guesses, "members": members})
 
+#@app.route("/login", methods=['POST'])
+#def login():
+#    content = request.get_json()
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=4000)
     db.close()
