@@ -6,6 +6,7 @@ Hunt
   teamSize: UInt
   initGuesses: UInt
   password: String
+  secretKey: String
 
 Team
   teamID: Uniq
