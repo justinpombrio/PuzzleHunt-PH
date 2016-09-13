@@ -37,9 +37,10 @@ Hint
   
 Wave
   waveID
-  name: String|null
+  name: String
   time: Timestamp
   guesses: UInt
+  visible: Bool
 
 Guess
   teamID
