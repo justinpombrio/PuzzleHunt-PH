@@ -1,8 +1,17 @@
 
+var SERVER_ADDRESS = "http://52.38.39.79:4000/";
+
 /* DOM Utilities */
 
 function error(msg) {
+  console.log("ERROR");
   alert(msg);
+}
+
+function panic(msg) {
+  error("Oops! The site broke. Details logged to console.");
+  console.log("INTERNAL ERROR");
+  console.log(msg);
 }
 
 function get(id) {
@@ -18,6 +27,33 @@ function getTags(tagName) {
     tags.push(tag);
   }
   return tags;
+}
+
+// taken from http://stackoverflow.com/questions/133925/javascript-post-request-like-a-form-submit#133997
+function post(action, params) {
+  var path = SERVER_ADDRESS + action;
+  var json = JSON.stringify(params);
+  console.log("POST", path, json);
+  
+  var request = new XMLHttpRequest();
+  request.open("POST", path, false);
+  request.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+  request.send(json);
+
+  try {
+    var response = JSON.parse(request.response);
+    switch (response.status) {
+    case "Failure":
+      error(response.message);      
+      break;
+    case "Success":
+      return response;
+    }
+  } catch (exn) {
+    console.log(exn);
+    panic("Invalid response");
+  }
+  return null;
 }
 
 /* Other Utilities */
@@ -97,6 +133,21 @@ function renumberForm() {
   }
 }
 
+function setupForm() {
+  if (!QUERY.data) { return; }
+  var json = JSON.parse(QUERY.data);
+  switch (json.location) {
+  case "your-team":
+    get("name").value = json.name
+    get("guesses").value = json.guesses
+    for (var i = 0; i < json.members.length; i++) {
+      get("member_name_" + (i+1)).value = json.members[i]["name"];
+      get("member_email_" + (i+1)).value = json.members[i]["email"];
+    }
+    break;
+  }
+}
+
 function setupMultiForm() {
   if (get("multi-form")) {
     addRow();
@@ -104,6 +155,7 @@ function setupMultiForm() {
 }
 
 window.onload = function() {
+  setupForm();
   setupMultiForm();
   setupPuzzleInput();
 }
@@ -115,7 +167,7 @@ function getInputs() {
   var dict = {};
   for (var i = 0; i < inputs.length; i++) {
     var input = inputs[i];
-    dict[input.name] = "" + input.value;
+    dict[input.id] = "" + input.value;
   }
   return dict;
 }
@@ -137,20 +189,68 @@ function getMultiInputs() {
 
 function submitForm(action) {
   var inputs = getInputs();
-  if (action === "register") {
+  switch (action) {
+  case "registerTeam":
     var pass1 = inputs["password"];
     var pass2 = inputs["password_verify"];
     if (pass1 !== pass2) {
       error("Passwords do not match.")
     }
     delete inputs["password_verify"];
+    
+    var members = [];
+    for (var i = 1; i <= 4; i++) {
+      var name = inputs["member_name_" + i];
+      var email = inputs["member_email_" + i];
+      if (email !== "") {
+        members.push({"name": name, "email": email});
+      }
+      delete inputs["member_name_" + i];
+      delete inputs["member_email_" + i];
+    }
+    inputs["members"] = members;
+    break;
+  case "changeMembers":
+    var members = [];
+    for (var i = 1; i <= 4; i++) {
+      var name = inputs["member_name_" + i];
+      var email = inputs["member_email_" + i];
+      if (email !== "") {
+        members.push({"name": name, "email": email});
+      }
+      delete inputs["member_name_" + i];
+      delete inputs["member_email_" + i];
+    }
+    inputs["members"] = members;
+    delete inputs["guesses"];
+    break;
   }
-  var json = JSON.stringify(getInputs());
-  console.log("POST", "/" + action, json);
+  var response = post(action, inputs);
+  if (response !== null) {
+    handleResponse(action, response);
+  }
 }
 
 function submitMultiForm(action, item) {
   var dict = {}; dict[item] = getMultiInputs(item);
-  var json = JSON.stringify(dict);
-  console.log("POST", "/" + action, json);
+  post(action, dict);
+}
+
+/* Form actions */
+
+function handleResponse(action, response) {
+  console.log("SUCCESS", response);
+  function goto(location) {
+    response.location = location;
+    window.location.href = location + ".xml?data=" + JSON.stringify(response);
+  }
+  switch (action) {
+  case "registerTeam":
+    break;
+  case "viewOwnTeam":
+    goto("your-team");
+    break;
+  case "changeMembers":
+    break;
+  }
 }

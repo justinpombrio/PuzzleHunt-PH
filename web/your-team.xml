@@ -2,16 +2,13 @@
 <?xml-stylesheet type="text/xsl" href="../ph.xsl"?>
 
 <page>
-  <title>Team Registration</title>
+  <title>Your Team</title>
   <form>
     <input type="text" id="name">
       Team name
     </input>
-    <input type="password" id="password">
-      Password
-    </input>
-    <input type="password" id="password_verify">
-      Repeat password
+    <input type="fixed" id="guesses">
+      Remaining guesses
     </input>
     <input type="text" id="member_name_1">
       Member 1: Name
@@ -37,8 +34,11 @@
     <input type="text" id="member_email_4">
       Member 4: Email Address
     </input>
-    <submit-button action="registerTeam">
-      Register Team
+    <input type="password" id="password">
+      Password
+    </input>
+    <submit-button action="changeMembers">
+      Update
     </submit-button>
   </form>
 </page>

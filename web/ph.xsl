@@ -77,11 +77,11 @@
                          name="{@id}"
                          class="multi-form-cell long-text"/>
                 </xsl:if>
-                <xsl:if test="contains(@type, 'generated')">
+                <xsl:if test="contains(@type, 'fixed')">
                   <input type="text"
                          name="{@id}"
                          disabled="true"
-                         class="multi-form-cell gen-text"/>
+                         class="multi-form-cell fixed-text"/>
                 </xsl:if>
                 <xsl:if test="contains(@type, 'datetime')">
                   <input type="datetime-local"
@@ -104,25 +104,28 @@
   </xsl:template>
 
   <xsl:template match="form">
-    <xsl:for-each select="input">
-      <p>
-        <xsl:if test="contains(@type, 'password')">
-          <xsl:value-of select="normalize-space(.)"/>:
-          <br/>
-          <input type="password" name="{@id}"/>
-        </xsl:if>
-        <xsl:if test="contains(@type, 'text')">
-          <xsl:value-of select="normalize-space(.)"/>:
-          <br/>
-          <input type="text" name="{@id}"/>
-        </xsl:if>
-        <xsl:if test="contains(@type, 'puzzle')">
-          <xsl:value-of select="normalize-space(.)"/>:
-          <br/>
-          <xsl:call-template name="PuzzleInput"/>
-        </xsl:if>
-      </p>
-    </xsl:for-each>
+    <table>
+      <xsl:for-each select="input">
+        <tr>
+          <xsl:if test="contains(@type, 'password')">
+            <td><xsl:value-of select="normalize-space(.)"/>:</td>
+            <td><input type="password" id="{@id}"/></td>
+          </xsl:if>
+          <xsl:if test="contains(@type, 'text')">
+            <td><xsl:value-of select="normalize-space(.)"/>:</td>
+            <td><input type="text" id="{@id}"/></td>
+          </xsl:if>
+          <xsl:if test="contains(@type, 'fixed')">
+            <td><xsl:value-of select="normalize-space(.)"/>:</td>
+            <td><input type="text" disabled="true" id="{@id}"/></td>
+          </xsl:if>
+          <xsl:if test="contains(@type, 'puzzle')">
+            <td><xsl:value-of select="normalize-space(.)"/>:</td>
+            <td><xsl:call-template name="PuzzleInput"/></td>
+          </xsl:if>
+        </tr>
+      </xsl:for-each>
+    </table>
     <input type="button"
            value="{normalize-space(submit-button)}"
            onclick="submitForm('{submit-button/@action}')"/>

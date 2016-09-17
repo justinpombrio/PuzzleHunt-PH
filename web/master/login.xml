@@ -7,7 +7,7 @@
     <input type="password" id="password">
       Master Password
     </input>
-    <submit-button action="loginAsMaster">
+    <submit-button action="login">
       Login as Master
     </submit-button>
   </form>
