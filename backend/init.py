@@ -15,6 +15,15 @@ if raw_input("Are you sure? (yes/[no]) ") != "yes":
 c = conn.cursor()
 
 string = """
+drop table if exists Hunt;
+create table Hunt (
+  name varchar NOT NULL,
+  teamSize smallint NOT NULL,
+  initGuesses int NOT NULL,
+  password varchar NOT NULL,
+  secretKey varchar NOT NULL
+);
+
 drop table if exists Team;
 create table Team (
   teamID serial primary key NOT NULL,
@@ -34,9 +43,11 @@ drop table if exists Puzzle;
 create table Puzzle (
   puzzleID serial primary key NOT NULL,
   name varchar NOT NULL,
-  waveID smallint NOT NULL,
+  number varchar NOT NULL,
   points int NOT NULL,
-  number varchar NOT NULL
+  answer int NOT NULL,
+  waveID smallint NOT NULL,
+  key varchar NOT NULL
 );
 
 drop table if exists Hint;
@@ -51,9 +62,10 @@ create table Hint (
 drop table if exists Wave;
 create table Wave (
   waveID serial primary key NOT NULL,
-  name varchar,
+  name varchar NOT NULL,
   time timestamp NOT NULL,
-  guesses int NOT NULL
+  guesses int NOT NULL,
+  visible boolean NOT NULL
 );
 
 drop table if exists Guess;
