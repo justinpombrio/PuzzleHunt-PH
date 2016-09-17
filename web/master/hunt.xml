@@ -13,7 +13,7 @@
     <input type="text" id="init-guesses">
       How many guesses each team starts with
     </input>
-    <submit-button action="SetHunt">
+    <submit-button action="setHunt">
       Update
     </submit-button>
   </form>

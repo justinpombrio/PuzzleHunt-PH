@@ -3,17 +3,17 @@
 
 <master-page>
   <title>Waves</title>
-  <multi-form>
+  <multi-form item="Wave" id="waves" action="getWaves">
     <input type="long-text" id="name" name="Name">
       The name of the wave
     </input>
-    <input type="long-text" id="time" name="Release">
-      When the wave will occur
+    <input type="datetime" id="time" name="Release">
+      When the wave will occur (mm/dd/yyyy --:-- --)
     </input>
     <input type="short-text" id="guesses" name="Guesses">
       How many guesses to provide to all teams when the wave occurs
     </input>
-    <submit-button action="SetWaves">
+    <submit-button action="setWaves">
       Update
     </submit-button>
   </multi-form>

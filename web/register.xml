@@ -4,15 +4,13 @@
 <page>
   <title>Team Registration</title>
   <form>
-    <button_text>Register Team</button_text>
-    <action>register</action>
     <input type="text" id="name">
       Team name
     </input>
-    <input type="text" id="password">
+    <input type="password" id="password">
       Password
     </input>
-    <input type="text" id="password_verify">
+    <input type="password" id="password_verify">
       Repeat password
     </input>
     <input type="text" id="member_1">
@@ -27,5 +25,8 @@
     <input type="text" id="member_4">
       Team member
     </input>
+    <submit-button action="register">
+      Register Team
+    </submit-button>
   </form>
 </page>

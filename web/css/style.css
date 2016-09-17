@@ -126,11 +126,20 @@ pre { padding-left: 2.5%;
       overflow-x: auto; }
 
 input.multi-form-cell.short-text {
-    width: 3rem;
+    width: 4rem;
 }
 
 input.multi-form-cell.long-text {
     width: 10rem;
+}
+
+input.multi-form-cell.gen-text {
+    width: 10rem;
+    font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+
+input.multi-form-cell.datetime {
+    width: 20rem;
 }
 
 figure { padding: 0;
@@ -172,6 +181,7 @@ input[type="submit"], input[type="button"], select {
 ul.nav {
     list-style-type: none;
     padding: 0;
+    margin: 0;
     overflow: hidden;
     background: #e8e4bc;
     border-bottom: 3px solid #554;

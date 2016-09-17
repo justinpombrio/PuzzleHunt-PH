@@ -194,6 +194,7 @@ setPuzzles {
 
 getHints null
 -> {
+  puzzle: Puzzle.PuzzleId,
   number: Hint.number,
   penalty: Hint.penalty,
   wave: Wave.name,
@@ -201,6 +202,7 @@ getHints null
 }
 
 setHints {
+  puzzle: Puzzle.PuzzleId,
   number: Hint.number,
   penalty: Hint.penalty,
   wave: Wave.name

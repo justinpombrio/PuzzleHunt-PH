@@ -7,7 +7,7 @@
     <input type="text" id="name">
       Team name
     </input>
-    <input type="text" id="password">
+    <input type="password" id="password">
       Password
     </input>
     <input type="puzzle" id="puzzle">
