@@ -5,6 +5,8 @@ Hunt
   name: String
   teamSize: UInt
   initGuesses: UInt
+  password: String
+  secretKey: String
 
 Team
   teamID: Uniq
@@ -35,9 +37,10 @@ Hint
   
 Wave
   waveID
-  name: String|null
+  name: String
   time: Timestamp
   guesses: UInt
+  visible: Bool
 
 Guess
   teamID
@@ -136,7 +139,7 @@ submitGuess {
 }
 -> "Correct"|"Incorrect"
 
-getPuzzles null
+viewPuzzles null
 -> {
   puzzles: [{
     name: Puzzle.name,
@@ -154,6 +157,14 @@ getPuzzles null
 
 
 MASTER ACTIONS
+
+login {
+  password: Hunt.password
+}
+-> null
+
+logout null
+-> null
 
 getHunt null
 -> {
