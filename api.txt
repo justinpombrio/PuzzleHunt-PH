@@ -138,7 +138,9 @@ submitGuess {
   puzzle: Puzzle.name,
   guess: String
 }
--> "Correct"|"Incorrect"
+-> {
+  isCorrect: "Correct"|"Incorrect"
+}
 
 viewPuzzles null
 -> {
