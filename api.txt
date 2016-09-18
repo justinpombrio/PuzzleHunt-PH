@@ -107,6 +107,7 @@ viewOwnTeam {
   password: Team.password
 }
 -> {
+  name: Team.name
   guesses: Team.guesses,
   members: [{
     name: Member.name,
