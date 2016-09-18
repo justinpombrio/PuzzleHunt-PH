@@ -133,7 +133,7 @@ changeMembers {
 -> null
 
 submitGuess {
-  team: Team.name,
+  name: Team.name,
   password: Team.password,
   puzzle: Puzzle.name,
   guess: String
