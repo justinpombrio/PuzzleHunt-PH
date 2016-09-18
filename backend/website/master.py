@@ -1,4 +1,4 @@
-from flask import session, Blueprint
+from flask import session, Blueprint, request
 from website import db
 from helpers import *
 
@@ -12,11 +12,9 @@ def logout():
 
 @master_api.route("/login", methods=['POST'])
 def login():
-    content = request.get_json()
-    if content == None:
-        return abortMessage("Internal error: Invalid JSON")
-    if not typeCheck(content, {"password": unicode}):
-        return abortMessage("Internal error: Type check failed")
+    fail, content = parseJson(request, {"password": unicode})
+    if fail:
+        return content
     password = content["password"].encode('UTF_8')
     c = db.cursor()
 
@@ -28,6 +26,38 @@ def login():
 
     session['username'] = "master"
     return success({}, c)    
+
+
+@master_api.route("/getHunt", methods=['POST'])
+def getHunt():
+    if 'username' not in session:
+        return abortMessage("Unauthorized")
+
+    c = db.cursor()
+
+    c.execute("SELECT name, teamSize, initGuesses FROM Hunt")
+    hunt_name, team_size, init_guesses = c.fetchone()
+    return success({"name": hunt_name, "teamSize": team_size, "initGuesses": init_guesses}, c)
+
+
+@master_api.route("/setHunt", methods=['POST'])
+def setHunt():
+    if 'username' not in session:
+        return abortMessage("Unauthorized")
+
+    fail, content = parseJson(request, {"name": unicode, "teamSize": unicode, "initGuesses": unicode})
+    if fail:
+        return content
+    hunt_name = content["name"]
+    team_size = content["teamSize"]
+    init_guesses = content["initGuesses"]
+    c = db.cursor()
+
+    # TODO: Limits on the above values?
+
+    c.execute("UPDATE Hunt SET name = %s, teamSize = %s, initGuesses = %s", (hunt_name, team_size, init_guesses))
+
+    return success({}, c, db)
 
 
 @master_api.route("/getWaves", methods=['POST'])
@@ -48,11 +78,9 @@ def setWaves():
     if 'username' not in session:
         return abortMessage("Unauthorized")
 
-    content = request.get_json()
-    if content == None:
-        return abortMessage("Internal error: Invalid JSON")
-    if not typeCheck(content, {"name": unicode, "password": unicode, "members": [{"name": unicode, "email": unicode}]}):
-        return abortMessage("Internal error: Type check failed")
+    fail, content = parseJson(request, {"name": unicode, "password": unicode, "members": [{"name": unicode, "email": unicode}]})
+    if fail:
+        return content
     waves = content["waves"]
     c = db.cursor()
 
@@ -100,3 +128,18 @@ def setPuzzles():
     content = request.get_json()
     puzzles = content["puzzles"]
     c = db.cursor()
+
+    #TODO: finish this
+
+
+@master_api.route("/getMembers", methods=['POST'])
+def getMembers():
+    if 'username' not in session:
+        return abortMessage("Unauthorized")
+
+    c = db.cursor()
+
+    c.execute("SELECT name, email FROM Member")
+    name_emails = [{"name": rec[0], "email": rec[1]} for rec in c.fetchall()]
+
+    return success({"members": name_emails}, c)

@@ -14,11 +14,9 @@ email_regex = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
 @puzzler_api.route("/registerTeam", methods=['POST'])
 def registerTeam():
     # Retrieve data
-    content = request.get_json(silent=True)
-    if content == None:
-        return abortMessage("Internal error: Invalid JSON")
-    if not typeCheck(content, {"name": unicode, "password": unicode, "members": [{"name": unicode, "email": unicode}]}): 
-        return abortMessage("Internal error: Type check failed")
+    fail, content = parseJson(request, {"name": unicode, "password": unicode, "members": [{"name": unicode, "email": unicode}]})
+    if fail:
+        return content
     team_name = content["name"]
     password = content["password"].encode('UTF_8')
     members = content["members"]
@@ -63,11 +61,9 @@ def registerTeam():
 
 @puzzler_api.route("/viewTeam", methods=['POST'])
 def viewTeam():
-    content = request.get_json(silent=True)
-    if content == None:
-        return abortMessage("Internal error: Invalid JSON")
-    if not typeCheck(content, {"name": unicode}):
-        return abortMessage("Internal error: Type check failed")
+    fail, content = parseJson(request, {"name": unicode})
+    if fail:
+        return content
     team_name = content["name"]
     c = db.cursor()
 
@@ -86,11 +82,9 @@ def viewTeam():
 
 @puzzler_api.route("/changePassword", methods=['POST'])
 def changePassword():
-    content = request.get_json(silent=True)
-    if content == None:
-        return abortMessage("Internal error: Invalid JSON")
-    if not typeCheck(content, {"name": unicode, "password": unicode, "newPassword": unicode}):
-        return abortMessage("Internal error: Type check failed")
+    fail, content = parseJson(request, {"name": unicode, "password": unicode, "newPassword": unicode})
+    if fail:
+        return content
     team_name = content["name"]
     password = content["password"].encode('UTF_8')
     newPassword = content["newPassword"]
@@ -109,11 +103,9 @@ def changePassword():
 
 @puzzler_api.route("/changeMembers", methods=['POST'])
 def changeMembers():
-    content = request.get_json(silent=True)
-    if content == None:
-        return abortMessage("Internal error: Invalid JSON")
-    if not typeCheck(content, {"name": unicode, "password": unicode, "members": [{"name": unicode, "email": unicode}]}):
-        return abortMessage("Internal error: Type check failed")
+    fail, content = parseJson(request, {"name": unicode, "password": unicode, "members": [{"name": unicode, "email": unicode}]})
+    if fail:
+        return content
     team_name = content["name"]
     password = content["password"].encode('UTF_8')
     members = content["members"]
@@ -151,11 +143,9 @@ def changeMembers():
 
 @puzzler_api.route("/viewOwnTeam", methods=['POST'])
 def viewOwnTeam():
-    content = request.get_json(silent=True)
-    if content == None:
-        return abortMessage("Internal error: Invalid JSON")
-    if not typeCheck(content, {"name": unicode, "password": unicode}):
-        return abortMessage("Internal error: Type check failed")
+    fail, content = parseJson(request, {"name": unicode, "password": unicode})
+    if fail:
+        return content
     team_name = content["name"]
     password = content["password"].encode('UTF_8')
     c = db.cursor()
@@ -172,4 +162,7 @@ def viewOwnTeam():
     c.execute("SELECT name, email FROM Member WHERE teamID = %s", (teamID,))
     members = [{"name": rec[0], "email": rec[1]} for rec in c.fetchall()]
 
-    return success({"guesses": guesses, "members": members}, c)
+    return success({"guesses": guesses, "members": members, "name": team_name}, c)
+
+
+#@puzzler_api.route("/viewPuzzles")

@@ -11,19 +11,25 @@ def tooLong(string, field):
     return len(string) >= limits[field]
 
 def abortMessage(message, cursor=None, conn=None):
+    print "Failure"
     if cursor:
         cursor.close()
     if conn:
         conn.rollback()
-    return jsonify({"status": "Failure", "message": message})
+    resp = jsonify({"status": "Failure", "message": message})
+    resp.headers['Access-Control-Allow-Origin'] = "*"
+    return resp
 
 def success(data, cursor=None, conn=None):
+    print "Success"
     if cursor:
         cursor.close()
     if conn:
         conn.commit()
     data["status"] = "Success"
-    return jsonify(data)
+    resp = jsonify(data)
+    resp.headers['Access-Control-Allow-Origin'] = "*"
+    return resp
 
 def authorized(team_name, password, cursor):
     # Get teamID, check exists
@@ -62,5 +68,20 @@ def typeCheck(json_data, types):
                 return False
     elif type(json_data) != types:
         # Is not primitive
+        print json_data
+        print types
+        print type(json_data)
+        print type(types)
         return False
     return True
+
+# Validate and type check JSON
+# Return failure response if fails
+# Otherwise return JSON content
+def parseJson(rqst, type_sig):
+    content = rqst.get_json(silent=True)
+    if content == None:
+        return True, abortMessage("Internal error: Invalid JSON")
+    if not typeCheck(content, type_sig):
+        return True, abortMessage("Internal error: Type check failed")
+    return False, content
