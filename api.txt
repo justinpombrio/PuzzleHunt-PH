@@ -201,7 +201,8 @@ setPuzzles {
     number: Puzzle.number,
     points: Puzzle.points,
     wave: Wave.name,
-    answer: Puzzle.answer
+    answer: Puzzle.answer,
+    key: Puzzle.key
   }]
 }
 -> null
