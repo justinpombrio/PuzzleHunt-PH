@@ -139,7 +139,7 @@ submitGuess {
   guess: String
 }
 -> {
-  isCorrect: "Correct"|"Incorrect"
+  isCorrect: "Correct"|"Incorrect"|"outOfGuesses"
 }
 
 viewPuzzles null
