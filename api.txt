@@ -220,7 +220,8 @@ setHints {
   puzzle: Puzzle.PuzzleId,
   number: Hint.number,
   penalty: Hint.penalty,
-  wave: Wave.name
+  wave: Wave.name,
+  key: Hint.key
 }
 -> null
 
