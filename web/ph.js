@@ -1,6 +1,8 @@
 
 var SERVER_ADDRESS = "http://52.38.39.79:4000/";
 
+
+
 /* DOM Utilities */
 
 function error(msg) {
@@ -29,6 +31,25 @@ function getTags(tagName) {
   return tags;
 }
 
+
+
+/* Other Utilities */
+
+var SAFE_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+function randomFilename() {
+  var filename = "";
+  for (var i = 0; i < 10; i++) {
+    var index = Math.floor(SAFE_CHARS.length * Math.random());
+    filename += SAFE_CHARS[index];
+  }
+  return filename;
+}
+
+
+
+/* Http POST */
+
 // taken from http://stackoverflow.com/questions/133925/javascript-post-request-like-a-form-submit#133997
 function post(action, params) {
   var path = SERVER_ADDRESS + action;
@@ -56,18 +77,7 @@ function post(action, params) {
   return null;
 }
 
-/* Other Utilities */
 
-var SAFE_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-function randomFilename() {
-  var filename = "";
-  for (var i = 0; i < 10; i++) {
-    var index = Math.floor(SAFE_CHARS.length * Math.random());
-    filename += SAFE_CHARS[index];
-  }
-  return filename;
-}
 
 /* Query Strings */
 
@@ -82,6 +92,8 @@ function parseQuery(qstr) {
 }
 
 var QUERY = parseQuery(window.location.search);
+
+
 
 /* Forms */
 
@@ -160,6 +172,8 @@ window.onload = function() {
   setupPuzzleInput();
 }
 
+
+
 /* Form submission */
 
 function getInputs() {
@@ -186,6 +200,10 @@ function getMultiInputs() {
   }
   return rows;
 }
+
+
+
+/* Form actions */
 
 function submitForm(action) {
   var inputs = getInputs();
@@ -235,8 +253,6 @@ function submitMultiForm(action, item) {
   var dict = {}; dict[item] = getMultiInputs(item);
   post(action, dict);
 }
-
-/* Form actions */
 
 function handleResponse(action, response) {
   console.log("SUCCESS", response);
