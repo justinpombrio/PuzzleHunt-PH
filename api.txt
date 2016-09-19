@@ -230,6 +230,7 @@ getWaves null
     name: Wave.name,
     time: Wave.time,
     guesses: Wave.guesses
+    visible: Wave.visible
   }]
 }
 
@@ -238,6 +239,7 @@ setWaves {
     name: Wave.name,
     time: Wave.time,
     guesses: Wave.guesses
+    visible: Wave.visible
   }]
 }
 -> null
