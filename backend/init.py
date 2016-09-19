@@ -41,11 +41,11 @@ create table Member (
 
 drop table if exists Puzzle;
 create table Puzzle (
-  puzzleID serial primary key NOT NULL,
+  puzzleID smallint primary key NOT NULL,
   name varchar NOT NULL,
   number varchar NOT NULL,
   points int NOT NULL,
-  answer int NOT NULL,
+  answer varchar NOT NULL,
   waveID smallint NOT NULL,
   key varchar NOT NULL
 );
@@ -54,14 +54,14 @@ drop table if exists Hint;
 create table Hint (
   puzzleID smallint NOT NULL,
   number smallint NOT NULL,
-  waveID smallint NOT NULL,
   penalty int NOT NULL,
+  waveID smallint NOT NULL,
   key varchar NOT NULL
 );
 
 drop table if exists Wave;
 create table Wave (
-  waveID serial primary key NOT NULL,
+  waveID smallint primary key NOT NULL,
   name varchar NOT NULL,
   time timestamp NOT NULL,
   guesses int NOT NULL,

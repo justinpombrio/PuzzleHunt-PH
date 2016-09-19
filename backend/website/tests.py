@@ -55,3 +55,93 @@ print make_request("/getHunt", payload, False, cookie)
 print "Getting all emails"
 payload = {}
 print make_request("/getMembers", payload, False, cookie)
+
+# Submit answer
+print "Submitting answer"
+payload = {}
+print make_request("/submitGuess", payload)
+
+# Submit answer
+print "Submitting answer"
+payload = {"name": "MyTeam", "password": "ButThisIs", "puzzle": "", "guess": ""}
+print make_request("/submitGuess", payload)
+
+# Submit answer
+print "Submitting answer"
+payload = {"name": "MyTeam", "password": "ButTisIs", "puzzle": "", "guess": ""}
+print make_request("/submitGuess", payload)
+
+# Submit answer
+print "Submitting answer"
+payload = {"name": "MyTeam", "password": "ButThisIs", "puzzle": "", "guess": ""}
+print make_request("/submitGuess", payload)
+
+# Submit answer
+print "Submitting answer"
+payload = {"name": "MyTeam", "password": "ButThisIs", "puzzle": "GoodPuzzle", "guess": "godanswer"}
+print make_request("/submitGuess", payload)
+
+# Submit answer
+print "Submitting answer"
+payload = {"name": "MyTeam", "password": "ButThisIs", "puzzle": "BadPuzzle", "guess": "baddanswer"}
+print make_request("/submitGuess", payload)
+
+# Submit answer
+print "Submitting answer"
+payload = {"name": "MyTeam", "password": "ButThisIs", "puzzle": "GoodPuzzle", "guess": "goodanswer"}
+print make_request("/submitGuess", payload)
+
+# Get all puzzles
+print "Getting puzzles"
+payload = {}
+print make_request("/getPuzzles", payload, False, cookie)
+
+# Get all waves
+print "Getting waves"
+payload = {}
+print make_request("/getWaves", payload, False, cookie)
+
+# Setting one wave
+print "Setting wave"
+payload = {"waves": [{"name": "newwave", "time": "2010-3-3 3:03:03", "guesses":100, "visible":True}, {"name": "newwave2", "time": "2020-3-3 3:03:03", "guesses": 200, "visible":False}]}
+print make_request("/setWaves", payload, False, cookie)
+
+# Set one puzzle
+print "Setting one puzzle"
+payload = {"puzzles": [{"name": "newpuzzle", "number": "1.4", "points": 20000, "wave": "bad wave", "answer": "", "key":""}]}
+print make_request("/setPuzzles", payload, False, cookie)
+
+# Getting puzzles
+print "Getting puzzles"
+payload = {}
+print make_request("/getPuzzles", payload, False, cookie)
+
+# Set one puzzle
+print "Setting one puzzle"
+payload = {"puzzles": [{"name": "newpuzzle", "number": "1.4", "points": 20000, "wave": "newwave", "answer": "yes", "key":""}]}
+print make_request("/setPuzzles", payload, False, cookie)
+
+# Get new puzzles
+print "Getting puzzles"
+payload = {}
+print make_request("/getPuzzles", payload, False, cookie)
+
+# Get hints
+print "Getting hints"
+payload = {}
+print make_request("/getHints", payload, False, cookie)
+
+# Get waves
+print "Getting waves"
+payload = {}
+print make_request("/getWaves", payload, False, cookie)
+
+# Set hints
+print "Setting hints"
+payload = {"hints": [{"puzzle": "newpuzzle", "number": 1, "penalty": 2, "wave": "newwave", "key":""}]}
+print make_request("/setHints", payload, False, cookie)
+
+# Get hints
+print "Getting hints"
+payload = {}
+print make_request("/getHints", payload, False, cookie)

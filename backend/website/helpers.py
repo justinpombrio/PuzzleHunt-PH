@@ -1,14 +1,19 @@
 import bcrypt
 from flask import jsonify
 import psycopg2
+import datetime
 
-def tooLong(string, field):
-    limits = {"team_name": 64,
+SIZE_LIMITS = {"team_name": 64,
         "member_name": 128,
         "email": 256,
-        "wave_name": 64
+        "wave_name": 64,
+        "guess": 64,
+        "puzzle_name": 64,
+        "number": 64
     }
-    return len(string) >= limits[field]
+
+def tooLong(string, field):
+    return len(string) >= SIZE_LIMITS[field]
 
 def abortMessage(message, cursor=None, conn=None):
     print "Failure"
@@ -66,12 +71,20 @@ def typeCheck(json_data, types):
         for elem in json_data:
             if not typeCheck(elem, types[0]):
                 return False
+    elif types == datetime.datetime:
+        print "Trying datetime"
+        # Try parsing datetime
+        if type(json_data) != unicode:
+            return False
+        try:
+            datetime.datetime.strptime(json_data, "%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            print "Did not parse"
+            return False
     elif type(json_data) != types:
-        # Is not primitive
-        print json_data
-        print types
         print type(json_data)
-        print type(types)
+        print types
+        # Is not primitive
         return False
     return True
 
