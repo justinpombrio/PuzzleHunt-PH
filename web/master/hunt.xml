@@ -7,10 +7,10 @@
     <input type="text" id="name">
       Name of the hunt
     </input>
-    <input type="text" id="team-size">
+    <input type="text" id="teamSize">
       Maximum team size
     </input>
-    <input type="text" id="init-guesses">
+    <input type="text" id="initGuesses">
       How many guesses each team starts with
     </input>
     <submit-button action="setHunt">

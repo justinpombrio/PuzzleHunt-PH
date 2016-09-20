@@ -281,8 +281,8 @@ function performAction(action) {
   case "getHunt":
     return post("getHunt", {}, function(response) {
       get("name").value = response.name;
-      get("team-size").value = response.teamSize;
-      get("init-guesses").value = response.initGuesses;
+      get("teamSize").value = response.teamSize;
+      get("initGuesses").value = response.initGuesses;
     });
     
   case "registerTeam":
