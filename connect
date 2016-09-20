@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# IP address: 52.38.39.79
+
+ssh -i crums.pem ec2-user@ec2-52-38-39-79.us-west-2.compute.amazonaws.com
