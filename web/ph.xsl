@@ -61,7 +61,7 @@
     <title>
       HUNT NAME
     </title>
-    <link rel="stylesheet" type="text/css" href="../css/style.css"/>
+    <link rel="stylesheet" type="text/css" href="/css/style.css"/>
     <script type="text/javascript">
       var PUZZLES = [];
       PUZZLES.pop();
