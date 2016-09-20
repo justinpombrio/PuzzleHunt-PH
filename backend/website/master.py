@@ -2,17 +2,20 @@ from flask import session, Blueprint, request
 from website import db
 from helpers import *
 from datetime import datetime as dt
+import re
 
 master_api = Blueprint('master_api', __name__)
 
 @master_api.route("/logout", methods=['POST'])
 def logout():
+    releaseWaves()
     session.pop('username', None)
     return success({})
 
 
 @master_api.route("/login", methods=['POST'])
 def login():
+    releaseWaves()
     fail, content = parseJson(request, {"password": unicode})
     if fail:
         return content
@@ -31,6 +34,7 @@ def login():
 
 @master_api.route("/getHunt", methods=['POST'])
 def getHunt():
+    releaseWaves()
     if 'username' not in session:
         return abortMessage("Unauthorized")
 
@@ -43,6 +47,7 @@ def getHunt():
 
 @master_api.route("/setHunt", methods=['POST'])
 def setHunt():
+    releaseWaves()
     if 'username' not in session:
         return abortMessage("Unauthorized")
 
@@ -63,23 +68,24 @@ def setHunt():
 
 @master_api.route("/getWaves", methods=['POST'])
 def getWaves():
+    releaseWaves()
     if 'username' not in session:
         return abortMessage("Unauthorized")
 
     c = db.cursor()
 
-    c.execute("SELECT name, time, guesses, visible FROM Wave")
-    waves = [{"name": rec[0], "time": rec[1], "guesses": rec[2],
-            "visible": rec[3]} for rec in c.fetchall()]
+    c.execute("SELECT name, time, guesses FROM Wave")
+    waves = [{"name": rec[0], "time": rec[1], "guesses": rec[2]} for rec in c.fetchall()]
     return success({"waves": waves}, c)
 
 
 @master_api.route("/setWaves", methods=['POST'])
 def setWaves():
+    releaseWaves()
     if 'username' not in session:
         return abortMessage("Unauthorized")
 
-    fail, content = parseJson(request, {"waves": [{"name": unicode, "time": dt, "guesses": int, "visible": bool}]})
+    fail, content = parseJson(request, {"waves": [{"name": unicode, "time": dt, "guesses": int}]})
     if fail:
         return content
     waves = content["waves"]
@@ -94,44 +100,43 @@ def setWaves():
     c.execute("DELETE FROM Wave")
 
     # Insert new waves
-    for n, wave in enumerate(waves):
+    for wave in waves:
         wave_name = wave["name"]
         release_time = wave["time"]
         guesses = wave["guesses"]
-        visible = wave["visible"]
         if tooLong(wave_name, "wave_name"):
             return abortMessage("Wave name too long", c, db)
-        c.execute("INSERT INTO Wave VALUES (%s, %s, %s, %s, %s)", (n, wave_name, release_time, guesses, visible))
+        c.execute("INSERT INTO Wave VALUES (%s, %s, %s, false)", (wave_name, release_time, guesses))
 
     return success({}, c, db)
 
 
 @master_api.route("/getPuzzles", methods=['POST'])
 def getPuzzles():
+    releaseWaves()
     if 'username' not in session:
         return abortMessage("Unauthorized")
 
     c = db.cursor()
 
-    c.execute("SELECT name, number, points, answer, key, waveID FROM Puzzle")
+    c.execute("SELECT name, number, basePoints, answer, key, wave FROM Puzzle")
     puzzles = []
     # If a puzzle is no longer associated with a wave, null out its wave name
     for rec in c.fetchall():
-        puzzle_name, number, points, answer, key, waveID = rec
-        c.execute("SELECT name FROM Wave WHERE waveID = %s", (waveID,))
+        puzzle_name, number, points, answer, key, wave = rec
+        c.execute("SELECT name FROM Wave WHERE name = %s", (wave,))
         wave_rec = c.fetchone()
         if wave_rec == None:
-            wave_name = None
-        else:
-            wave_name, = wave_rec
+            wave = None
         puzzles.append({"name": puzzle_name, "number": number, "points": points,
-                "wave": wave_name, "answer": answer, "key": key})
+                "wave": wave, "answer": answer, "key": key})
 
     return success({"puzzles": puzzles}, c)
 
 
 @master_api.route("/setPuzzles", methods=['POST'])
 def setPuzzles():
+    releaseWaves()
     if 'username' not in session:
         return abortMessage("Unauthorized")
 
@@ -151,61 +156,58 @@ def setPuzzles():
     c.execute("DELETE FROM Puzzle")
 
     # Abort if a wave doesn't exist
-    for n, puzzle in enumerate(puzzles):
+    for puzzle in puzzles:
         puzzle_name = puzzle["name"]
         number = puzzle["number"]
         points = puzzle["points"]
-        wave_name = puzzle["wave"]
-        answer = puzzle["answer"]
+        wave = puzzle["wave"]
+        answer = re.sub(r"\s+", "", puzzle["answer"].lower(), flags=re.UNICODE)
         key = puzzle["key"]
-        c.execute("SELECT waveID FROM Wave WHERE name = %s", (wave_name,))
+        c.execute("SELECT name FROM Wave WHERE name = %s", (wave,))
         wave_rec = c.fetchone()
         if wave_rec == None:
-            return abortMessage("Wave '%s' does not exist" % wave_name, c, db)
-        waveID, = wave_rec
+            return abortMessage("Wave '%s' does not exist" % wave, c, db)
+        wave, = wave_rec
+        print wave
         if tooLong(puzzle_name, "puzzle_name"):
             return abortMessage("Puzzle name too long", c, db)
         if tooLong(number, "number"):
             return abortMessage("Puzzle number too long", c, db)
-        c.execute("INSERT INTO Puzzle VALUES (%s, %s, %s, %s, %s, %s, %s)", (n, puzzle_name, number, points, answer, waveID, key))
+        c.execute("INSERT INTO Puzzle VALUES (%s, %s, %s, %s, %s, %s, %s, false)", (puzzle_name, number, points, points, answer, wave, key))
 
     return success({}, c, db)
 
 
 @master_api.route("/getHints", methods=['POST'])
 def getHints():
+    releaseWaves()
     if 'username' not in session:
         return abortMessage("Unauthorized")
 
     c = db.cursor()
 
-    c.execute("SELECT puzzleID, number, penalty, waveID, key FROM Hint")
+    c.execute("SELECT puzzle, number, penalty, wave, key FROM Hint")
     hints = []
     # If a puzzle is no longer associated with a wave, null out its wave name
     for rec in c.fetchall():
-        puzzleID, number, penalty, waveID, key = rec
-        print waveID
-        c.execute("SELECT name FROM Wave WHERE waveID = %s", (waveID,))
+        puzzle, number, penalty, wave, key = rec
+        c.execute("SELECT name FROM Wave WHERE name = %s", (wave,))
         wave_rec = c.fetchone()
         if wave_rec == None:
-            wave_name = None
-            print "No wave name!"
-        else:
-            wave_name, = wave_rec
-        c.execute("SELECT name FROM Puzzle WHERE puzzleID = %s", (puzzleID,))
+            wave = None
+        c.execute("SELECT name FROM Puzzle WHERE name = %s", (puzzle,))
         puzzle_rec = c.fetchone()
         if puzzle_rec == None:
-            puzzle_name = None
-        else:
-            puzzle_name, = puzzle_rec
-        hints.append({"puzzle": puzzle_name, "number": number, "penalty": penalty,
-                "wave": wave_name, "key": key})
+            puzzle = None
+        hints.append({"puzzle": puzzle, "number": number, "penalty": penalty,
+                "wave": wave, "key": key})
 
     return success({"hints": hints}, c)
 
 
 @master_api.route("/setHints", methods=['POST'])
 def setHints():
+    releaseWaves()
     if 'username' not in session:
         return abortMessage("Unauthorized")
 
@@ -221,29 +223,25 @@ def setHints():
 
     # Abort if a wave or puzzle doesn't exist
     for hint in hints:
-        puzzle_name = hint["puzzle"]
+        puzzle = hint["puzzle"]
         number = hint["number"]
         penalty = hint["penalty"]
-        wave_name = hint["wave"]
+        wave = hint["wave"]
         key = hint["key"]
-        c.execute("SELECT waveID FROM Wave WHERE name = %s", (wave_name,))
-        wave_rec = c.fetchone()
-        if wave_rec == None:
-            return abortMessage("Wave '%s' does not exist" % wave_name, c, db)
-        waveID, = wave_rec
-        print waveID
-        c.execute("SELECT puzzleID FROM Puzzle WHERE name = %s", (puzzle_name,))
-        puzzle_rec = c.fetchone()
-        if puzzle_rec == None:
-            return abortMessage("Puzzle '%s' does not exist" % puzzle_name, c, db)
-        puzzleID, = puzzle_rec
-        c.execute("INSERT INTO Hint VALUES (%s, %s, %s, %s, %s)", (puzzleID, number, penalty, waveID, key))
+        c.execute("SELECT name FROM Wave WHERE name = %s", (wave,))
+        if c.fetchone() == None:
+            return abortMessage("Wave '%s' does not exist" % wave, c, db)
+        c.execute("SELECT name FROM Puzzle WHERE name = %s", (puzzle,))
+        if c.fetchone() == None:
+            return abortMessage("Puzzle '%s' does not exist" % puzzle, c, db)
+        c.execute("INSERT INTO Hint VALUES (%s, %s, %s, %s, %s, false)", (puzzle, number, penalty, wave, key))
 
     return success({}, c, db)
 
 
 @master_api.route("/getMembers", methods=['POST'])
 def getMembers():
+    releaseWaves()
     if 'username' not in session:
         return abortMessage("Unauthorized")
 

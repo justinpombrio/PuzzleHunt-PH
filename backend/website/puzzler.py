@@ -15,6 +15,7 @@ now = datetime.datetime.now
 
 @puzzler_api.route("/registerTeam", methods=['POST'])
 def registerTeam():
+    releaseWaves()
     # Retrieve data
     fail, content = parseJson(request, {"name": unicode, "password": unicode, "members": [{"name": unicode, "email": unicode}]})
     if fail:
@@ -63,6 +64,7 @@ def registerTeam():
 
 @puzzler_api.route("/viewTeam", methods=['POST'])
 def viewTeam():
+    releaseWaves()
     fail, content = parseJson(request, {"name": unicode})
     if fail:
         return content
@@ -84,6 +86,7 @@ def viewTeam():
 
 @puzzler_api.route("/changePassword", methods=['POST'])
 def changePassword():
+    releaseWaves()
     fail, content = parseJson(request, {"name": unicode, "password": unicode, "newPassword": unicode})
     if fail:
         return content
@@ -105,6 +108,7 @@ def changePassword():
 
 @puzzler_api.route("/changeMembers", methods=['POST'])
 def changeMembers():
+    releaseWaves()
     fail, content = parseJson(request, {"name": unicode, "password": unicode, "members": [{"name": unicode, "email": unicode}]})
     if fail:
         return content
@@ -145,6 +149,7 @@ def changeMembers():
 
 @puzzler_api.route("/viewOwnTeam", methods=['POST'])
 def viewOwnTeam():
+    releaseWaves()
     fail, content = parseJson(request, {"name": unicode, "password": unicode})
     if fail:
         return content
@@ -169,13 +174,14 @@ def viewOwnTeam():
 
 @puzzler_api.route("/submitGuess", methods=['POST'])
 def submitGuess():
+    releaseWaves()
     submit_time = now().isoformat(' ')
     fail, content = parseJson(request, {"name": unicode, "password": unicode, "puzzle": unicode, "guess": unicode})
     if fail:
         return content
     team_name = content["name"]
     password = content["password"].encode('UTF_8')
-    puzzle_name = content["puzzle"]
+    puzzle = content["puzzle"]
     guess = content["guess"]
     c = db.cursor()
 
@@ -188,23 +194,23 @@ def submitGuess():
         return abortMessage("Invalid team name or password", c)
 
     # Puzzle doesn't exist
-    c.execute("SELECT puzzleID, answer, waveID, points FROM Puzzle WHERE name = %s", (puzzle_name,))
+    c.execute("SELECT puzzle, answer, wave FROM Puzzle WHERE name = %s", (puzzle,))
     puzzle_rec = c.fetchone()
     if puzzle_rec == None:
-        return abortMessage("Puzzle '%s' does not exist" % puzzle_name, c)
-    puzzleID, answer, waveID, points = puzzle_rec
+        return abortMessage("Puzzle '%s' does not exist" % puzzle, c)
+    puzzle, answer, wave = puzzle_rec
 
     # No solving unreleased or ghost puzzles
-    c.execute("SELECT time FROM Wave WHERE waveID = %s", (waveID,))
+    c.execute("SELECT time FROM Wave WHERE name = %s", (wave,))
     wave_rec = c.fetchone()
     if wave_rec == None:
-        return abortMessage("Puzzle '%s' does not exist" % puzzle_name, c)
+        return abortMessage("Puzzle '%s' does not exist" % puzzle, c)
     release_time = wave_rec[0].isoformat(' ')
     if release_time > submit_time:
-        return abortMessage("Puzzle '%s' does not exist" % puzzle_name, c)
+        return abortMessage("Puzzle '%s' does not exist" % puzzle, c)
 
     # Already solved
-    c.execute("SELECT teamID, puzzleID FROM Solve WHERE teamID = %s AND puzzleID = %s", (teamID, puzzleID))
+    c.execute("SELECT teamID, puzzle FROM Solve WHERE teamID = %s AND puzzle = %s", (teamID, puzzle))
     if c.fetchone() != None:
         return abortMessage("You have already solved this puzzle", c)
 
@@ -224,7 +230,7 @@ def submitGuess():
     # Decrement the number of guesses you have left
     # And save the guess
     c.execute("UPDATE Team SET guesses = %s WHERE teamID = %s", (guesses - 1, teamID))
-    c.execute("INSERT INTO Guess VALUES (%s, %s, %s, %s)", (teamID, puzzleID, guess, submit_time))
+    c.execute("INSERT INTO Guess VALUES (%s, %s, %s, %s)", (teamID, puzzle, guess, submit_time))
 
     # Incorrect answer
     if normal_guess != answer:
@@ -233,14 +239,14 @@ def submitGuess():
 
     # Otherwise, correct answer
     # Calculate puzzle value by looking at hints released
-        # Get set of hints associated to puzzleID
-        # Check in wave table via hint.waveID to check whether hint has been released
+        # Get set of hints associated to puzzle
+        # Check in wave table via hint.wave to check whether hint has been released
         # Accumulate all penalties of all released hints, deduct from base value
     """
-    c.execute("SELECT penalty, waveID FROM Hint WHERE puzzleID = %s", (puzzleID,))
+    c.execute("SELECT penalty, wave FROM Hint WHERE puzzle = %s", (puzzle,))
     final_points = points
-    for penalty, hint_waveID in c.fetchall():
-        c.execute("SELECT time FROM wave WHERE waveID = %s", (hint_waveID,))
+    for penalty, hint_wave in c.fetchall():
+        c.execute("SELECT time FROM wave WHERE wave = %s", (hint_wave,))
         time_rec = c.fetchone()
         if time_rec == None:
             # Ignore hints not associated to a wave
@@ -250,10 +256,34 @@ def submitGuess():
     """
 
     # Add entry to solve table
-    c.execute("INSERT INTO Solve VALUES (%s, %s, %s)", (teamID, puzzleID, submit_time))
+    c.execute("INSERT INTO Solve VALUES (%s, %s, %s)", (teamID, puzzle, submit_time))
 
     return success({"isCorrect": "Correct"}, c, db)
 
 
+@puzzler_api.route("/viewHunt", methods=['POST'])
+def viewHunt():
+    releaseWaves()
+    c = db.cursor()
+
+    c.execute("SELECT name FROM Hunt")
+    hunt_name, = c.fetchone()
+
+    return success({"name": hunt_name}, c)
 
 
+@puzzler_api.route("/viewPuzzles", methods=['POST'])
+def viewPuzzles():
+    releaseWaves()
+    c = db.cursor()
+
+    c.execute("SELECT name, number, currentPoints, wave, key FROM Puzzle WHERE released = true")
+    puzzles = []
+    for puzzle_rec in c.fetchall():
+        puzzle_name, number, currPoints, wave, key = puzzle_rec
+        c.execute("SELECT number, key FROM Hint WHERE puzzle = %s AND released = true", (puzzle_name,))
+        hints = [{"number": rec[0], "key": rec[1]} for rec in c.fetchall()]
+        puzzles.append({"name": puzzle_name, "number": number, "points": currPoints,
+                        "wave": wave, "key": key, "hints": hints})
+
+    return success({"puzzles": puzzles}, c)

@@ -2,6 +2,7 @@ import bcrypt
 from flask import jsonify
 import psycopg2
 import datetime
+from website import db, START_TIME
 
 SIZE_LIMITS = {"team_name": 64,
         "member_name": 128,
@@ -12,8 +13,52 @@ SIZE_LIMITS = {"team_name": 64,
         "number": 64
     }
 
+NEXT_CHECK = START_TIME
+FREQ_CHECK = datetime.timedelta(0, 1)
+
 def tooLong(string, field):
     return len(string) >= SIZE_LIMITS[field]
+
+def releaseWaves():
+    global NEXT_CHECK
+    curr_time = datetime.datetime.now()
+    if curr_time < NEXT_CHECK:
+        return
+
+    # Select waves that have not been released but should be
+    c = db.cursor()
+
+    c.execute("UPDATE Wave SET released = true WHERE time <= %s AND released = false RETURNING time, name, guesses, released", (curr_time,))
+    print c.mogrify("UPDATE Wave SET released = true WHERE time <= %s AND released = false RETURNING time, name, guesses, released", (curr_time,))
+    wave_recs = c.fetchall()
+    print wave_recs
+
+    # Release all waves in order
+    for wave_rec in sorted(wave_recs):
+        releaseWave(wave_rec, c)
+
+    # Update next check time
+    NEXT_CHECK = datetime.datetime.now() + FREQ_CHECK
+
+    db.commit()
+    c.close()
+
+def releaseWave(wave_rec, c):
+    _, wave, guesses, released = wave_rec
+
+    # Update guesses
+    c.execute("UPDATE Team SET guesses = %s", (guesses,))
+
+    # Release hints
+    c.execute("UPDATE Hint SET released = true WHERE wave = %s RETURNING puzzle, penalty", (wave,))
+    penalties = c.fetchall()
+    # Deduct points
+    for puzzle, penalty in penalties:
+        c.execute("UPDATE Puzzle SET currentPoints = currentPoints - %s WHERE name = %s", (penalty, puzzle))
+
+    # Release puzzles
+    c.execute("UPDATE Puzzle SET released = true WHERE wave = %s RETURNING name, wave, released", (wave,))
+    print c.fetchall()
 
 def abortMessage(message, cursor=None, conn=None):
     print "Failure"
@@ -71,6 +116,10 @@ def typeCheck(json_data, types):
         for elem in json_data:
             if not typeCheck(elem, types[0]):
                 return False
+    elif type(json_data) == int == types:
+        if json_data < 0:
+            print "Negative value!"
+            return False
     elif types == datetime.datetime:
         print "Trying datetime"
         # Try parsing datetime
@@ -82,9 +131,9 @@ def typeCheck(json_data, types):
             print "Did not parse"
             return False
     elif type(json_data) != types:
+        # Is not primitive
         print type(json_data)
         print types
-        # Is not primitive
         return False
     return True
 
