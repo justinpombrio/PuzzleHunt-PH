@@ -133,7 +133,7 @@ input.multi-form-cell.long-text {
     width: 10rem;
 }
 
-input.multi-form-cell.gen-text {
+input.multi-form-cell.fixed-text {
     width: 10rem;
     font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
 }
@@ -176,6 +176,14 @@ input, select {
 
 input[type="submit"], input[type="button"], select {
     font-size: 1.2rem;
+}
+
+#success-message {
+    background-color: #7ac68f;
+}
+
+#failure-message {
+    background-color: #fc9c93;
 }
 
 ul.nav {

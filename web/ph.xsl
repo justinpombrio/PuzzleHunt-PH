@@ -27,14 +27,11 @@
     <p><a href="/guess.xml?puzzle={id}">Submit an answer</a></p>
   </xsl:template>
 
+  
   <!--******************** LIST ALL PUZZLES ********************-->
 
   <xsl:template match="list-all-puzzles">
-    <ul style="list-style-type: none">
-      <xsl:for-each select="document('hunt.xml')/hunt/all-puzzles/*">
-        <xsl:call-template name="list-a-puzzles"/>
-      </xsl:for-each>
-    </ul>
+    <ul id="all-puzzles"/>
   </xsl:template>
 
   <xsl:template name="list-a-puzzles">
@@ -61,26 +58,18 @@
   <!--******************** PAGES ********************-->
   
   <xsl:template name="Header">
-    <xsl:variable name="hunt-name" select="document('hunt.xml')/hunt/name"/>
-    <xsl:variable name="puzzle-list">
-      <xsl:for-each select="document('hunt.xml')//puzzle[@id]/@id">
-        <xsl:value-of select="."/>
-        <xsl:text>,</xsl:text>
-      </xsl:for-each>
-    </xsl:variable>
     <title>
-      <xsl:value-of select="$hunt-name"/>
+      HUNT NAME
     </title>
     <link rel="stylesheet" type="text/css" href="../css/style.css"/>
     <script type="text/javascript">
-      var PUZZLES = '<xsl:value-of select="$puzzle-list"/>'.split(",");
+      var PUZZLES = [];
       PUZZLES.pop();
     </script>
     <script type="text/javascript" src="/ph.js"/>
   </xsl:template>
 
   <xsl:template match="page">
-    <xsl:variable name="hunt-name" select="document('hunt.xml')/hunt/name"/>
     <html>
       <head>
         <xsl:call-template name="Header"/>
@@ -89,7 +78,7 @@
         <ul class="nav">
           <li class="nav1">
             <a href="/index.xml">
-              <xsl:value-of select="$hunt-name"/>
+              HUNT NAME
             </a>
           </li>
           <li class="nav2"><a href="/team.xml">Team</a></li>
@@ -97,6 +86,8 @@
           <li class="nav4"><a href="/puzzles.xml">Puzzles</a></li>
           <li class="nav5"><a href="/master/hunt.xml">[Master]</a></li>
         </ul>
+        <p id="success-message"/>
+        <p id="failure-message"/>
         <article>
           <xsl:apply-templates select="*"/>
           <footer>
@@ -123,6 +114,8 @@
           <li class="nav4"><a href="/master/waves.xml">Waves</a></li>
           <li class="nav5"><a href="/master/logout.xml">[Puzzler]</a></li>
         </ul>
+        <p id="success-message"/>
+        <p id="failure-message"/>
         <article>
           <xsl:apply-templates select="*"/>
           <footer>
@@ -138,11 +131,6 @@
 
   <xsl:template name="PuzzleInput">
     <select id="puzzle-input" name="puzzle">
-      <xsl:for-each select="document('hunt.xml')//puzzle[@id]">
-        <option value="{@id}">
-          <xsl:value-of select="@name"/>
-        </option>
-      </xsl:for-each>
       <option value="" selected="selected">
         Select a puzzle
       </option>
@@ -164,15 +152,11 @@
       <table>
         <tbody id="multi-form">
           <tr>
-            <th>Id</th>
             <xsl:for-each select="input">
               <th><xsl:value-of select="normalize-space(@name)"/></th>
             </xsl:for-each>
           </tr>
           <tr id="row-template" style="display:none">
-            <td>
-              gen
-            </td>
             <xsl:for-each select="input">
               <td>
                 <xsl:if test="contains(@type, 'short-text')">
@@ -208,35 +192,37 @@
     </p>
     <input type="button"
            value="{normalize-space(submit-button)}"
-           onclick="submitMultiForm('{submit-button/@action}', '{@id}')"/>
+           onclick="performAction('{submit-button/@action}', '{@id}')"/>
   </xsl:template>
 
   <xsl:template match="form">
     <table>
-      <xsl:for-each select="input">
-        <tr>
-          <xsl:if test="contains(@type, 'password')">
-            <td><xsl:value-of select="normalize-space(.)"/>:</td>
-            <td><input type="password" id="{@id}"/></td>
-          </xsl:if>
-          <xsl:if test="contains(@type, 'text')">
-            <td><xsl:value-of select="normalize-space(.)"/>:</td>
-            <td><input type="text" id="{@id}"/></td>
-          </xsl:if>
-          <xsl:if test="contains(@type, 'fixed')">
-            <td><xsl:value-of select="normalize-space(.)"/>:</td>
-            <td><input type="text" disabled="true" id="{@id}"/></td>
-          </xsl:if>
-          <xsl:if test="contains(@type, 'puzzle')">
-            <td><xsl:value-of select="normalize-space(.)"/>:</td>
-            <td><xsl:call-template name="PuzzleInput"/></td>
-          </xsl:if>
-        </tr>
-      </xsl:for-each>
+      <tbody id="form" action="{@action}">
+        <xsl:for-each select="input">
+          <tr>
+            <xsl:if test="contains(@type, 'password')">
+              <td><xsl:value-of select="normalize-space(.)"/>:</td>
+              <td><input type="password" id="{@id}"/></td>
+            </xsl:if>
+            <xsl:if test="contains(@type, 'text')">
+              <td><xsl:value-of select="normalize-space(.)"/>:</td>
+              <td><input type="text" id="{@id}"/></td>
+            </xsl:if>
+            <xsl:if test="contains(@type, 'fixed')">
+              <td><xsl:value-of select="normalize-space(.)"/>:</td>
+              <td><input type="text" disabled="true" id="{@id}"/></td>
+            </xsl:if>
+            <xsl:if test="contains(@type, 'puzzle')">
+              <td><xsl:value-of select="normalize-space(.)"/>:</td>
+              <td><xsl:call-template name="PuzzleInput"/></td>
+            </xsl:if>
+          </tr>
+        </xsl:for-each>
+      </tbody>
     </table>
     <input type="button"
            value="{normalize-space(submit-button)}"
-           onclick="submitForm('{submit-button/@action}')"/>
+           onclick="performAction('{submit-button/@action}')"/>
   </xsl:template>
   
 </xsl:transform>

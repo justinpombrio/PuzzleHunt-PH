@@ -11,28 +11,28 @@
       Remaining guesses
     </input>
     <input type="text" id="member_name_1">
-      Member 1: Name
+      Member 1 - Name
     </input>
     <input type="text" id="member_email_1">
-      Member 1: Email Address
+      Member 1 - Email Address
     </input>
     <input type="text" id="member_name_2">
-      Member 2: Name
+      Member 2 - Name
     </input>
     <input type="text" id="member_email_2">
-      Member 2: Email Address
+      Member 2 - Email Address
     </input>
     <input type="text" id="member_name_3">
-      Member 3: Name
+      Member 3 - Name
     </input>
     <input type="text" id="member_email_3">
-      Member 3: Email Address
+      Member 3 - Email Address
     </input>
     <input type="text" id="member_name_4">
-      Member 4: Name
+      Member 4 - Name
     </input>
     <input type="text" id="member_email_4">
-      Member 4: Email Address
+      Member 4 - Email Address
     </input>
     <input type="password" id="password">
       Password

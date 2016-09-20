@@ -5,19 +5,33 @@ var SERVER_ADDRESS = "http://52.38.39.79:4000/";
 
 /* DOM Utilities */
 
-function error(msg) {
-  console.log("ERROR");
-  alert(msg);
+function success(msg) {
+  console.log("SUCCESS", msg);
+  get("failure-message").textContent = "";
+  get("success-message").textContent = msg;
 }
 
-function panic(msg) {
-  error("Oops! The site broke. Details logged to console.");
-  console.log("INTERNAL ERROR");
-  console.log(msg);
+function failure(msg) {
+  console.log("ERROR", msg);
+  if (msg === "Unauthorized") {
+//    window.location.href = "/master/login.xml";
+  }
+  get("success-message").textContent = "";
+  get("failure-message").textContent = msg;
+}
+
+function panic(msg, details) {
+  failure("Oops! The site broke. Details logged to console.");
+  console.log("INTERNAL ERROR", msg);
+  console.log(details);
 }
 
 function get(id) {
   return document.getElementById(id);
+}
+
+function make(nodeType) {
+  return document.createElement(nodeType);
 }
 
 function getTags(tagName) {
@@ -51,7 +65,7 @@ function randomFilename() {
 /* Http POST */
 
 // taken from http://stackoverflow.com/questions/133925/javascript-post-request-like-a-form-submit#133997
-function post(action, params) {
+function post(action, params, onSuccess) {
   var path = SERVER_ADDRESS + action;
   var json = JSON.stringify(params);
   console.log("POST", path, json);
@@ -65,14 +79,18 @@ function post(action, params) {
     var response = JSON.parse(request.response);
     switch (response.status) {
     case "Failure":
-      error(response.message);      
+      failure(response.message);      
       break;
     case "Success":
-      return response;
+      success("Successfully updated");
+      if (onSuccess !== undefined) {
+        return onSuccess(response);
+      } else {
+        return response;
+      }
     }
   } catch (exn) {
-    console.log(exn);
-    panic("Invalid response");
+    panic("Invalid response", exn);
   }
   return null;
 }
@@ -95,9 +113,32 @@ var QUERY = parseQuery(window.location.search);
 
 
 
+/* List Puzzles */
+
+function getPuzzles() {
+  return post("viewPuzzles", {}, function(response) {
+    return response.puzzles;
+  });
+}
+
+//var PUZZLES = getPuzzles();
+
+
 /* Forms */
 
 function setupPuzzleInput() {
+  var dropdown = get("puzzle-input");
+  if (dropdown) {
+    console.log("PUZZLES", PUZZLES);
+    for (var i = 0; i < PUZZLES.length; i++) {
+      var puzzle = PUZZLES[i];
+      var option = make('option');
+      option.text = i;
+      option.value = i;
+      dropdown.add(option, 0);
+    }
+  }
+  
   function setDropdownOption(dropdown, value) {
     var opts = dropdown.options;
     for (var i = 0; i < opts.length; i++) {
@@ -116,14 +157,12 @@ function deleteNode(node) {
 
 function deleteRow(self) {
   deleteNode(self.parentNode.parentNode);
-  renumberForm();
 }
 
 function addRow() {
   var rowTemplate = get("row-template");
   var row = rowTemplate.cloneNode(true);
   row.style.display = "";
-  row.id = "";
   for (var i = 0; i < row.children.length; i++) {
     var child = row.children[i];
     if (!child.children || child.children.length === 0) { continue; }
@@ -134,18 +173,17 @@ function addRow() {
   }
   var form = get("multi-form");
   form.appendChild(row);
-  renumberForm();
-}
-
-function renumberForm() {
-  var form = get("multi-form");
-  for (var i = 2; i < form.children.length; i++) {
-    var child = form.children[i];
-    child.children[0].textContent = i - 2;
-  }
 }
 
 function setupForm() {
+  var form = get("form");
+  if (form) {
+    var action = form.getAttribute("action");
+    if (action) {
+      performAction(action);
+    }
+  }
+  
   if (!QUERY.data) { return; }
   var json = JSON.parse(QUERY.data);
   switch (json.location) {
@@ -161,6 +199,13 @@ function setupForm() {
 }
 
 function setupMultiForm() {
+  var form = get("multi-form");
+  if (form) {
+    var action = form.getAttribute("action");
+    if (action) {
+      performAction(action);
+    }
+  }
   if (get("multi-form")) {
     addRow();
   }
@@ -198,24 +243,53 @@ function getMultiInputs() {
     }
     rows.push(dict);
   }
-  return rows;
+  var dict = {};
+  dict[item] = rows;
+  return dict;
 }
 
 
 
 /* Form actions */
 
-function submitForm(action) {
-  var inputs = getInputs();
+function performAction(action) {
+  function goTo(location, response) {
+    response.location = location;
+    window.location.href = location + ".xml?data=" + JSON.stringify(response);
+  }
   switch (action) {
+
+  case "login":
+    var inputs = getInputs();
+    return post("login", inputs, function(response) {
+      goTo("hunt", response);
+    });
+    
+  case "viewOwnTeam":
+    var inputs = getInputs();
+    return post("viewOwnTeam", inputs, function(response) {
+      goTo("your-team", response);
+    });
+
+  case "setHunt":
+    var inputs = getInputs();
+    return post("setHunt", inputs);
+
+  case "getHunt":
+    return post("getHunt", {}, function(response) {
+      get("name").value = response["name"];
+      get("team-size").value = response["team-size"];
+      get("init-guesses").value = response["init-guesses"];
+    });
+    
   case "registerTeam":
+    var inputs = getInputs();
     var pass1 = inputs["password"];
     var pass2 = inputs["password_verify"];
     if (pass1 !== pass2) {
-      error("Passwords do not match.")
+      failure("Passwords do not match.")
     }
     delete inputs["password_verify"];
-    
     var members = [];
     for (var i = 1; i <= 4; i++) {
       var name = inputs["member_name_" + i];
@@ -227,8 +301,10 @@ function submitForm(action) {
       delete inputs["member_email_" + i];
     }
     inputs["members"] = members;
-    break;
+    return post("registerTeam", inputs);
+    
   case "changeMembers":
+    var inputs = getInputs();
     var members = [];
     for (var i = 1; i <= 4; i++) {
       var name = inputs["member_name_" + i];
@@ -241,32 +317,10 @@ function submitForm(action) {
     }
     inputs["members"] = members;
     delete inputs["guesses"];
-    break;
-  }
-  var response = post(action, inputs);
-  if (response !== null) {
-    handleResponse(action, response);
+    return post("changeMembers", inputs);
   }
 }
 
 function submitMultiForm(action, item) {
-  var dict = {}; dict[item] = getMultiInputs(item);
   post(action, dict);
-}
-
-function handleResponse(action, response) {
-  console.log("SUCCESS", response);
-  function goto(location) {
-    response.location = location;
-    window.location.href = location + ".xml?data=" + JSON.stringify(response);
-  }
-  switch (action) {
-  case "registerTeam":
-    break;
-  case "viewOwnTeam":
-    goto("your-team");
-    break;
-  case "changeMembers":
-    break;
-  }
 }

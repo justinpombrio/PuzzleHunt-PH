@@ -3,7 +3,7 @@
 
 <master-page>
   <title>Hunt Info</title>
-  <form>
+  <form action="getHunt">
     <input type="text" id="name">
       Name of the hunt
     </input>
