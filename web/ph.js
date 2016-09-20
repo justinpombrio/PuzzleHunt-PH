@@ -72,11 +72,13 @@ function post(action, params, onSuccess) {
   
   var request = new XMLHttpRequest();
   request.open("POST", path, false);
+  request.withCredentials = true;
   request.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
   request.send(json);
 
   try {
     var response = JSON.parse(request.response);
+    console.log("RESPONSE", response, request.getAllResponseHeaders());
     switch (response.status) {
     case "Failure":
       failure(response.message);      
@@ -262,7 +264,8 @@ function performAction(action) {
   case "login":
     var inputs = getInputs();
     return post("login", inputs, function(response) {
-      goTo("hunt", response);
+      console.log("LOGGED IN?");
+//      goTo("hunt", response);
     });
     
   case "viewOwnTeam":
@@ -277,9 +280,9 @@ function performAction(action) {
 
   case "getHunt":
     return post("getHunt", {}, function(response) {
-      get("name").value = response["name"];
-      get("team-size").value = response["team-size"];
-      get("init-guesses").value = response["init-guesses"];
+      get("name").value = response.name;
+      get("team-size").value = response.teamSize;
+      get("init-guesses").value = response.initGuesses;
     });
     
   case "registerTeam":
