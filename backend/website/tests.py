@@ -1,5 +1,6 @@
 import requests
 import json
+import time
 
 PORT = 4000
 DOMAIN = "http://localhost:%d" % PORT
@@ -14,6 +15,11 @@ def make_request(route, payload, get_cookie=False, send_cookie=None):
         cookie = r.cookies['session']
         return r.text, cookie
     return r.text
+
+# Get hunt
+print "Viewing hunt data"
+payload = {}
+print make_request("/viewPuzzles", payload)
 
 # Register test team
 print "Registering team"
@@ -57,7 +63,7 @@ payload = {}
 print make_request("/getMembers", payload, False, cookie)
 
 # Submit answer
-print "Submitting answer"
+print "Submitting garbage answer"
 payload = {}
 print make_request("/submitGuess", payload)
 
@@ -103,8 +109,9 @@ print make_request("/getWaves", payload, False, cookie)
 
 # Setting one wave
 print "Setting wave"
-payload = {"waves": [{"name": "newwave", "time": "2010-3-3 3:03:03", "guesses":100, "visible":True}, {"name": "newwave2", "time": "2020-3-3 3:03:03", "guesses": 200, "visible":False}]}
+payload = {"waves": [{"name": "newwave", "time": "2010-3-3 3:03:03", "guesses":100}, {"name": "newwave2", "time": "2020-3-3 3:03:03", "guesses": 200}]}
 print make_request("/setWaves", payload, False, cookie)
+time.sleep(1)
 
 # Set one puzzle
 print "Setting one puzzle"
@@ -122,7 +129,7 @@ payload = {"puzzles": [{"name": "newpuzzle", "number": "1.4", "points": 20000, "
 print make_request("/setPuzzles", payload, False, cookie)
 
 # Get new puzzles
-print "Getting puzzles"
+print "Getting Cool puzzles"
 payload = {}
 print make_request("/getPuzzles", payload, False, cookie)
 
@@ -145,3 +152,18 @@ print make_request("/setHints", payload, False, cookie)
 print "Getting hints"
 payload = {}
 print make_request("/getHints", payload, False, cookie)
+
+# Get hunt
+print "Getting hunt data"
+payload = {}
+print make_request("/getHunt", payload, False, cookie)
+
+# Get hunt
+print "Viewing hunt data"
+payload = {}
+print make_request("/viewHunt", payload)
+
+# Get hunt
+print "Viewing hunt data"
+payload = {}
+print make_request("/viewPuzzles", payload)
