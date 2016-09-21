@@ -16,7 +16,7 @@
     <input type="text" id="guess">
       Answer
     </input>
-    <submit-button action="guess">
+    <submit-button action="submitGuess">
       Submit Answer
     </submit-button>
   </form>

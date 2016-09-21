@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../ph.xsl"?>
+
+<page action="viewTeamsStats">
+  <title>Leaderboard</title>
+  <subtitle>
+    No, no, the goal is to be on TOP of the leaderboard.
+  </subtitle>
+  <table>
+    <column id="rank">Rank</column>
+    <column id="name">Team</column>
+    <column id="totalScore">Score</column>
+    <column id="totalSolves">Solves</column>
+    <column id="avgSolveTime">Avg. Solve Time</column>
+    <column id="guesses">Guesses</column>
+  </table>
+</page>

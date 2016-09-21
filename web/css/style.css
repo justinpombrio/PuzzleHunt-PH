@@ -83,6 +83,16 @@ p.subtitle { font-style: italic;
 
 p, ol, ul, th, td { font-size: 1.4rem; }
 
+th {
+    padding: 0.3em;
+}
+
+table.grid, table.grid th, table.grid td {
+    border-collapse: collapse;
+    background-color: #e0e0c0;
+    border: 2px solid #554;
+}
+
 p { line-height: 2rem;
     margin-top: 1.4rem;
     margin-bottom: 1.4rem;
@@ -144,6 +154,15 @@ input.multi-form-cell.fixed-text {
 
 input.multi-form-cell.datetime {
     width: 20rem;
+}
+
+ul.puzzle-list {
+    margin: 0;
+}
+
+span.spacing {
+    padding-left: 0.7em;
+    padding-right: 0.7em;
 }
 
 figure { padding: 0;
@@ -229,6 +248,10 @@ ul.nav li.nav4 {
 
 ul.nav li.nav5 {
     background: #f5943b;
+}
+
+ul.nav li.nav6 {
+    background: #ff7020;
 }
 
 @media screen and (max-width: 750px) {

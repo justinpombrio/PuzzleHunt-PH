@@ -16,7 +16,7 @@ function success(msg) {
 function failure(msg) {
   console.log("ERROR", msg);
   if (msg === "Unauthorized") {
-    window.location.href = "/master/login.xml";
+    window.location.href = "/login.xml";
   }
   get("success-message").textContent = "";
   get("failure-message").textContent = msg;
@@ -40,8 +40,18 @@ function getByClass(name) {
   return document.getElementsByClassName(name);
 }
 
-function make(nodeType) {
-  return document.createElement(nodeType);
+function make(nodeType, attrs) {
+  var elem = document.createElement(nodeType);
+  if (attrs !== undefined) {
+    for (var attr in attrs) {
+      elem[attr] = attrs[attr];
+    }
+  }
+  return elem;
+}
+
+function makeText(text) {
+  return document.createTextNode(text);
 }
 
 function getTags(tagName) {
@@ -74,6 +84,10 @@ function randomFilename() {
   return filename;
 }
 
+function secondsToHours(secs) {
+  return Math.round( secs / 3600 * 10) / 10;
+}
+
 
 /* Http POST */
 
@@ -85,7 +99,6 @@ function post(action, params, onSuccess) {
   
   var request = new XMLHttpRequest();
   request.open("POST", path, false);
-  request.withCredentials = true;
   request.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
   request.send(json);
 
@@ -108,7 +121,6 @@ function post(action, params, onSuccess) {
 //  }
   return null;
 }
-
 
 /* Query Strings */
 
@@ -137,11 +149,20 @@ function parseQuery(qstr) {
 
 var PUZZLES_CACHE = null;
 var WAVES_CACHE = null;
+var HUNT_CACHE = null;
 
 function getPuzzles() {
   if (PUZZLES_CACHE === null) {
     PUZZLES_CACHE = post("viewPuzzles", {}, function(response) {
-      console.log("PUZZLES", response.puzzles);
+      return response.puzzles;
+    });
+  }
+  return PUZZLES_CACHE;
+}
+
+function getAllPuzzles() {
+  if (PUZZLES_CACHE === null) {
+    PUZZLES_CACHE = post("getPuzzles", {}, function(response) {
       return response.puzzles;
     });
   }
@@ -151,11 +172,19 @@ function getPuzzles() {
 function getWaves() {
   if (WAVES_CACHE === null) {
     WAVES_CACHE = post("getWaves", {}, function(response) {
-      console.log("WAVES", response.waves);
       return response.waves;
     });
   }
   return WAVES_CACHE;
+}
+
+function getHunt() {
+  if (HUNT_CACHE === null) {
+    HUNT_CACHE = post("viewHunt", {}, function(response) {
+      return response;
+    });
+  }
+  return HUNT_CACHE;
 }
 
 
@@ -177,7 +206,14 @@ function deleteRows() {
   }
 }
 
-function addRow(data) {
+function clearTable() {
+  var rows = getByName("a-table-row");
+  for (var i = 0; i < rows.length; i++) {
+    deleteRow(rows[i]);
+  }
+}
+
+function addRow(data, item) {
   var rowTemplate = get("row-template");
   var row = rowTemplate.cloneNode(true);
   row.style.display = "";
@@ -188,7 +224,16 @@ function addRow(data) {
     if (!child.children || child.children.length === 0) { continue; }
     var cell = child.children[0];
     if (cell.name === "key") {
-      cell.value = randomFilename();
+      var box = child.removeChild(cell);
+      var filename = data ? data["key"] : randomFilename();
+      box.value = filename;
+      var link = make("a", {
+        "title": filename,
+        "href": "/" + item + "/" + filename + ".xml",
+        "value": box.value
+      });
+      link.appendChild(box);
+      child.appendChild(link);
     }
     if (data && data.hasOwnProperty(cell.name)) {
       cell.value = data[cell.name];
@@ -197,9 +242,84 @@ function addRow(data) {
   get("multi-form").appendChild(row);
 }
 
+function addTableRow(data) {
+  var cols = [];
+  var headers = get("table").children[0].children;
+  for (var i = 0; i < headers.length; i++) {
+    cols.push(headers[i].id);
+  }
+  var tr = make("tr", { "name": "a-table-row" });
+  for (var i = 0; i < cols.length; i++) {
+    var col = cols[i];
+    tr.appendChild(make("td", {
+      "textContent": data[col],
+      "className": "table-cell"
+    }));
+  }
+  get("table").appendChild(tr);
+}
+
 
 
 /******************** Page Setup ********************/
+
+function setupHunt() {
+  var hunt = getHunt();
+  // Set page title
+  document.title = hunt.name;
+  var title = get("hunt-title");
+  if (title) { title.textContent = hunt.name; }
+}
+
+function setupPuzzleList() {
+  var list = get("all-puzzles");
+  if (!list) { return; }
+  var puzzles = getPuzzles();
+
+  // Gather waves
+  var waves = [];
+  for (var i = 0; i < puzzles.length; i++) {
+    var puzzle = puzzles[i];
+    var wave = puzzle.wave;
+    if (waves.indexOf(wave) == -1) {
+      waves.push(wave);
+    }
+  }
+
+  // List the puzzles by wave
+  for (var i = 0; i < waves.length; i++) {
+    var wave = waves[i];
+    var sublist = make("ul");
+    sublist.classList.add("puzzle-list");
+    for (var j = 0; j < puzzles.length; j++) {
+      var puzzle = puzzles[j];
+      if (puzzle.wave === wave) {
+        var link = make("a", {
+          "textContent": puzzle.name,
+          "title": puzzle.name,
+          "href": "puzzles/" + puzzle.key + ".xml"
+        });
+        var elem = make("li");
+        elem.appendChild(link);
+        for (var k = 0; k < puzzle.hints.length; k++) {
+          var hint = puzzle.hints[k];
+          elem.appendChild(make("span", {"className": "spacing"}));
+          elem.appendChild(make("a", {
+            "textContent": "Hint " + hint.number,
+            "title":       "Hint " + hint.number,
+            "href":        "hints/" + hint.key + ".xml"
+          }));
+        }
+        sublist.appendChild(elem);
+      }
+    }
+    var waveli = make("p", {
+      "textContent": wave + ":"
+    });
+    waveli.appendChild(sublist);
+    list.appendChild(waveli);
+  }
+}
 
 function setupForm() {
   var form = get("form");
@@ -213,7 +333,7 @@ function setupForm() {
   if (!getQuery().data) { return; }
   var json = JSON.parse(getQuery().data);
   switch (json.location) {
-  case "your-team":
+  case "/your-team.xml":
     getByName("name")[0].value = json.name
     getByName("guesses")[0].value = json.guesses
     for (var i = 0; i < json.members.length; i++) {
@@ -236,16 +356,15 @@ function setupMultiForm() {
 
 function setupInput(dropdowns, choices, selection) {
   if (dropdowns && dropdowns.length > 0) {
-    console.log("SETUP INPUT", dropdowns, choices());
     for (var i = 0; i < choices().length; i++) {
       var choice = choices()[i];
       for (var j = 0; j < dropdowns.length; j++) {
-        var option = make('option');
-        option.text = choice.name;
-        option.value = choice.name;
-        if (choice.name === selection) {
-          option.selected = "selected";
-        }
+        var selected = choice.name === selection ? "selected" : undefined;
+        var option = make('option', {
+          "text": choice.name,
+          "value": choice.name,
+          "selected": selected
+        });
         var dropdown = dropdowns[j];
         dropdown.add(option, 0);
       }
@@ -254,7 +373,9 @@ function setupInput(dropdowns, choices, selection) {
 }
 
 function setupPuzzleInputs() {
-  setupInput(getByName("puzzle"), getPuzzles, getQuery()['puzzle']);
+  var get = window.location.pathname.indexOf("/master/") === -1
+    ? getPuzzles : getAllPuzzles;
+  setupInput(getByName("puzzle"), get, getQuery()['puzzle']);
 }
 
 function setupWaveInputs() {
@@ -262,14 +383,12 @@ function setupWaveInputs() {
 }
 
 function setup() {
+  setupHunt();
   setupPuzzleInputs(); 
+  setupWaveInputs();
   setupForm();
-  var loc = window.location.pathname;
-  console.log("LOCATION", loc);
-  if (loc === "/master/puzzles.xml" || loc === "/master/hints.xml") {
-    setupWaveInputs();
-  }
   setupMultiForm();
+  setupPuzzleList();
 }
 
 
@@ -278,6 +397,12 @@ function setup() {
 /******************** Form Submission ********************/
 
 function getInput(dict, input) {
+  if (input.tagName.toLowerCase() === "a" // duct tape
+      && input.children
+      && input.children[0]) {
+    console.log("!", input.children[0]);
+    input = input.children[0];
+  }
   if (hasClass(input, "number")) {
     dict[input.name] = parseInt(input.value);
   } else {
@@ -323,11 +448,19 @@ function fillForm(data) {
   }
 }
 
-function fillMultiForm(datas) {
+function fillMultiForm(datas, item) {
   deleteRows();
   for (var i = 0; i < datas.length; i++) {
     var data = datas[i];
-    addRow(data);
+    addRow(data, item);
+  }
+}
+
+function fillTable(datas) {
+  clearTable();
+  for (var i = 0; i < datas.length; i++) {
+    var data = datas[i];
+    addTableRow(data);
   }
 }
 
@@ -336,10 +469,16 @@ function fillMultiForm(datas) {
 /******************** Form Actions ********************/
 
 function performAction(action) {
+
   function goTo(location, response) {
-    response.location = location;
-    window.location.href = location + ".xml?data=" + JSON.stringify(response);
+    if (response) {
+      response.location = location;
+      window.location.href = location + "?data=" + JSON.stringify(response);
+    } else {
+      window.location.href = location;
+    }
   }
+
   switch (action) {
     
   /* Master Actions */
@@ -347,8 +486,13 @@ function performAction(action) {
   case "login":
     var inputs = getInputs();
     return post("login", inputs, function(response) {
-      goTo("hunt", response);
-    });    
+      goTo("/master/hunt.xml", response);
+    });
+
+  case "logout":
+    return post("logout", {}, function() {
+      goTo("/index.xml");
+    });
 
   case "getHunt":
     return post("getHunt", {}, function(response) {
@@ -357,30 +501,17 @@ function performAction(action) {
 
   case "getPuzzles":
     return post("getPuzzles", {}, function(response) {
-      deleteRows();
-      for (var i = 0; i < response.puzzles.length; i++) {
-        var puzzle = response.puzzles[i];
-        addRow(puzzle);
-      }
+      fillMultiForm(response.puzzles, "puzzles");
     });
 
   case "getWaves":
     return post("getWaves", {}, function(response) {
-      console.log("GETWAVES", response.waves);
-      deleteRows();
-      for (var i = 0; i < response.waves.length; i++) {
-        var wave = response.waves[i];
-        addRow(wave);
-      }
+      fillMultiForm(response.waves);
     });
 
   case "getHints":
     return post("getHints", {}, function(response) {
-      deleteRows();
-      for (var i = 0; i < response.hints.length; i++) {
-        var hint = response.hints[i];
-        addRow(hint);
-      }
+      fillMultiForm(response.hints, "hints");
     });
 
   case "setHunt":
@@ -412,7 +543,7 @@ function performAction(action) {
   case "viewOwnTeam":
     var inputs = getInputs();
     return post("viewOwnTeam", inputs, function(response) {
-      goTo("your-team", response);
+      goTo("/your-team.xml", response);
     });
     
   case "registerTeam":
@@ -420,7 +551,8 @@ function performAction(action) {
     var pass1 = inputs["password"];
     var pass2 = inputs["password_verify"];
     if (pass1 !== pass2) {
-      failure("Passwords do not match.")
+      failure("Passwords do not match.");
+      return;
     }
     delete inputs["password_verify"];
     var members = [];
@@ -455,6 +587,48 @@ function performAction(action) {
     return post("changeMembers", inputs, function() {
       success("Successfully updated.");
     });
+    
+  case "submitGuess":
+    var inputs = getInputs();
+    return post("submitGuess", inputs, function(response) {
+      switch (response.isCorrect) {
+      case "Correct":
+        success("Correct!");
+        break;
+      case "Incorrect":
+        failure("Incorrect.");
+        break;
+      case "OutOfGuesses":
+        failure("You are out of guesses!");
+        break;
+      }
+    });
+
+  case "getMembers":
+    return post("getMembers", {}, function(response) {
+      fillTable(response.members);
+    });
+
+  case "viewTeamsStats":
+    return post("viewTeamsStats", {}, function(response) {
+      for (var i = 0; i < response.teams.length; i++) {
+        var team = response.teams[i];
+        team.avgSolveTime = secondsToHours(team.avgSolveTime);
+      }
+      fillTable(response.teams);
+    });
+
+  case "viewPuzzlesStats":
+    return post("viewPuzzlesStats", {}, function(response) {
+      for (var i = 0; i < response.puzzles.length; i++) {
+        var puzzle = response.puzzles[i];
+        puzzle.avgSolveTime = secondsToHours(puzzle.avgSolveTime);
+      }
+      fillTable(response.puzzles);
+    });
+
+
+  
   }
 }
 

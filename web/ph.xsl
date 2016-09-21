@@ -31,27 +31,7 @@
   <!--******************** LIST ALL PUZZLES ********************-->
 
   <xsl:template match="list-all-puzzles">
-    <ul id="all-puzzles"/>
-  </xsl:template>
-
-  <xsl:template name="list-a-puzzles">
-    <xsl:if test="name() = 'puzzles'">
-      <li>
-        <b><xsl:value-of select="@name"/>:</b>
-        <ul>
-          <xsl:for-each select="*">
-            <xsl:call-template name="list-a-puzzles"/>
-          </xsl:for-each>
-        </ul>
-      </li>
-    </xsl:if>
-    <xsl:if test="name() = 'puzzle'">
-      <li>
-        <a href="puzzles/{@id}.xml">
-          <xsl:value-of select="@name"/>
-        </a>
-      </li>
-    </xsl:if>
+    <div id="all-puzzles"/>
   </xsl:template>
 
   
@@ -59,7 +39,6 @@
   
   <xsl:template name="Header">
     <title>
-      HUNT NAME
     </title>
     <link rel="stylesheet" type="text/css" href="/css/style.css"/>
     <script type="text/javascript">
@@ -74,17 +53,17 @@
       <head>
         <xsl:call-template name="Header"/>
       </head>
-      <body>
+      <body onload="performAction('{@action}')">
         <ul class="nav">
           <li class="nav1">
-            <a href="/index.xml">
-              HUNT NAME
+            <a href="/index.xml" id="hunt-title">
             </a>
           </li>
           <li class="nav2"><a href="/team.xml">Team</a></li>
-          <li class="nav3"><a href="/leaderboard.xml">Leaderboard</a></li>
-          <li class="nav4"><a href="/puzzles.xml">Puzzles</a></li>
-          <li class="nav5"><a href="/master/hunt.xml">[Master]</a></li>
+          <li class="nav3"><a href="/team-stats.xml">Leaderboard</a></li>
+          <li class="nav4"><a href="/puzzle-stats.xml">Puzzle Stats</a></li>
+          <li class="nav5"><a href="/puzzles.xml">Puzzles</a></li>
+          <li class="nav6"><a href="/login.xml">[Mtr]</a></li>
         </ul>
         <p id="success-message"/>
         <p id="failure-message"/>
@@ -106,13 +85,14 @@
       <head>
         <xsl:call-template name="Header"/>
       </head>
-      <body>
+      <body onload="performAction('{@action}')">
         <ul class="nav">
           <li class="nav1"><a href="/master/hunt.xml">Hunt</a></li>
           <li class="nav2"><a href="/master/puzzles.xml">Puzzles</a></li>
           <li class="nav3"><a href="/master/hints.xml">Hints</a></li>
           <li class="nav4"><a href="/master/waves.xml">Waves</a></li>
-          <li class="nav5"><a href="/master/logout.xml">[Puzzler]</a></li>
+          <li class="nav5"><a href="/master/members.xml">Members</a></li>
+          <li class="nav6"><a href="/master/logout.xml">Logout</a></li>
         </ul>
         <p id="success-message"/>
         <p id="failure-message"/>
@@ -143,6 +123,22 @@
         Select a puzzle
       </option>
     </select>
+  </xsl:template>
+
+  <xsl:template match="table">
+    <p>
+      <table class="grid">
+        <tbody id="table">
+          <tr>
+            <xsl:for-each select="column">
+              <th id="{@id}">
+                <xsl:value-of select="."/>
+              </th>
+            </xsl:for-each>
+          </tr>
+        </tbody>
+      </table>
+    </p>
   </xsl:template>
 
   <xsl:template match="multi-form">
@@ -210,9 +206,12 @@
       </table>
       <a href="#" onclick="addRow()">Add <xsl:value-of select="@item"/></a>
     </p>
-    <input type="button"
-           value="{normalize-space(submit-button)}"
-           onclick="performAction('{submit-button/@action}', '{@id}')"/>
+    <xsl:for-each select="submit-button">
+      <input type="button"
+             value="{normalize-space(.)}"
+             onclick="performAction('{@action}', '{@id}')"/>
+      <br/>
+    </xsl:for-each>
   </xsl:template>
 
   <xsl:template match="form">
@@ -253,9 +252,12 @@
         </xsl:for-each>
       </tbody>
     </table>
-    <input type="button"
-           value="{normalize-space(submit-button)}"
-           onclick="performAction('{submit-button/@action}')"/>
+    <xsl:for-each select="submit-button">
+      <input type="button"
+             value="{normalize-space(.)}"
+             onclick="performAction('{@action}')"/>
+      <br/>
+    </xsl:for-each>
   </xsl:template>
   
 </xsl:transform>

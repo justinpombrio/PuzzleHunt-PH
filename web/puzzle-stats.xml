@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../ph.xsl"?>
+
+<page action="viewPuzzlesStats">
+  <title>Puzzle Stats</title>
+  <table>
+    <column id="puzzle">Puzzle</column>
+    <column id="totalSolves">Solves</column>
+    <column id="avgSolveTime">A.S.T.</column>
+    <column id="guesses">Guesses</column>
+  </table>
+  <content>
+    <p>
+      (Average Solve Time measured in hours)
+    </p>
+  </content>
+</page>

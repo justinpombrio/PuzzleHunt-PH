@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../ph.xsl"?>
+
+<master-page action="getMembers">
+  <title>Members</title>
+  <table>
+    <column id="name">Name</column>
+    <column id="email">Email</column>
+  </table>
+</master-page>
