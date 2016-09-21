@@ -139,7 +139,7 @@ submitGuess {
   guess: String
 }
 -> {
-  isCorrect: "Correct"|"Incorrect"|"outOfGuesses"
+  isCorrect: "Correct"|"Incorrect"|"OutOfGuesses"
 }
 
 viewPuzzles null
@@ -275,4 +275,23 @@ viewPuzzleStats {
     solveTime: Stats.solveTime
     guesses: Stats.guesses
   }]
+}
+
+viewTeamsStats null
+-> {
+  teams: [{
+    name: Team.name
+    totalScore: sum(Stats.score)
+    totalSolves: count(Stats.solveTime)
+    avgSolveTime: avg(Stats.solveTime)
+    guesses: sum(Stats.guesses)
+}
+
+viewPuzzlesStats null
+-> {
+  puzzles: [{
+    puzzle: Puzzle.name
+    totalSolves: count(Stats.solve)
+    avgSolveTime: avg(Stats.solveTime)
+    guesses: sum(Stats.guesses)
 }
