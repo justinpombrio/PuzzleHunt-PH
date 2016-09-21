@@ -73,17 +73,6 @@ Responses:
 
 PUZZLER ACTIONS
 
-getStats {
-  team: Team.name|"All"|"Sum",
-  puzzle: Puzzle.name|"All"|"Sum"
-}
--> {
-  score,
-  solveTime,
-  guesses
-}
-(or lists thereof, with an additional `team` or `puzzle` field)
-
 registerTeam {
   name: Team.name,
   password: Team.password,
