@@ -75,7 +75,7 @@ def viewTeam():
     c.execute("SELECT teamID FROM Team WHERE name = %s", (team_name,))
     teamID = c.fetchone()
     if teamID == None:
-        return abortMessage("No team '%s'" % team_name, c)
+        return abortMessage("Team '%s' does not exist" % team_name, c)
 
     # Get all team members
     c.execute("SELECT name FROM Member WHERE teamID = %s", (teamID,))
@@ -174,9 +174,10 @@ def viewOwnTeam():
 
 @puzzler_api.route("/submitGuess", methods=['POST'])
 def submitGuess():
+    submit_time_dt = now()
+    submit_time = submit_time_dt.isoformat()
     releaseWaves()
-    submit_time = now().isoformat(' ')
-    fail, content = parseJson(request, {"name": unicode, "password": unicode, "puzzle": unicode, "guess": unicode})
+    fail, content = parseJson(request, {"name": unicode, "password": unicode, "guess": unicode, "puzzle": unicode})
     if fail:
         return content
     team_name = content["name"]
@@ -194,18 +195,18 @@ def submitGuess():
         return abortMessage("Invalid team name or password", c)
 
     # Puzzle doesn't exist
-    c.execute("SELECT puzzle, answer, wave FROM Puzzle WHERE name = %s", (puzzle,))
+    c.execute("SELECT answer, wave, currentPoints FROM Puzzle WHERE name = %s", (puzzle,))
     puzzle_rec = c.fetchone()
     if puzzle_rec == None:
         return abortMessage("Puzzle '%s' does not exist" % puzzle, c)
-    puzzle, answer, wave = puzzle_rec
+    answer, wave, currPoints = puzzle_rec
 
-    # No solving unreleased or ghost puzzles
+    # No solving unreleased or orphan puzzles
     c.execute("SELECT time FROM Wave WHERE name = %s", (wave,))
     wave_rec = c.fetchone()
     if wave_rec == None:
         return abortMessage("Puzzle '%s' does not exist" % puzzle, c)
-    release_time = wave_rec[0].isoformat(' ')
+    release_time = wave_rec[0].isoformat()
     if release_time > submit_time:
         return abortMessage("Puzzle '%s' does not exist" % puzzle, c)
 
@@ -219,7 +220,7 @@ def submitGuess():
     c.execute("SELECT guesses FROM Team WHERE teamID = %s", (teamID,))
     guesses, = c.fetchone()
     if guesses <= 0:
-        return success({"isCorrect": "outOfGuesses"}, c)
+        return success({"isCorrect": "OutOfGuesses"}, c)
 
     # Normalize answer
         # Delete all whitespace, lowercase all alpha
@@ -232,6 +233,12 @@ def submitGuess():
     c.execute("UPDATE Team SET guesses = %s WHERE teamID = %s", (guesses - 1, teamID))
     c.execute("INSERT INTO Guess VALUES (%s, %s, %s, %s)", (teamID, puzzle, guess, submit_time))
 
+    # Update stats table with another guess
+    # Insert if not exists
+    c.execute("UPDATE Stats SET guesses = guesses + 1 WHERE teamID = %s AND puzzle = %s RETURNING teamID, puzzle", (teamID, puzzle))
+    if c.fetchone() == None:
+       c.execute("INSERT INTO Stats VALUES (%s, %s, 0, null, 1)", (teamID, puzzle)) 
+
     # Incorrect answer
     if normal_guess != answer:
         # Don't touch solve table
@@ -242,21 +249,16 @@ def submitGuess():
         # Get set of hints associated to puzzle
         # Check in wave table via hint.wave to check whether hint has been released
         # Accumulate all penalties of all released hints, deduct from base value
-    """
-    c.execute("SELECT penalty, wave FROM Hint WHERE puzzle = %s", (puzzle,))
-    final_points = points
-    for penalty, hint_wave in c.fetchall():
-        c.execute("SELECT time FROM wave WHERE wave = %s", (hint_wave,))
-        time_rec = c.fetchone()
-        if time_rec == None:
-            # Ignore hints not associated to a wave
-            continue
-        if submit_time >= time_rec[0]:
-            final_points -= penalty
-    """
 
     # Add entry to solve table
     c.execute("INSERT INTO Solve VALUES (%s, %s, %s)", (teamID, puzzle, submit_time))
+
+    # Update stats table
+    # Record to update should exist by this time
+    # Calculate solve time
+    release_time_dt = datetime.datetime.strptime(release_time, "%Y-%m-%dT%H:%M:%S")
+    solve_time = (submit_time_dt - release_time_dt).total_seconds()
+    c.execute("UPDATE Stats SET score = score + %s, solveTime = %s WHERE teamID = %s AND puzzle = %s", (currPoints, solve_time, teamID, puzzle))
 
     return success({"isCorrect": "Correct"}, c, db)
 
@@ -281,9 +283,88 @@ def viewPuzzles():
     puzzles = []
     for puzzle_rec in c.fetchall():
         puzzle_name, number, currPoints, wave, key = puzzle_rec
+        # Get hints
         c.execute("SELECT number, key FROM Hint WHERE puzzle = %s AND released = true", (puzzle_name,))
         hints = [{"number": rec[0], "key": rec[1]} for rec in c.fetchall()]
-        puzzles.append({"name": puzzle_name, "number": number, "points": currPoints,
-                        "wave": wave, "key": key, "hints": hints})
+        # Get wave release time
+        c.execute("SELECT to_char(time, 'YYYY-MM-DDThh24:MI:SS') FROM Wave WHERE wave = %s", (wave,))
+        release_time, = c.fetchone()
+
+        puzzles.append((release_time, number, {"name": puzzle_name, "number": number, "points": currPoints,
+                        "wave": wave, "key": key, "hints": hints}))
+
+    # Order puzzles
+    ordered_puzzles = [tup[2] for tup in sorted(puzzles)]
+
+    return success({"puzzles": ordered_puzzles}, c)
+
+
+@puzzler_api.route("/viewTeamStats", methods=['POST'])
+def viewTeamStats():
+    releaseWaves()
+    fail, content = parseJson(request, {"name": unicode})
+    if fail:
+        return content
+    team_name = content["name"]
+    c = db.cursor()
+
+    # Get team name
+    c.execute("SELECT teamID FROM Team WHERE name = %s", (team_name,))
+    team_rec = c.fetchone()
+    if team_rec == None:
+        return abortMessage("Team '%s' does not exist" % team_name, c)
+    teamID, = team_rec
+
+    # Get data
+    c.execute("SELECT puzzle, score, solveTime, guesses FROM Stats WHERE teamID = %s", (teamID,))
+    puzzles = [{"name": rec[0], "score": rec[1], "solveTime": rec[2], "guesses": rec[3]} for rec in c.fetchall()]
 
     return success({"puzzles": puzzles}, c)
+
+
+@puzzler_api.route("/viewPuzzleStats", methods=['POST'])
+def viewPuzzleStats():
+    releaseWaves()
+    fail, content = parseJson(request, {"puzzle": unicode})
+    if fail:
+        return content
+    puzzle = content["puzzle"]
+
+    # Check that puzzle exists
+    c.execute("SELECT name FROM Puzzle WHERE name = %s", (puzzle,))
+    if c.fetchone() == None:
+        return abortMessage("Puzzle '%s' does not exist" % puzzle, c)
+
+    # Get data
+    c.execute("""SELECT Team.name, score, solveTime, Stats.guesses FROM Stats, Team
+                WHERE Team.teamID = Stats.teamID AND puzzle = %d""", (puzzle,))
+    teams = [{"name": rec[0], "score": rec[1], "solveTime": rec[2], "guesses": rec[3]} for rec in c.fetchall()]
+
+    return success({"teams": teams}, c)
+
+
+@puzzler_api.route("/viewTeamsStats", methods=['POST'])
+def viewTeamsStats():
+    releaseWaves()
+    c = db.cursor()
+
+    c.execute("""SELECT name, sum(score), count(solveTime), avg(solveTime)::int, sum(Stats.guesses)
+                FROM stats, team WHERE Team.teamID = Stats.teamID group by name""")
+
+    teams = [{"name": rec[0], "totalScore": rec[1], "totalSolves": rec[2],
+                "avgSolveTime": rec[3], "guesses": rec[4] - rec[2]} for rec in c.fetchall()]
+
+    return success({"teams": teams}, c)
+
+
+@puzzler_api.route("/viewPuzzlesStats", methods=['POST'])
+def viewPuzzlesStats():
+    releaseWaves()
+    c = db.cursor()
+
+    c.execute("""SELECT puzzle, count(solveTime), avg(solveTime)::int, sum(Stats.guesses) from Stats, Team
+                WHERE Team.teamID = Stats.teamID group by puzzle""")
+
+    puzzles = [{"puzzle": rec[0], "totalSolves": rec[1], "avgSolveTime": rec[2], "guesses": rec[3] - rec[1]} for rec in c.fetchall()]
+
+    return success({"puzzles": puzzles})

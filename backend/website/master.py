@@ -51,7 +51,7 @@ def setHunt():
     if 'username' not in session:
         return abortMessage("Unauthorized")
 
-    fail, content = parseJson(request, {"name": unicode, "teamSize": unicode, "initGuesses": unicode})
+    fail, content = parseJson(request, {"name": unicode, "teamSize": int, "initGuesses": int})
     if fail:
         return content
     hunt_name = content["name"]
@@ -74,7 +74,7 @@ def getWaves():
 
     c = db.cursor()
 
-    c.execute("SELECT name, time, guesses FROM Wave")
+    c.execute("SELECT name, to_char(time, 'YYYY-MM-DDThh24:MI:SS'), guesses FROM Wave")
     waves = [{"name": rec[0], "time": rec[1], "guesses": rec[2]} for rec in c.fetchall()]
     return success({"waves": waves}, c)
 
@@ -163,17 +163,16 @@ def setPuzzles():
         wave = puzzle["wave"]
         answer = re.sub(r"\s+", "", puzzle["answer"].lower(), flags=re.UNICODE)
         key = puzzle["key"]
-        c.execute("SELECT name FROM Wave WHERE name = %s", (wave,))
+        c.execute("SELECT name, released FROM Wave WHERE name = %s", (wave,))
         wave_rec = c.fetchone()
         if wave_rec == None:
             return abortMessage("Wave '%s' does not exist" % wave, c, db)
-        wave, = wave_rec
-        print wave
+        wave, is_released = wave_rec
         if tooLong(puzzle_name, "puzzle_name"):
             return abortMessage("Puzzle name too long", c, db)
         if tooLong(number, "number"):
             return abortMessage("Puzzle number too long", c, db)
-        c.execute("INSERT INTO Puzzle VALUES (%s, %s, %s, %s, %s, %s, %s, false)", (puzzle_name, number, points, points, answer, wave, key))
+        c.execute("INSERT INTO Puzzle VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (puzzle_name, number, points, points, answer, wave, key, is_released))
 
     return success({}, c, db)
 

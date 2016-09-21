@@ -109,7 +109,7 @@ print make_request("/getWaves", payload, False, cookie)
 
 # Setting one wave
 print "Setting wave"
-payload = {"waves": [{"name": "newwave", "time": "2010-3-3 3:03:03", "guesses":100}, {"name": "newwave2", "time": "2020-3-3 3:03:03", "guesses": 200}]}
+payload = {"waves": [{"name": "newwave", "time": "2010-3-3T3:03:03", "guesses":100}, {"name": "newwave2", "time": "2020-3-3T3:03:03", "guesses": 200}]}
 print make_request("/setWaves", payload, False, cookie)
 time.sleep(1)
 
@@ -163,7 +163,12 @@ print "Viewing hunt data"
 payload = {}
 print make_request("/viewHunt", payload)
 
-# Get hunt
-print "Viewing hunt data"
+# View puzzles
+print "Viewing puzzles"
 payload = {}
 print make_request("/viewPuzzles", payload)
+
+# Submit correct answer
+#print "Submitting correct answer"
+#payload = {"name": "MyTeam", "password": "ButThisIs", "puzzle": "newpuzzle", "guess": "yes"}
+#print make_request("/submitGuess", payload)

@@ -29,9 +29,7 @@ def releaseWaves():
     c = db.cursor()
 
     c.execute("UPDATE Wave SET released = true WHERE time <= %s AND released = false RETURNING time, name, guesses, released", (curr_time,))
-    print c.mogrify("UPDATE Wave SET released = true WHERE time <= %s AND released = false RETURNING time, name, guesses, released", (curr_time,))
     wave_recs = c.fetchall()
-    print wave_recs
 
     # Release all waves in order
     for wave_rec in sorted(wave_recs):
@@ -58,7 +56,6 @@ def releaseWave(wave_rec, c):
 
     # Release puzzles
     c.execute("UPDATE Puzzle SET released = true WHERE wave = %s RETURNING name, wave, released", (wave,))
-    print c.fetchall()
 
 def abortMessage(message, cursor=None, conn=None):
     print "Failure"
@@ -126,12 +123,13 @@ def typeCheck(json_data, types):
         if type(json_data) != unicode:
             return False
         try:
-            datetime.datetime.strptime(json_data, "%Y-%m-%d %H:%M:%S")
+            datetime.datetime.strptime(json_data, "%Y-%m-%dT%H:%M:%S")
         except ValueError:
             print "Did not parse"
             return False
     elif type(json_data) != types:
         # Is not primitive
+        print json_data
         print type(json_data)
         print types
         return False

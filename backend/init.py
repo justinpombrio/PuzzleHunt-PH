@@ -41,37 +41,38 @@ create table Member (
 
 drop table if exists Puzzle;
 create table Puzzle (
-  puzzleID smallint primary key NOT NULL,
-  name varchar NOT NULL,
+  name varchar primary key NOT NULL,
   number varchar NOT NULL,
-  points int NOT NULL,
+  basePoints int NOT NULL,
+  currentPoints int NOT NULL,
   answer varchar NOT NULL,
-  waveID smallint NOT NULL,
-  key varchar NOT NULL
+  wave varchar NOT NULL,
+  key varchar NOT NULL,
+  released boolean NOT NULL
 );
 
 drop table if exists Hint;
 create table Hint (
-  puzzleID smallint NOT NULL,
+  puzzle varchar NOT NULL,
   number smallint NOT NULL,
   penalty int NOT NULL,
-  waveID smallint NOT NULL,
-  key varchar NOT NULL
+  wave varchar NOT NULL,
+  key varchar NOT NULL,
+  released boolean NOT NULL
 );
 
 drop table if exists Wave;
 create table Wave (
-  waveID smallint primary key NOT NULL,
   name varchar NOT NULL,
   time timestamp NOT NULL,
   guesses int NOT NULL,
-  visible boolean NOT NULL
+  released boolean NOT NULL
 );
 
 drop table if exists Guess;
 create table Guess (
   teamID smallint NOT NULL,
-  puzzleID smallint NOT NULL,
+  puzzle varchar NOT NULL,
   guess varchar NOT NULL,
   time timestamp NOT NULL
 );
@@ -79,18 +80,19 @@ create table Guess (
 drop table if exists Solve;
 create table Solve (
   teamID smallint NOT NULL,
-  puzzleID smallint NOT NULL,
+  puzzle varchar NOT NULL,
   time timestamp NOT NULL,
-  primary key (teamID, puzzleID)
+  primary key (teamID, puzzle)
 );
 
 drop table if exists Stats;
 create table Stats (
   teamID smallint NOT NULL,
-  puzzleID smallint NOT NULL,
+  puzzle varchar NOT NULL,
   score int NOT NULL,
-  solveTime real,
-  guesses int NOT NULL
+  solveTime int,
+  guesses int NOT NULL,
+  primary key (teamID, puzzle)
 );"""
 
 c.execute(string)
