@@ -284,5 +284,5 @@ viewTeamsStats null
     totalScore: sum(Stats.score)
     totalSolved: count(Stats.solveTime)
     avgSolveTime: avg(Stats.solveTime)
-    incorrectGuesses: sum(Stats.guesses)
+    guesses: sum(Stats.guesses)
 }
