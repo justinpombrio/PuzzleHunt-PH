@@ -227,13 +227,15 @@ def setHints():
         penalty = hint["penalty"]
         wave = hint["wave"]
         key = hint["key"]
-        c.execute("SELECT name FROM Wave WHERE name = %s", (wave,))
-        if c.fetchone() == None:
+        c.execute("SELECT released FROM Wave WHERE name = %s", (wave,))
+        wave_rec = c.fetchone() 
+        if wave_rec == None:
             return abortMessage("Wave '%s' does not exist" % wave, c, db)
+        is_released, = wave_rec
         c.execute("SELECT name FROM Puzzle WHERE name = %s", (puzzle,))
         if c.fetchone() == None:
             return abortMessage("Puzzle '%s' does not exist" % puzzle, c, db)
-        c.execute("INSERT INTO Hint VALUES (%s, %s, %s, %s, %s, false)", (puzzle, number, penalty, wave, key))
+        c.execute("INSERT INTO Hint VALUES (%s, %s, %s, %s, %s, %s)", (puzzle, number, penalty, wave, key, is_released))
 
     return success({}, c, db)
 

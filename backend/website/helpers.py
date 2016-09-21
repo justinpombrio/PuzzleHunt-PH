@@ -21,7 +21,7 @@ def tooLong(string, field):
 
 def releaseWaves():
     global NEXT_CHECK
-    curr_time = datetime.datetime.now()
+    curr_time = datetime.datetime.now() - datetime.timedelta(hours=4)
     if curr_time < NEXT_CHECK:
         return
 
@@ -29,6 +29,7 @@ def releaseWaves():
     c = db.cursor()
 
     c.execute("UPDATE Wave SET released = true WHERE time <= %s AND released = false RETURNING time, name, guesses, released", (curr_time,))
+    print c.mogrify("UPDATE Wave SET released = true WHERE time <= %s AND released = false RETURNING time, name, guesses, released", (curr_time,))
     wave_recs = c.fetchall()
 
     # Release all waves in order
@@ -36,7 +37,7 @@ def releaseWaves():
         releaseWave(wave_rec, c)
 
     # Update next check time
-    NEXT_CHECK = datetime.datetime.now() + FREQ_CHECK
+    NEXT_CHECK = datetime.datetime.now() - datetime.timedelta(hours=4) + FREQ_CHECK
 
     db.commit()
     c.close()
@@ -124,9 +125,13 @@ def typeCheck(json_data, types):
             return False
         try:
             datetime.datetime.strptime(json_data, "%Y-%m-%dT%H:%M:%S")
-        except ValueError:
-            print "Did not parse"
-            return False
+        except:
+            try:
+                datetime.datetime.strptime(json_data, "%Y-%m-%dT%H:%M")
+            except:
+                print "Did not parse"
+                return False
+            return True
     elif type(json_data) != types:
         # Is not primitive
         print json_data

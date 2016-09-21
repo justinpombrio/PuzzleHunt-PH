@@ -174,7 +174,7 @@ def viewOwnTeam():
 
 @puzzler_api.route("/submitGuess", methods=['POST'])
 def submitGuess():
-    submit_time_dt = now()
+    submit_time_dt = now() - datetime.timedelta(hours=4)
     submit_time = submit_time_dt.isoformat()
     releaseWaves()
     fail, content = parseJson(request, {"name": unicode, "password": unicode, "guess": unicode, "puzzle": unicode})
@@ -351,10 +351,20 @@ def viewTeamsStats():
     c.execute("""SELECT name, sum(score), count(solveTime), avg(solveTime)::int, sum(Stats.guesses)
                 FROM stats, team WHERE Team.teamID = Stats.teamID group by name""")
 
-    teams = [{"name": rec[0], "totalScore": rec[1], "totalSolves": rec[2],
-                "avgSolveTime": rec[3], "guesses": rec[4] - rec[2]} for rec in c.fetchall()]
+    teams = [(-rec[1], rec[3], {"name": rec[0], "totalScore": rec[1], "totalSolves": rec[2],
+                "avgSolveTime": rec[3], "guesses": rec[4] - rec[2]}) for i, rec in enumerate(c.fetchall())]
+    ordered_teams = [tup[2] for tup in sorted(teams)]
+    for i, team in enumerate(ordered_teams):
+        team["rank"] = i+1
 
-    return success({"teams": teams}, c)
+    # List teams that have not guessed yet
+    n = len(teams)
+    print n
+    c.execute("SELECT name FROM Team WHERE teamID NOT IN (SELECT teamID FROM Stats)")
+    ordered_teams += [{"rank": n+j+1, "name": rec[0], "totalScore": 0, "totalSolves": 0, "avgSolveTime": None, "guesses": 0}
+                    for j, rec in enumerate(c.fetchall())]
+
+    return success({"teams": ordered_teams}, c)
 
 
 @puzzler_api.route("/viewPuzzlesStats", methods=['POST'])
