@@ -257,7 +257,7 @@ viewTeamStats {
   name: Team.name
 }
 -> {
-  puzzle: [{
+  puzzles: [{
     name: Puzzle.name
     score: Stats.score
     solveTime: Stats.solveTime
@@ -269,7 +269,7 @@ viewPuzzleStats {
   puzzle: Puzzle.name
 }
 -> {
-  team: [{
+  teams: [{
     name: Team.name
     score: Stats.score
     solveTime: Stats.solveTime
