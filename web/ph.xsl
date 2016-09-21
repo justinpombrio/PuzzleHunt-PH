@@ -24,7 +24,7 @@
   <xsl:template match="puzzle">
     <p class="subtitle">This is a puzzle.</p>
     <xsl:copy-of select="description/node()"/>
-    <p><a href="/guess.xml?puzzle={id}">Submit an answer</a></p>
+    <p><a href="/guess.xml?puzzle={name}">Submit an answer</a></p>
   </xsl:template>
 
   
@@ -129,9 +129,17 @@
   
   <!--******************** FORMS ********************-->
 
+  <xsl:template name="WaveInput">
+    <select name="wave">
+      <option value="" selected="selected" disabled="true">
+        Select a wave
+      </option>
+    </select>
+  </xsl:template>
+
   <xsl:template name="PuzzleInput">
-    <select id="puzzle-input" name="puzzle">
-      <option value="" selected="selected">
+    <select name="puzzle">
+      <option value="" selected="selected" disabled="true">
         Select a puzzle
       </option>
     </select>
@@ -150,7 +158,7 @@
     </p>
     <p>
       <table>
-        <tbody id="multi-form">
+        <tbody id="multi-form" action="{@action}">
           <tr>
             <xsl:for-each select="input">
               <th><xsl:value-of select="normalize-space(@name)"/></th>
@@ -163,6 +171,11 @@
                   <input type="text"
                          name="{@id}"
                          class="multi-form-cell short-text"/>
+                </xsl:if>
+                <xsl:if test="contains(@type, 'number')">
+                  <input type="text"
+                         name="{@id}"
+                         class="multi-form-cell number"/>
                 </xsl:if>
                 <xsl:if test="contains(@type, 'long-text')">
                   <input type="text"
@@ -178,7 +191,14 @@
                 <xsl:if test="contains(@type, 'datetime')">
                   <input type="datetime-local"
                          name="{@id}"
-                         class="multi-form-cell datetime"/>
+                         class="multi-form-cell datetime"
+                         step="1"/>
+                </xsl:if>
+                <xsl:if test="contains(@type, 'puzzle')">
+                  <xsl:call-template name="PuzzleInput"/>
+                </xsl:if>
+                <xsl:if test="contains(@type, 'wave')">
+                  <xsl:call-template name="WaveInput"/>
                 </xsl:if>
               </td>
             </xsl:for-each>
@@ -202,15 +222,22 @@
           <tr>
             <xsl:if test="contains(@type, 'password')">
               <td><xsl:value-of select="normalize-space(.)"/>:</td>
-              <td><input type="password" id="{@id}"/></td>
+              <td><input type="password"
+                         id="{@id}"
+                         class="form-cell text"/></td>
             </xsl:if>
             <xsl:if test="contains(@type, 'text')">
               <td><xsl:value-of select="normalize-space(.)"/>:</td>
-              <td><input type="text" id="{@id}"/></td>
+              <td><input type="text"
+                         id="{@id}"
+                         class="form-cell text"/></td>
             </xsl:if>
             <xsl:if test="contains(@type, 'fixed')">
               <td><xsl:value-of select="normalize-space(.)"/>:</td>
-              <td><input type="text" disabled="true" id="{@id}"/></td>
+              <td><input type="text"
+                         disabled="true"
+                         id="{@id}"
+                         class="form-cell text"/></td>
             </xsl:if>
             <xsl:if test="contains(@type, 'puzzle')">
               <td><xsl:value-of select="normalize-space(.)"/>:</td>

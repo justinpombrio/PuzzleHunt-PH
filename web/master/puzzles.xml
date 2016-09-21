@@ -10,10 +10,10 @@
     <input type="short-text" id="number" name="Num">
       Number of the puzzle (e.g. 2, or 1.2)
     </input>
-    <input type="short-text" id="points" name="Pts">
+    <input type="number" id="points" name="Pts">
       How many points the puzzle is worth
     </input>
-    <input type="short-text" id="wave" name="Wave">
+    <input type="wave" id="wave" name="Wave">
       The id of the wave the puzzle is part of
     </input>
     <input type="long-text" id="answer" name="Answer">

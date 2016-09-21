@@ -4,7 +4,7 @@
 <page>
   <title>The Very First Puzzle</title>
   <puzzle>
-    <id>one</id>
+    <name>Puzzle the First</name>
     <description>
       <section>
         <p>Tufte CSS provides tools to style web articles using the ideas demonstrated by Edward Tufte’s books and handouts. Tufte’s style is known for its simplicity, extensive use of sidenotes, tight integration of graphics with text, and carefully chosen typography.</p>

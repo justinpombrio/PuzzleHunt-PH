@@ -1,5 +1,10 @@
 
 var SERVER_ADDRESS = "http://52.38.39.79:4000/";
+var QUERY = null;
+var PUZZLES = null;
+var WAVES = null;
+
+window.onload = setup;
 
 
 
@@ -14,7 +19,7 @@ function success(msg) {
 function failure(msg) {
   console.log("ERROR", msg);
   if (msg === "Unauthorized") {
-//    window.location.href = "/master/login.xml";
+    window.location.href = "/master/login.xml";
   }
   get("success-message").textContent = "";
   get("failure-message").textContent = msg;
@@ -28,6 +33,10 @@ function panic(msg, details) {
 
 function get(id) {
   return document.getElementById(id);
+}
+
+function getByName(name) {
+  return document.getElementsByName(name);
 }
 
 function make(nodeType) {
@@ -45,6 +54,10 @@ function getTags(tagName) {
   return tags;
 }
 
+// Taken from http://stackoverflow.com/questions/5898656/test-if-an-element-contains-a-class#5898748
+function hasClass(element, cls) {
+  return (' ' + element.className + ' ').indexOf(' ' + cls + ' ') > -1;
+}
 
 
 /* Other Utilities */
@@ -84,7 +97,6 @@ function post(action, params, onSuccess) {
       failure(response.message);      
       break;
     case "Success":
-      success("Successfully updated");
       if (onSuccess !== undefined) {
         return onSuccess(response);
       } else {
@@ -111,45 +123,55 @@ function parseQuery(qstr) {
   return query;
 }
 
-var QUERY = parseQuery(window.location.search);
-
 
 
 /* List Puzzles */
 
-function getPuzzles() {
+function loadPuzzles() {
   return post("viewPuzzles", {}, function(response) {
-    return response.puzzles;
+    console.log("PUZZLES", response.puzzles);
+    PUZZLES = response.puzzles;
   });
 }
 
-//var PUZZLES = getPuzzles();
+function loadWaves() {
+  return post("getWaves", {}, function(response) {
+    console.log("WAVES", response.waves);
+    WAVES = response.waves;
+  });
+}
 
 
 /* Forms */
 
-function setupPuzzleInput() {
-  var dropdown = get("puzzle-input");
-  if (dropdown) {
-    console.log("PUZZLES", PUZZLES);
-    for (var i = 0; i < PUZZLES.length; i++) {
-      var puzzle = PUZZLES[i];
+function setupInput(dropdowns, choices, selection) {
+  console.log("SETUP INPUT", dropdowns, choices);
+  for (var i = 0; i < choices.length; i++) {
+    var choice = choices[i];
+    for (var j = 0; j < dropdowns.length; j++) {
       var option = make('option');
-      option.text = i;
-      option.value = i;
+      option.text = choice.name;
+      option.value = choice.name;
+      if (choice.name === selection) {
+        option.selected = "selected";
+      }
+      var dropdown = dropdowns[j];
       dropdown.add(option, 0);
     }
   }
-  
-  function setDropdownOption(dropdown, value) {
-    var opts = dropdown.options;
-    for (var i = 0; i < opts.length; i++) {
-      if (opts[i].value === value) { opts[i].selected = "selected"; }
-    }
+}
+
+function setupPuzzleInputs() {
+  var dropdowns = getByName("puzzle");
+  if (dropdowns) {
+    setupInput(dropdowns, PUZZLES, QUERY['puzzle']);
   }
-  var dropdown = get("puzzle-input");
-  if (dropdown) {
-    setDropdownOption(dropdown, QUERY['puzzle']);
+}
+
+function setupWaveInputs() {
+  var dropdowns = getByName("wave");
+  if (dropdowns) {
+    setupInput(dropdowns, WAVES);
   }
 }
 
@@ -161,16 +183,28 @@ function deleteRow(self) {
   deleteNode(self.parentNode.parentNode);
 }
 
-function addRow() {
+function deleteRows() {
+  var rows = getByName("a-row");
+  for (var i = 0; i < rows.length; i++) {
+    deleteRow(rows[i]);
+  }
+}
+
+function addRow(info) {
   var rowTemplate = get("row-template");
   var row = rowTemplate.cloneNode(true);
   row.style.display = "";
+  delete row.id;
+  row.name = "a-row";
   for (var i = 0; i < row.children.length; i++) {
     var child = row.children[i];
     if (!child.children || child.children.length === 0) { continue; }
     var cell = child.children[0];
     if (cell.name === "key") {
       cell.value = randomFilename();
+    }
+    if (info && info.hasOwnProperty(cell.name)) {
+      cell.value = info[cell.name];
     }
   }
   var form = get("multi-form");
@@ -208,16 +242,22 @@ function setupMultiForm() {
       performAction(action);
     }
   }
-  if (get("multi-form")) {
-    addRow();
-  }
 }
 
-window.onload = function() {
+function setup() {
+  QUERY = parseQuery(window.location.search);
+  loadPuzzles();
+  setupPuzzleInputs(); 
   setupForm();
+  var loc = window.location.pathname;
+  console.log("LOCATION", loc);
+  if (loc === "/master/puzzles.xml" || loc === "/master/hints.xml") {
+    loadWaves();
+    setupWaveInputs();
+  }
   setupMultiForm();
-  setupPuzzleInput();
 }
+
 
 
 
@@ -233,15 +273,19 @@ function getInputs() {
   return dict;
 }
 
-function getMultiInputs() {
+function getMultiInputs(item) {
   var rows = [];
   var form = get("multi-form");
   for (var i = 2; i < form.children.length; i++) {
     var row = form.children[i];
     var dict = {};
-    for (var j = 1; j < row.children.length; j++) {
+    for (var j = 0; j < row.children.length; j++) {
       var input = row.children[j].children[0];
-      dict[input.name] = input.value;
+      if (hasClass(input, "number")) {
+        dict[input.name] = parseInt(input.value);
+      } else {
+        dict[input.name] = input.value;
+      }
     }
     rows.push(dict);
   }
@@ -260,29 +304,80 @@ function performAction(action) {
     window.location.href = location + ".xml?data=" + JSON.stringify(response);
   }
   switch (action) {
+    
+    /* Master Actions */
 
   case "login":
     var inputs = getInputs();
     return post("login", inputs, function(response) {
-      console.log("LOGGED IN?");
-//      goTo("hunt", response);
-    });
-    
-  case "viewOwnTeam":
-    var inputs = getInputs();
-    return post("viewOwnTeam", inputs, function(response) {
-      goTo("your-team", response);
-    });
-
-  case "setHunt":
-    var inputs = getInputs();
-    return post("setHunt", inputs);
+      goTo("hunt", response);
+    });    
 
   case "getHunt":
     return post("getHunt", {}, function(response) {
       get("name").value = response.name;
       get("teamSize").value = response.teamSize;
       get("initGuesses").value = response.initGuesses;
+    });
+
+  case "getPuzzles":
+    return post("getPuzzles", {}, function(response) {
+      deleteRows();
+      for (var i = 0; i < response.puzzles.length; i++) {
+        var puzzle = response.puzzles[i];
+        addRow(puzzle);
+      }
+    });
+
+  case "getWaves":
+    return post("getWaves", {}, function(response) {
+      console.log("GETWAVES", response.waves);
+      deleteRows();
+      for (var i = 0; i < response.waves.length; i++) {
+        var wave = response.waves[i];
+        addRow(wave);
+      }
+    });
+
+  case "getHints":
+    return post("getHints", {}, function(response) {
+      deleteRows();
+      for (var i = 0; i < response.hints.length; i++) {
+        var hint = response.hints[i];
+        addRow(hint);
+      }
+    });
+
+  case "setHunt":
+    var inputs = getInputs();
+    return post("setHunt", inputs, function() {
+      success("Successfully updated.");
+    });
+
+  case "setPuzzles":
+    var inputs = getMultiInputs("puzzles");
+    return post("setPuzzles", inputs, function() {
+      success("Successfully updated.");
+    });
+
+  case "setWaves":
+    var inputs = getMultiInputs("waves");
+    return post("setWaves", inputs, function() {
+      success("Successfully updated.");
+    });
+
+  case "setHints":
+    var inputs = getMultiInputs("hints");
+    return post("setHints", inputs, function() {
+      success("Successfully updated.");
+    });
+
+    /* Puzzler Actions */
+
+  case "viewOwnTeam":
+    var inputs = getInputs();
+    return post("viewOwnTeam", inputs, function(response) {
+      goTo("your-team", response);
     });
     
   case "registerTeam":
@@ -304,7 +399,9 @@ function performAction(action) {
       delete inputs["member_email_" + i];
     }
     inputs["members"] = members;
-    return post("registerTeam", inputs);
+    return post("registerTeam", inputs, function() {
+      success("Successfully registered.");
+    });
     
   case "changeMembers":
     var inputs = getInputs();
@@ -320,7 +417,9 @@ function performAction(action) {
     }
     inputs["members"] = members;
     delete inputs["guesses"];
-    return post("changeMembers", inputs);
+    return post("changeMembers", inputs, function() {
+      success("Successfully updated.");
+    });
   }
 }
 
