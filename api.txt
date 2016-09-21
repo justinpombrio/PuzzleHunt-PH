@@ -252,3 +252,27 @@ getMembers null
     email: Member.email
   }]
 }
+
+viewTeamStats {
+  name: Team.name
+}
+-> {
+  puzzles: [{
+    name: Puzzle.name
+    score: Stats.score
+    solveTime: Stats.solveTime
+    guesses: Stats.guesses
+  }]
+}
+
+viewPuzzleStats {
+  puzzle: Puzzle.name
+}
+-> {
+  teams: [{
+    name: Team.name
+    score: Stats.score
+    solveTime: Stats.solveTime
+    guesses: Stats.guesses
+  }]
+}
