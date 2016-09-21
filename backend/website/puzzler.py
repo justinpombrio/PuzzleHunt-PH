@@ -287,7 +287,7 @@ def viewPuzzles():
         c.execute("SELECT number, key FROM Hint WHERE puzzle = %s AND released = true", (puzzle_name,))
         hints = [{"number": rec[0], "key": rec[1]} for rec in c.fetchall()]
         # Get wave release time
-        c.execute("SELECT to_char(time, 'YYYY-MM-DDThh24:MI:SS') FROM Wave WHERE wave = %s", (wave,))
+        c.execute("SELECT to_char(time, 'YYYY-MM-DDThh24:MI:SS') FROM Wave WHERE name = %s", (wave,))
         release_time, = c.fetchone()
 
         puzzles.append((release_time, number, {"name": puzzle_name, "number": number, "points": currPoints,
