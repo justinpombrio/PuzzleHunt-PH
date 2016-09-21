@@ -281,8 +281,8 @@ viewTeamsStats null
 -> {
   teams: [{
     name: Team.name
-    score: sum(Stats.score)
-    solved: count(Stats.solveTime)
-    solveTime: avg(Stats.solveTime)
-    guesses: sum(Stats.guesses)
+    totalScore: sum(Stats.score)
+    totalSolved: count(Stats.solveTime)
+    avgSolveTime: avg(Stats.solveTime)
+    incorrectGuesses: sum(Stats.guesses)
 }
