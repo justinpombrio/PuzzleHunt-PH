@@ -20,42 +20,42 @@ Member
   email: String
 
 Puzzle
-  puzzleID: Uniq
   name: String
   number: String
   points: UInt
   answer: String
-  waveID
+  wave: String
   key: String
+  released: Bool
 
 Hint
-  puzzleID
+  puzzle: String
   number: UInt
   penalty: UInt
-  waveID
+  wave: String
   key: String
+  released: Bool
   
 Wave
-  waveID
   name: String
   time: Timestamp
   guesses: UInt
-  visible: Bool
+  released: Bool
 
 Guess
   teamID
-  puzzleID
+  puzzle
   guess: String
   time: Timestamp
 
 Solve
   teamID
-  puzzleID
+  puzzle
   time: Timestamp
 
 Stats
   teamID
-  puzzleID
+  puzzle
   score: UInt
   solveTime: UInt|null
   guesses: UInt
