@@ -1,14 +1,11 @@
 
 var SERVER_ADDRESS = "http://52.38.39.79:4000/";
-var QUERY = null;
-var PUZZLES = null;
-var WAVES = null;
 
 window.onload = setup;
 
 
 
-/* DOM Utilities */
+/******************** DOM Utilities ********************/
 
 function success(msg) {
   console.log("SUCCESS", msg);
@@ -39,6 +36,10 @@ function getByName(name) {
   return document.getElementsByName(name);
 }
 
+function getByClass(name) {
+  return document.getElementsByClassName(name);
+}
+
 function make(nodeType) {
   return document.createElement(nodeType);
 }
@@ -60,7 +61,7 @@ function hasClass(element, cls) {
 }
 
 
-/* Other Utilities */
+/******************** Other Utilities ********************/
 
 var SAFE_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
@@ -72,7 +73,6 @@ function randomFilename() {
   }
   return filename;
 }
-
 
 
 /* Http POST */
@@ -89,7 +89,7 @@ function post(action, params, onSuccess) {
   request.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
   request.send(json);
 
-  try {
+//  try {
     var response = JSON.parse(request.response);
     console.log("RESPONSE", response, request.getAllResponseHeaders());
     switch (response.status) {
@@ -103,15 +103,23 @@ function post(action, params, onSuccess) {
         return response;
       }
     }
-  } catch (exn) {
-    panic("Invalid response", exn);
-  }
+//  } catch (exn) {
+//    panic("Invalid response", exn);
+//  }
   return null;
 }
 
 
-
 /* Query Strings */
+
+var QUERY_CACHE = null;
+
+function getQuery() {
+  if (QUERY_CACHE === null) {
+    QUERY_CACHE = parseQuery(window.location.search);
+  }
+  return QUERY_CACHE;
+}
 
 function parseQuery(qstr) {
   var query = {};
@@ -125,55 +133,34 @@ function parseQuery(qstr) {
 
 
 
-/* List Puzzles */
+/******************** Puzzle/Wave Lists ********************/
 
-function loadPuzzles() {
-  return post("viewPuzzles", {}, function(response) {
-    console.log("PUZZLES", response.puzzles);
-    PUZZLES = response.puzzles;
-  });
-}
+var PUZZLES_CACHE = null;
+var WAVES_CACHE = null;
 
-function loadWaves() {
-  return post("getWaves", {}, function(response) {
-    console.log("WAVES", response.waves);
-    WAVES = response.waves;
-  });
-}
-
-
-/* Forms */
-
-function setupInput(dropdowns, choices, selection) {
-  console.log("SETUP INPUT", dropdowns, choices);
-  for (var i = 0; i < choices.length; i++) {
-    var choice = choices[i];
-    for (var j = 0; j < dropdowns.length; j++) {
-      var option = make('option');
-      option.text = choice.name;
-      option.value = choice.name;
-      if (choice.name === selection) {
-        option.selected = "selected";
-      }
-      var dropdown = dropdowns[j];
-      dropdown.add(option, 0);
-    }
+function getPuzzles() {
+  if (PUZZLES_CACHE === null) {
+    PUZZLES_CACHE = post("viewPuzzles", {}, function(response) {
+      console.log("PUZZLES", response.puzzles);
+      return response.puzzles;
+    });
   }
+  return PUZZLES_CACHE;
 }
 
-function setupPuzzleInputs() {
-  var dropdowns = getByName("puzzle");
-  if (dropdowns) {
-    setupInput(dropdowns, PUZZLES, QUERY['puzzle']);
+function getWaves() {
+  if (WAVES_CACHE === null) {
+    WAVES_CACHE = post("getWaves", {}, function(response) {
+      console.log("WAVES", response.waves);
+      return response.waves;
+    });
   }
+  return WAVES_CACHE;
 }
 
-function setupWaveInputs() {
-  var dropdowns = getByName("wave");
-  if (dropdowns) {
-    setupInput(dropdowns, WAVES);
-  }
-}
+
+
+/******************** Form Utilities ********************/
 
 function deleteNode(node) {
   node.parentNode.removeChild(node);
@@ -190,7 +177,7 @@ function deleteRows() {
   }
 }
 
-function addRow(info) {
+function addRow(data) {
   var rowTemplate = get("row-template");
   var row = rowTemplate.cloneNode(true);
   row.style.display = "";
@@ -203,13 +190,16 @@ function addRow(info) {
     if (cell.name === "key") {
       cell.value = randomFilename();
     }
-    if (info && info.hasOwnProperty(cell.name)) {
-      cell.value = info[cell.name];
+    if (data && data.hasOwnProperty(cell.name)) {
+      cell.value = data[cell.name];
     }
   }
-  var form = get("multi-form");
-  form.appendChild(row);
+  get("multi-form").appendChild(row);
 }
+
+
+
+/******************** Page Setup ********************/
 
 function setupForm() {
   var form = get("form");
@@ -220,15 +210,15 @@ function setupForm() {
     }
   }
   
-  if (!QUERY.data) { return; }
-  var json = JSON.parse(QUERY.data);
+  if (!getQuery().data) { return; }
+  var json = JSON.parse(getQuery().data);
   switch (json.location) {
   case "your-team":
-    get("name").value = json.name
-    get("guesses").value = json.guesses
+    getByName("name")[0].value = json.name
+    getByName("guesses")[0].value = json.guesses
     for (var i = 0; i < json.members.length; i++) {
-      get("member_name_" + (i+1)).value = json.members[i]["name"];
-      get("member_email_" + (i+1)).value = json.members[i]["email"];
+      getByName("member_name_" + (i+1))[0].value = json.members[i]["name"];
+      getByName("member_email_" + (i+1))[0].value = json.members[i]["email"];
     }
     break;
   }
@@ -244,15 +234,39 @@ function setupMultiForm() {
   }
 }
 
+function setupInput(dropdowns, choices, selection) {
+  if (dropdowns && dropdowns.length > 0) {
+    console.log("SETUP INPUT", dropdowns, choices());
+    for (var i = 0; i < choices().length; i++) {
+      var choice = choices()[i];
+      for (var j = 0; j < dropdowns.length; j++) {
+        var option = make('option');
+        option.text = choice.name;
+        option.value = choice.name;
+        if (choice.name === selection) {
+          option.selected = "selected";
+        }
+        var dropdown = dropdowns[j];
+        dropdown.add(option, 0);
+      }
+    }
+  }
+}
+
+function setupPuzzleInputs() {
+  setupInput(getByName("puzzle"), getPuzzles, getQuery()['puzzle']);
+}
+
+function setupWaveInputs() {
+  setupInput(getByName("wave"), getWaves);
+}
+
 function setup() {
-  QUERY = parseQuery(window.location.search);
-  loadPuzzles();
   setupPuzzleInputs(); 
   setupForm();
   var loc = window.location.pathname;
   console.log("LOCATION", loc);
   if (loc === "/master/puzzles.xml" || loc === "/master/hints.xml") {
-    loadWaves();
     setupWaveInputs();
   }
   setupMultiForm();
@@ -261,14 +275,22 @@ function setup() {
 
 
 
-/* Form submission */
+/******************** Form Submission ********************/
+
+function getInput(dict, input) {
+  if (hasClass(input, "number")) {
+    dict[input.name] = parseInt(input.value);
+  } else {
+    dict[input.name] = input.value;
+  }
+}
 
 function getInputs() {
   var inputs = getTags("input").concat(getTags("select"));
   var dict = {};
   for (var i = 0; i < inputs.length; i++) {
     var input = inputs[i];
-    dict[input.id] = "" + input.value;
+    getInput(dict, input);
   }
   return dict;
 }
@@ -281,11 +303,7 @@ function getMultiInputs(item) {
     var dict = {};
     for (var j = 0; j < row.children.length; j++) {
       var input = row.children[j].children[0];
-      if (hasClass(input, "number")) {
-        dict[input.name] = parseInt(input.value);
-      } else {
-        dict[input.name] = input.value;
-      }
+      getInput(dict, input);
     }
     rows.push(dict);
   }
@@ -296,7 +314,26 @@ function getMultiInputs(item) {
 
 
 
-/* Form actions */
+/******************** Filling Out Forms ********************/
+
+function fillForm(data) {
+  var cells = getByClass("form-cell");
+  for (var i = 0; i < cells.length; i++) {
+    cells[i].value = data[cells[i].name];
+  }
+}
+
+function fillMultiForm(datas) {
+  deleteRows();
+  for (var i = 0; i < datas.length; i++) {
+    var data = datas[i];
+    addRow(data);
+  }
+}
+
+
+
+/******************** Form Actions ********************/
 
 function performAction(action) {
   function goTo(location, response) {
@@ -305,7 +342,7 @@ function performAction(action) {
   }
   switch (action) {
     
-    /* Master Actions */
+  /* Master Actions */
 
   case "login":
     var inputs = getInputs();
@@ -315,9 +352,7 @@ function performAction(action) {
 
   case "getHunt":
     return post("getHunt", {}, function(response) {
-      get("name").value = response.name;
-      get("teamSize").value = response.teamSize;
-      get("initGuesses").value = response.initGuesses;
+      fillForm(response);
     });
 
   case "getPuzzles":
@@ -372,7 +407,7 @@ function performAction(action) {
       success("Successfully updated.");
     });
 
-    /* Puzzler Actions */
+  /* Puzzler Actions */
 
   case "viewOwnTeam":
     var inputs = getInputs();

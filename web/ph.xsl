@@ -223,20 +223,26 @@
             <xsl:if test="contains(@type, 'password')">
               <td><xsl:value-of select="normalize-space(.)"/>:</td>
               <td><input type="password"
-                         id="{@id}"
+                         name="{@id}"
                          class="form-cell text"/></td>
             </xsl:if>
             <xsl:if test="contains(@type, 'text')">
               <td><xsl:value-of select="normalize-space(.)"/>:</td>
               <td><input type="text"
-                         id="{@id}"
+                         name="{@id}"
                          class="form-cell text"/></td>
+            </xsl:if>
+            <xsl:if test="contains(@type, 'number')">
+              <td><xsl:value-of select="normalize-space(.)"/>:</td>
+              <td><input type="text"
+                         name="{@id}"
+                         class="form-cell number"/></td>
             </xsl:if>
             <xsl:if test="contains(@type, 'fixed')">
               <td><xsl:value-of select="normalize-space(.)"/>:</td>
               <td><input type="text"
                          disabled="true"
-                         id="{@id}"
+                         name="{@id}"
                          class="form-cell text"/></td>
             </xsl:if>
             <xsl:if test="contains(@type, 'puzzle')">

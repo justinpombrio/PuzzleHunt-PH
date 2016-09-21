@@ -10,10 +10,10 @@
     <input type="wave" id="wave" name="Wave">
       What wave the hint is part of
     </input>
-    <input type="short-text" id="number" name="Num">
+    <input type="number" id="number" name="Num">
       Number of the hint
     </input>
-    <input type="short-text" id="penalty" name="Pts">
+    <input type="number" id="penalty" name="Pts">
       How many points the hint subtracts from puzzles once its released
     </input>
     <input type="fixed" id="key" name="Filename">
