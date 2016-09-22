@@ -51,8 +51,13 @@
     <html>
       <head>
         <xsl:call-template name="Header"/>
+        <script type="text/javascript">
+          window.addEventListener("load", function() {
+            performAction('<xsl:value-of select="@action"/>')
+          });
+        </script>
       </head>
-      <body onload="performAction('{@action}')">
+      <body>
         <ul class="nav">
           <li class="nav1">
             <a href="/index.xml" id="hunt-title">CRUMS 6102</a>
@@ -81,8 +86,13 @@
     <html>
       <head>
         <xsl:call-template name="Header"/>
+        <script type="text/javascript">
+          window.addEventListener("load", function() {
+            performAction('<xsl:value-of select="@action"/>')
+          });
+        </script>
       </head>
-      <body onload="performAction('{@action}')">
+      <body>
         <ul class="nav">
           <li class="nav1"><a href="/master/hunt.xml">Hunt</a></li>
           <li class="nav2"><a href="/master/puzzles.xml">Puzzles</a></li>

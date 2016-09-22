@@ -6,19 +6,111 @@
   <subtitle>Alex Walker &amp; Sara Schulz</subtitle>
   <content>
     <section>
+      <h3>What is CRUMS?</h3>
       <p>
-        CRUMS is a puzzle hunt.
+        CRUMS is a small puzzle hunt created by a couple of crazy
+        people in Providence, RI, one of whom is affiliated with Brown
+        University. They felt that there weren't enough puzzle hunts
+        in the world, so they made their own.
+      </p>
+
+      <h3>When is CRUMS?</h3>
+      <p>
+        CRUMS will kick off on Saturday, 9/24 at noon EST (that's 2:00
+        a.m. on Sunday in Australian time).  Puzzles and hints will be
+        released during the subsequent 30 hours.  The last hints will
+        be released on Sunday, 9/25 at 2:00 p.m., and the hunt will
+        officially conclude at 6:00 p.m.  The puzzles will remain
+        online indefinitely, though, so don't worry if you're a bit
+        late to the party.
+      </p>
+
+      <h3>Where is CRUMS?</h3>
+      <p>
+        The internet!  Speaking of parties, though, there will be an
+        afterparty on Sunday, 9/25 at 7:00 p.m.  There will be
+        delicious snacks, and you'll be able to compare notes (or
+        commiserate) with your fellow puzzlers.  You'll receive the
+        location of the party when you register; it's at our
+        apartment, so please don't post the location online or invite
+        anyone you don't actually know.
+      </p>
+
+      <h3>How is CRUMS?</h3>
+      <p>
+        We think it's pretty sweet!  That said, we're excited to hear
+        your feedback after the hunt is over to help make future
+        iterations go more smoothly.
+      </p>
+
+      <h3>Who is CRUMS?</h3>
+      <p>
+        This has gone on long enough.  Let's get back to the real
+        questions.
+      </p>
+
+      <h3>How do I participate in CRUMS?</h3>
+      <p>
+        Assemble a team of up to 4 people and register on this very
+        website.  Create a team name and password (that you can
+        remember!) that you will all use to submit answers.
+      </p>
+
+      <h3>What's in it for me?</h3>
+      <p>
+        In addition to the honor of writing the next CRUMS hunt, the
+        team with the most points at the end of the hunt will receive
+        a prize at our highly exclusive afterparty!  If you can't make
+        it to the afterparty, we'll be deeply disappointed, but we'll
+        find a way to get you your prize.
+      </p>
+
+      <h3>What is the scoring system like?</h3>
+      <p>
+        Each puzzle (except the meta) will be worth a maximum of 3
+        points, minus 1 point for each hint that has been released.
+        The meta will be worth 10 points, but there will not be any
+        hints for it.  Confused?  Check out this sweet table:
+
+        <table>
+          <tr>
+            <th>Puzzle type</th>
+            <th>#Hints</th>
+            <th>Points</th>
+          </tr>
+          <tr>
+            <td>Non-meta</td>
+            <td>0</td>
+            <td>3</td>
+          </tr>
+          <tr>
+            <td>Non-meta</td>
+            <td>1</td>
+            <td>2</td>
+          </tr>
+          <tr>
+            <td>Non-meta</td>
+            <td>2</td>
+            <td>1</td>
+          </tr>
+          <tr>
+            <td>Meta</td>
+            <td>0</td>
+            <td>10</td>
+          </tr>
+        </table>
       </p>
       <p>
-        CRUMS is the best puzzle hunt.
+        *Ties will be broken based on average solve time
       </p>
+
+      <h3>Anything else?</h3>
       <p>
-        CRUMS is the puzzliest puzzle hunt for puzzlers you'll ever puzzle.
+        We don't think so, but if you do have a question that isn't
+        answered here, please feel free to drop us a line at <a
+        href="mailto:contact@crumspuzzlehunt.com">contact@crumspuzzlehunt.com</a>.
+        Good luck and have fun!
       </p>
     </section>
-    <h2>The Puzzles</h2>
-    <p>
-      Here are all of the puzzles:
-    </p>
   </content>
 </page>

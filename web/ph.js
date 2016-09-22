@@ -256,7 +256,7 @@ function addTableRow(data) {
         "className": "table-cell"
       });
       td.appendChild(make("a", {
-        "href": "/team-stats.xml?team=" + encodeURI(team),
+        "href": "/team-stats.xml?team=" + encodeURIComponent(team),
         "textContent": team
       }));
       tr.appendChild(td);
@@ -266,7 +266,7 @@ function addTableRow(data) {
         "className": "table-cell"
       });
       td.appendChild(make("a", {
-        "href": "/puzzle-stats.xml?puzzle=" + encodeURI(puzzle),
+        "href": "/puzzle-stats.xml?puzzle=" + encodeURIComponent(puzzle),
         "textContent": puzzle
       }));
       tr.appendChild(td);
@@ -497,10 +497,12 @@ function fillTable(datas) {
 
 function performAction(action) {
 
+  console.log("ACTION", action);
+
   function goTo(location, response) {
     if (response) {
       response.location = location;
-      window.location.href = location + "?data=" + JSON.stringify(response);
+      window.location.href = location + "?data=" + encodeURIComponent(JSON.stringify(response));
     } else {
       window.location.href = location;
     }
