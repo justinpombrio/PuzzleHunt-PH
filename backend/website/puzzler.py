@@ -402,6 +402,6 @@ def viewMembers():
     if not members:
         return abortMessage("Team '%s' does not exist" % team_name, c)
 
-    members = sorted([rec[0] for rec in member_recs])
+    members = sorted([{"member": rec[0]} for rec in member_recs])
 
     return success({"members": members}, c)
