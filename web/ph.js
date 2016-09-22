@@ -1,5 +1,6 @@
 
-var SERVER_ADDRESS = "http://52.38.39.79/";
+//var SERVER_ADDRESS = "http://52.38.39.79/";
+var SERVER_ADDRESS = "http://crumspuzzlehunt.com/";
 
 window.onload = setup;
 
