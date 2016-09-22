@@ -6,13 +6,11 @@ window.onload = setup;
 /******************** DOM Utilities ********************/
 
 function success(msg) {
-  console.log("SUCCESS", msg);
   get("failure-message").textContent = "";
   get("success-message").textContent = msg;
 }
 
 function failure(msg) {
-  console.log("ERROR", msg);
   if (msg === "Unauthorized") {
     window.location.href = "/login.xml";
   }
@@ -22,7 +20,6 @@ function failure(msg) {
 
 function panic(msg, details) {
   failure("Oops! The site broke. Details logged to console.");
-  console.log("INTERNAL ERROR", msg);
   console.log(details);
 }
 
@@ -91,7 +88,7 @@ function secondsToHours(secs) {
 
 // taken from http://stackoverflow.com/questions/133925/javascript-post-request-like-a-form-submit#133997
 function post(action, params, onSuccess) {
-  var path = "http://" + window.location.hostname + "/" + action;
+  var path = "https://" + window.location.hostname + "/" + action;
   var json = JSON.stringify(params);
   console.log("POST", path, json);
   
@@ -100,7 +97,7 @@ function post(action, params, onSuccess) {
   request.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
   request.send(json);
 
-//  try {
+  try {
     var response = JSON.parse(request.response);
     console.log("RESPONSE", response, request.getAllResponseHeaders());
     switch (response.status) {
@@ -114,9 +111,9 @@ function post(action, params, onSuccess) {
         return response;
       }
     }
-//  } catch (exn) {
-//    panic("Invalid response", exn);
-//  }
+  } catch (exn) {
+    panic("Invalid response", exn);
+  }
   return null;
 }
 
@@ -418,7 +415,6 @@ function getInput(dict, input) {
   if (input.tagName.toLowerCase() === "a" // duct tape
       && input.children
       && input.children[0]) {
-    console.log("!", input.children[0]);
     input = input.children[0];
   }
   if (hasClass(input, "number")) {
