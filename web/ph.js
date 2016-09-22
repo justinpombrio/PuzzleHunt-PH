@@ -1,7 +1,4 @@
 
-//var SERVER_ADDRESS = "http://52.38.39.79/";
-var SERVER_ADDRESS = "http://crumspuzzlehunt.com/";
-
 window.onload = setup;
 
 
@@ -94,7 +91,7 @@ function secondsToHours(secs) {
 
 // taken from http://stackoverflow.com/questions/133925/javascript-post-request-like-a-form-submit#133997
 function post(action, params, onSuccess) {
-  var path = SERVER_ADDRESS + action;
+  var path = "http://" + window.location.hostname + "/" + action;
   var json = JSON.stringify(params);
   console.log("POST", path, json);
   
