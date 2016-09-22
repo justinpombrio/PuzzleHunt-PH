@@ -154,6 +154,7 @@ def parseJson(rqst, type_sig):
     return False, content
 
 # Code copied from http://arusahni.net/blog/2014/03/flask-nocache.html
+# No caching
 def nocache(view):
     @wraps(view)
     def no_cache(*args, **kwargs):
