@@ -227,22 +227,29 @@ def submitGuess():
         # It's the puzzler's fault if they feel like inputting other weird characters
     normal_guess = re.sub(r"\s+", "", guess.lower(), flags=re.UNICODE)
 
+    c.execute("SELECT closed FROM Hunt")
+    closed, = c.fetchone()
+
     # If you have guesses left
     # Decrement the number of guesses you have left
     # And save the guess
     c.execute("UPDATE Team SET guesses = %s WHERE teamID = %s", (guesses - 1, teamID))
-    c.execute("INSERT INTO Guess VALUES (%s, %s, %s, %s)", (teamID, puzzle, guess, submit_time))
+    if not closed:
+        c.execute("INSERT INTO Guess VALUES (%s, %s, %s, %s)", (teamID, puzzle, guess, submit_time))
 
     # Update stats table with another guess
     # Insert if not exists
-    c.execute("UPDATE Stats SET guesses = guesses + 1 WHERE teamID = %s AND puzzle = %s RETURNING teamID, puzzle", (teamID, puzzle))
-    if c.fetchone() == None:
-       c.execute("INSERT INTO Stats VALUES (%s, %s, 0, null, 1)", (teamID, puzzle)) 
+        c.execute("UPDATE Stats SET guesses = guesses + 1 WHERE teamID = %s AND puzzle = %s RETURNING teamID, puzzle", (teamID, puzzle))
+        if c.fetchone() == None:
+            c.execute("INSERT INTO Stats VALUES (%s, %s, 0, null, 1)", (teamID, puzzle)) 
 
     # Incorrect answer
     if normal_guess != answer:
         # Don't touch solve table
         return success({"isCorrect": "Incorrect"}, c, db)
+
+    if closed:
+        return success({"isCorrect": "Correct"}, c, db)
 
     # Otherwise, correct answer
     # Calculate puzzle value by looking at hints released
@@ -302,10 +309,10 @@ def viewPuzzles():
 @puzzler_api.route("/viewTeamStats", methods=['POST'])
 def viewTeamStats():
     releaseWaves()
-    fail, content = parseJson(request, {"name": unicode})
+    fail, content = parseJson(request, {"team": unicode})
     if fail:
         return content
-    team_name = content["name"]
+    team_name = content["team"]
     c = db.cursor()
 
     # Get team name
@@ -317,7 +324,7 @@ def viewTeamStats():
 
     # Get data
     c.execute("SELECT puzzle, score, solveTime, guesses FROM Stats WHERE teamID = %s", (teamID,))
-    puzzles = [{"name": rec[0], "score": rec[1], "solveTime": rec[2], "guesses": rec[3]} for rec in c.fetchall()]
+    puzzles = [{"puzzle": rec[0], "score": rec[1], "solveTime": rec[2], "guesses": rec[3]} for rec in c.fetchall()]
 
     return success({"puzzles": puzzles}, c)
 
@@ -329,6 +336,7 @@ def viewPuzzleStats():
     if fail:
         return content
     puzzle = content["puzzle"]
+    c = db.cursor()
 
     # Check that puzzle exists
     c.execute("SELECT name FROM Puzzle WHERE name = %s", (puzzle,))
@@ -337,8 +345,8 @@ def viewPuzzleStats():
 
     # Get data
     c.execute("""SELECT Team.name, score, solveTime, Stats.guesses FROM Stats, Team
-                WHERE Team.teamID = Stats.teamID AND puzzle = %d""", (puzzle,))
-    teams = [{"name": rec[0], "score": rec[1], "solveTime": rec[2], "guesses": rec[3]} for rec in c.fetchall()]
+                WHERE Team.teamID = Stats.teamID AND puzzle = %s""", (puzzle,))
+    teams = [{"team": rec[0], "score": rec[1], "solveTime": rec[2], "guesses": rec[3]} for rec in c.fetchall()]
 
     return success({"teams": teams}, c)
 
@@ -351,7 +359,7 @@ def viewTeamsStats():
     c.execute("""SELECT name, sum(score), count(solveTime), avg(solveTime)::int, sum(Stats.guesses)
                 FROM stats, team WHERE Team.teamID = Stats.teamID group by name""")
 
-    teams = [(-rec[1], rec[3], {"name": rec[0], "totalScore": rec[1], "totalSolves": rec[2],
+    teams = [(-rec[1], rec[3], {"team": rec[0], "totalScore": rec[1], "totalSolves": rec[2],
                 "avgSolveTime": rec[3], "guesses": rec[4] - rec[2]}) for i, rec in enumerate(c.fetchall())]
     ordered_teams = [tup[2] for tup in sorted(teams)]
     for i, team in enumerate(ordered_teams):
@@ -361,7 +369,7 @@ def viewTeamsStats():
     n = len(teams)
     print n
     c.execute("SELECT name FROM Team WHERE teamID NOT IN (SELECT teamID FROM Stats)")
-    ordered_teams += [{"rank": n+j+1, "name": rec[0], "totalScore": 0, "totalSolves": 0, "avgSolveTime": None, "guesses": 0}
+    ordered_teams += [{"rank": n+j+1, "team": rec[0], "totalScore": 0, "totalSolves": 0, "avgSolveTime": None, "guesses": 0}
                     for j, rec in enumerate(c.fetchall())]
 
     return success({"teams": ordered_teams}, c)

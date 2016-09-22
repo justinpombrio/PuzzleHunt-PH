@@ -40,9 +40,9 @@ def getHunt():
 
     c = db.cursor()
 
-    c.execute("SELECT name, teamSize, initGuesses FROM Hunt")
-    hunt_name, team_size, init_guesses = c.fetchone()
-    return success({"name": hunt_name, "teamSize": team_size, "initGuesses": init_guesses}, c)
+    c.execute("SELECT name, teamSize, initGuesses, closed FROM Hunt")
+    hunt_name, team_size, init_guesses, closed = c.fetchone()
+    return success({"name": hunt_name, "teamSize": team_size, "initGuesses": init_guesses, "closed": closed}, c)
 
 
 @master_api.route("/setHunt", methods=['POST'])
@@ -51,17 +51,18 @@ def setHunt():
     if 'username' not in session:
         return abortMessage("Unauthorized")
 
-    fail, content = parseJson(request, {"name": unicode, "teamSize": int, "initGuesses": int})
+    fail, content = parseJson(request, {"name": unicode, "teamSize": int, "initGuesses": int, "closed": bool})
     if fail:
         return content
     hunt_name = content["name"]
     team_size = content["teamSize"]
     init_guesses = content["initGuesses"]
+    closed = content["closed"]
     c = db.cursor()
 
     # TODO: Limits on the above values?
 
-    c.execute("UPDATE Hunt SET name = %s, teamSize = %s, initGuesses = %s", (hunt_name, team_size, init_guesses))
+    c.execute("UPDATE Hunt SET name = %s, teamSize = %s, initGuesses = %s, closed = %s", (hunt_name, team_size, init_guesses, closed))
 
     return success({}, c, db)
 

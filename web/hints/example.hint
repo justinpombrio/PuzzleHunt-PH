@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../ph.xsl"?>
+
+<page>
+  <title>Hint</title>
+  <content>
+    <p>
+      This is a hint.
+    </p>
+  </content>
+</page>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../ph.xsl"?>
+
+<page>
+  <title>Sample Puzzle</title>
+  <puzzle>
+    <name>Not Really a Puzzle</name>
+    <description>
+      <p>
+        <a href="secretF3Q.pdf">The puzzle</a>
+      </p>
+    </description>
+  </puzzle>
+</page>

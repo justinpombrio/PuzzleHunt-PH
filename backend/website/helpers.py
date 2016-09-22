@@ -1,8 +1,9 @@
 import bcrypt
-from flask import jsonify
+from flask import jsonify, make_response
 import psycopg2
 import datetime
 from website import db, START_TIME
+from functools import wraps, update_wrapper
 
 SIZE_LIMITS = {"team_name": 64,
         "member_name": 128,
@@ -145,8 +146,22 @@ def typeCheck(json_data, types):
 # Otherwise return JSON content
 def parseJson(rqst, type_sig):
     content = rqst.get_json(silent=True)
+    print content
     if content == None:
         return True, abortMessage("Internal error: Invalid JSON")
     if not typeCheck(content, type_sig):
         return True, abortMessage("Internal error: Type check failed")
     return False, content
+
+# Code copied from http://arusahni.net/blog/2014/03/flask-nocache.html
+def nocache(view):
+    @wraps(view)
+    def no_cache(*args, **kwargs):
+        response = make_response(view(*args, **kwargs))
+        response.headers['Last-Modified'] = datetime.datetime.now()
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '-1'
+        return response
+        
+    return update_wrapper(no_cache, view)
