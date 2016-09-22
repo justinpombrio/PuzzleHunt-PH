@@ -13,6 +13,9 @@
     <input type="number" id="initGuesses">
       How many guesses each team starts with
     </input>
+    <input type="boolean" id="closed">
+      Whether the hunt has been closed (freezes team stats)
+    </input>
     <submit-button action="setHunt">
       Update
     </submit-button>

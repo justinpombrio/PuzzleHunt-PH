@@ -135,6 +135,10 @@ h1 code, h2 code, h3 code { font-size: 0.80em; }
 pre { padding-left: 2.5%;
       overflow-x: auto; }
 
+input.form-cell.checkbox {
+    transform: scale(1.5);
+}
+
 input.multi-form-cell.short-text {
     width: 4rem;
 }

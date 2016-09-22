@@ -4,4 +4,9 @@
 <page>
   <title>The Puzzles</title>
   <list-all-puzzles/>
+  <content>
+    <p>
+      <a href="guess.xml">Submit a guess</a>
+    </p>
+  </content>
 </page>

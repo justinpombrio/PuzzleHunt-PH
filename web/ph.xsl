@@ -8,11 +8,11 @@
   <!--******************** UTILITY ********************-->
   
   <xsl:template match="title">
-    <h1><xsl:copy-of select="node()"/></h1>
+    <h1 id="title"><xsl:copy-of select="node()"/></h1>
   </xsl:template>
 
   <xsl:template match="subtitle">
-    <p class="subtitle">
+    <p id="subtitle" class="subtitle">
       <xsl:copy-of select="node()"/>
     </p>
   </xsl:template>
@@ -38,8 +38,7 @@
   <!--******************** PAGES ********************-->
   
   <xsl:template name="Header">
-    <title>
-    </title>
+    <title>CRUMS 6102</title>
     <link rel="stylesheet" type="text/css" href="/css/style.css"/>
     <script type="text/javascript">
       var PUZZLES = [];
@@ -56,14 +55,12 @@
       <body onload="performAction('{@action}')">
         <ul class="nav">
           <li class="nav1">
-            <a href="/index.xml" id="hunt-title">
-            </a>
+            <a href="/index.xml" id="hunt-title">CRUMS 6102</a>
           </li>
           <li class="nav2"><a href="/team.xml">Team</a></li>
-          <li class="nav3"><a href="/team-stats.xml">Leaderboard</a></li>
-          <li class="nav4"><a href="/puzzle-stats.xml">Puzzle Stats</a></li>
+          <li class="nav3"><a href="/team-leaderboard.xml">Leaderboard</a></li>
+          <li class="nav4"><a href="/puzzle-leaderboard.xml">Puzzle Stats</a></li>
           <li class="nav5"><a href="/puzzles.xml">Puzzles</a></li>
-          <li class="nav6"><a href="/login.xml">[Mtr]</a></li>
         </ul>
         <p id="success-message"/>
         <p id="failure-message"/>
@@ -99,7 +96,7 @@
         <article>
           <xsl:apply-templates select="*"/>
           <footer>
-            * Welcome, master. *
+            * Welcome, Master. *
           </footer>
         </article>
       </body>
@@ -204,7 +201,9 @@
           </tr>
         </tbody>
       </table>
-      <a href="#" onclick="addRow()">Add <xsl:value-of select="@item"/></a>
+      <a href="#" onclick="addRow(undefined, '{@id}')">
+        Add <xsl:value-of select="@item"/>
+      </a>
     </p>
     <xsl:for-each select="submit-button">
       <input type="button"
@@ -243,6 +242,12 @@
                          disabled="true"
                          name="{@id}"
                          class="form-cell text"/></td>
+            </xsl:if>
+            <xsl:if test="contains(@type, 'boolean')">
+              <td><xsl:value-of select="normalize-space(.)"/>:</td>
+              <td><input type="checkbox"
+                         name="{@id}"
+                         class="form-cell checkbox"/></td>
             </xsl:if>
             <xsl:if test="contains(@type, 'puzzle')">
               <td><xsl:value-of select="normalize-space(.)"/>:</td>

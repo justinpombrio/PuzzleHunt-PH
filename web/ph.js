@@ -1,5 +1,5 @@
 
-var SERVER_ADDRESS = "http://52.38.39.79:4000/";
+var SERVER_ADDRESS = "http://52.38.39.79/";
 
 window.onload = setup;
 
@@ -228,7 +228,6 @@ function addRow(data, item) {
       var filename = data ? data["key"] : randomFilename();
       box.value = filename;
       var link = make("a", {
-        "title": filename,
         "href": "/" + item + "/" + filename + ".xml",
         "value": box.value
       });
@@ -251,10 +250,32 @@ function addTableRow(data) {
   var tr = make("tr", { "name": "a-table-row" });
   for (var i = 0; i < cols.length; i++) {
     var col = cols[i];
-    tr.appendChild(make("td", {
-      "textContent": data[col],
-      "className": "table-cell"
-    }));
+    if (col === "team") {
+      var team = data[col];
+      var td = make("td", {
+        "className": "table-cell"
+      });
+      td.appendChild(make("a", {
+        "href": "/team-stats.xml?team=" + encodeURI(team),
+        "textContent": team
+      }));
+      tr.appendChild(td);
+    } else if (col === "puzzle") {
+      var puzzle = data[col];
+      var td = make("td", {
+        "className": "table-cell"
+      });
+      td.appendChild(make("a", {
+        "href": "/puzzle-stats.xml?puzzle=" + encodeURI(puzzle),
+        "textContent": puzzle
+      }));
+      tr.appendChild(td);
+    } else {
+      tr.appendChild(make("td", {
+        "textContent": data[col],
+        "className": "table-cell"
+      }));
+    }
   }
   get("table").appendChild(tr);
 }
@@ -294,9 +315,9 @@ function setupPuzzleList() {
     for (var j = 0; j < puzzles.length; j++) {
       var puzzle = puzzles[j];
       if (puzzle.wave === wave) {
+        name = puzzle.number ? puzzle.number + ": " + puzzle.name : puzzle.name;
         var link = make("a", {
-          "textContent": puzzle.name,
-          "title": puzzle.name,
+          "textContent": name,
           "href": "puzzles/" + puzzle.key + ".xml"
         });
         var elem = make("li");
@@ -306,7 +327,6 @@ function setupPuzzleList() {
           elem.appendChild(make("span", {"className": "spacing"}));
           elem.appendChild(make("a", {
             "textContent": "Hint " + hint.number,
-            "title":       "Hint " + hint.number,
             "href":        "hints/" + hint.key + ".xml"
           }));
         }
@@ -405,6 +425,8 @@ function getInput(dict, input) {
   }
   if (hasClass(input, "number")) {
     dict[input.name] = parseInt(input.value);
+  } else if (hasClass(input, "checkbox")) {
+    dict[input.name] = input.checked;
   } else {
     dict[input.name] = input.value;
   }
@@ -444,7 +466,12 @@ function getMultiInputs(item) {
 function fillForm(data) {
   var cells = getByClass("form-cell");
   for (var i = 0; i < cells.length; i++) {
-    cells[i].value = data[cells[i].name];
+    var cell = cells[i];
+    if (hasClass(cell, "checkbox")) {
+      cell.checked = data[cell.name];
+    } else {
+      cell.value = data[cell.name];
+    }
   }
 }
 
@@ -627,8 +654,27 @@ function performAction(action) {
       fillTable(response.puzzles);
     });
 
+  case "viewTeamStats":
+    var team = getQuery()["team"];
+    get("title").textContent = team;
+    return post("viewTeamStats", {"team": team}, function(response) {
+      for (var i = 0; i < response.puzzles.length; i++) {
+        var puzzle = response.puzzles[i];
+        puzzle.solveTime = secondsToHours(puzzle.solveTime);
+      }
+      fillTable(response.puzzles);
+    });
 
-  
+  case "viewPuzzleStats":
+    var puzzle = getQuery()["puzzle"];
+    get("title").textContent = puzzle;
+    return post("viewPuzzleStats", {"puzzle": puzzle}, function(response) {
+      for (var i = 0; i < response.teams.length; i++) {
+        var team = response.teams[i];
+        team.solveTime = secondsToHours(team.solveTime);
+      }
+      fillTable(response.teams);
+    });
   }
 }
 

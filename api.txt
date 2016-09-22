@@ -243,11 +243,11 @@ getMembers null
 }
 
 viewTeamStats {
-  name: Team.name
+  team: Team.name
 }
 -> {
   puzzles: [{
-    name: Puzzle.name
+    puzzle: Puzzle.name
     score: Stats.score
     solveTime: Stats.solveTime
     guesses: Stats.guesses
@@ -259,7 +259,7 @@ viewPuzzleStats {
 }
 -> {
   teams: [{
-    name: Team.name
+    team: Team.name
     score: Stats.score
     solveTime: Stats.solveTime
     guesses: Stats.guesses
@@ -269,7 +269,7 @@ viewPuzzleStats {
 viewTeamsStats null
 -> {
   teams: [{
-    name: Team.name
+    team: Team.name
     totalScore: sum(Stats.score)
     totalSolves: count(Stats.solveTime)
     avgSolveTime: avg(Stats.solveTime)

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="../ph.xsl"?>
 
-<page action="viewPuzzleStats">
+<page action="viewPuzzlesStats">
   <title>Puzzle Stats</title>
-  <subtitle></subtitle>
   <table>
-    <column id="team">Team Name</column>
-    <column id="score">Score</column>
-    <column id="solveTime">Solve Time</column>
+    <column id="puzzle">Puzzle</column>
+    <column id="totalSolves">Solves</column>
+    <column id="avgSolveTime">A.S.T.</column>
     <column id="guesses">Guesses</column>
   </table>
   <content>
     <p>
+      Average Solve Time measured in hours.
       Correct answers are not Guesses.
     </p>
   </content>

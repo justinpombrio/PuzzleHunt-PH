@@ -21,7 +21,8 @@ create table Hunt (
   teamSize smallint NOT NULL,
   initGuesses int NOT NULL,
   password varchar NOT NULL,
-  secretKey varchar NOT NULL
+  secretKey varchar NOT NULL,
+  closed boolean NOT NULL
 );
 
 drop table if exists Team;
