@@ -30,7 +30,6 @@ def releaseWaves():
     c = db.cursor()
 
     c.execute("UPDATE Wave SET released = true WHERE time <= %s AND released = false RETURNING time, name, guesses, released", (curr_time,))
-    print c.mogrify("UPDATE Wave SET released = true WHERE time <= %s AND released = false RETURNING time, name, guesses, released", (curr_time,))
     wave_recs = c.fetchall()
 
     # Release all waves in order
@@ -60,7 +59,6 @@ def releaseWave(wave_rec, c):
     c.execute("UPDATE Puzzle SET released = true WHERE wave = %s RETURNING name, wave, released", (wave,))
 
 def abortMessage(message, cursor=None, conn=None):
-    print "Failure"
     if cursor:
         cursor.close()
     if conn:
@@ -70,7 +68,6 @@ def abortMessage(message, cursor=None, conn=None):
     return resp
 
 def success(data, cursor=None, conn=None):
-    print "Success"
     if cursor:
         cursor.close()
     if conn:
@@ -117,10 +114,8 @@ def typeCheck(json_data, types):
                 return False
     elif type(json_data) == int == types:
         if json_data < 0:
-            print "Negative value!"
             return False
     elif types == datetime.datetime:
-        print "Trying datetime"
         # Try parsing datetime
         if type(json_data) != unicode:
             return False
@@ -130,14 +125,10 @@ def typeCheck(json_data, types):
             try:
                 datetime.datetime.strptime(json_data, "%Y-%m-%dT%H:%M")
             except:
-                print "Did not parse"
                 return False
             return True
     elif type(json_data) != types:
         # Is not primitive
-        print json_data
-        print type(json_data)
-        print types
         return False
     return True
 
@@ -146,7 +137,6 @@ def typeCheck(json_data, types):
 # Otherwise return JSON content
 def parseJson(rqst, type_sig):
     content = rqst.get_json(silent=True)
-    print content
     if content == None:
         return True, abortMessage("Internal error: Invalid JSON")
     if not typeCheck(content, type_sig):

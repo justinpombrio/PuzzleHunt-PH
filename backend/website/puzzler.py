@@ -367,7 +367,6 @@ def viewTeamsStats():
 
     # List teams that have not guessed yet
     n = len(teams)
-    print n
     c.execute("SELECT name FROM Team WHERE teamID NOT IN (SELECT teamID FROM Stats)")
     ordered_teams += [{"rank": n+j+1, "team": rec[0], "totalScore": 0, "totalSolves": 0, "avgSolveTime": None, "guesses": 0}
                     for j, rec in enumerate(c.fetchall())]
