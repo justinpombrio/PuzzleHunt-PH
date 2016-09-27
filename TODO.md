@@ -26,6 +26,7 @@
 - - View solutions, once the hunt is over
 - - Allow changing your password
 - - Allow file uploads?
+- - Encouragements.
 - - Support multiple hunts (You should be able to view old puzzles,
   hints, solutions, leaderboards, and guesses. You should not be able
   to register a team or submit guesses.
