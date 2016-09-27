@@ -148,6 +148,59 @@ viewPuzzles null
 }
 
 
+viewTeamStats {
+  team: Team.name
+}
+-> {
+  puzzles: [{
+    puzzle: Puzzle.name
+    score: Stats.score
+    solveTime: Stats.solveTime
+    guesses: Stats.guesses
+  }]
+}
+
+viewPuzzleStats {
+  puzzle: Puzzle.name
+}
+-> {
+  teams: [{
+    team: Team.name
+    score: Stats.score
+    solveTime: Stats.solveTime
+    guesses: Stats.guesses
+  }]
+}
+
+viewTeamsStats null
+-> {
+  teams: [{
+    team: Team.name
+    totalScore: sum(Stats.score)
+    totalSolves: count(Stats.solveTime)
+    avgSolveTime: avg(Stats.solveTime)
+    guesses: sum(Stats.guesses)
+  ]}
+}
+
+viewPuzzlesStats null
+-> {
+  puzzles: [{
+    puzzle: Puzzle.name
+    totalSolves: count(Stats.solve)
+    avgSolveTime: avg(Stats.solveTime)
+    guesses: sum(Stats.guesses)
+  ]}
+}
+
+viewMembers {
+  team: Team.name
+-> {
+  members: [{
+    team: Team.name
+  }]
+}
+
 MASTER ACTIONS
 
 login {
@@ -240,47 +293,4 @@ getMembers null
     name: Member.name,
     email: Member.email
   }]
-}
-
-viewTeamStats {
-  team: Team.name
-}
--> {
-  puzzles: [{
-    puzzle: Puzzle.name
-    score: Stats.score
-    solveTime: Stats.solveTime
-    guesses: Stats.guesses
-  }]
-}
-
-viewPuzzleStats {
-  puzzle: Puzzle.name
-}
--> {
-  teams: [{
-    team: Team.name
-    score: Stats.score
-    solveTime: Stats.solveTime
-    guesses: Stats.guesses
-  }]
-}
-
-viewTeamsStats null
--> {
-  teams: [{
-    team: Team.name
-    totalScore: sum(Stats.score)
-    totalSolves: count(Stats.solveTime)
-    avgSolveTime: avg(Stats.solveTime)
-    guesses: sum(Stats.guesses)
-}
-
-viewPuzzlesStats null
--> {
-  puzzles: [{
-    puzzle: Puzzle.name
-    totalSolves: count(Stats.solve)
-    avgSolveTime: avg(Stats.solveTime)
-    guesses: sum(Stats.guesses)
 }

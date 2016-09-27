@@ -367,7 +367,6 @@ def viewTeamsStats():
 
     # List teams that have not guessed yet
     n = len(teams)
-    print n
     c.execute("SELECT name FROM Team WHERE teamID NOT IN (SELECT teamID FROM Stats)")
     ordered_teams += [{"rank": n+j+1, "team": rec[0], "totalScore": 0, "totalSolves": 0, "avgSolveTime": None, "guesses": 0}
                     for j, rec in enumerate(c.fetchall())]
@@ -385,4 +384,23 @@ def viewPuzzlesStats():
 
     puzzles = [{"puzzle": rec[0], "totalSolves": rec[1], "avgSolveTime": rec[2], "guesses": rec[3] - rec[1]} for rec in c.fetchall()]
 
-    return success({"puzzles": puzzles})
+    return success({"puzzles": puzzles}, c)
+
+
+@puzzler_api.route("/viewMembers", methods=['POST'])
+def viewMembers():
+    releaseWaves()
+    fail, content = parseJson(request, {"team": unicode})
+    if fail:
+        return content
+    team_name = content["team"]
+    c = db.cursor()
+
+    c.execute("SELECT Member.name FROM Team, Member WHERE Member.teamID = Team.teamID AND Team.name")
+    member_recs = c.fetchall()
+    if not members:
+        return abortMessage("Team '%s' does not exist" % team_name, c)
+
+    members = sorted([{"member": rec[0]} for rec in member_recs])
+
+    return success({"members": members}, c)
