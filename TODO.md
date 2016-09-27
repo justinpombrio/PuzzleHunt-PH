@@ -18,6 +18,7 @@
 - Formatting:
 - - Align hints.
 - - Name table columns consistently (e.g. AST)
+- - When submitting a guess, maybe have a popup.
 - New pages:
 - - View your team's guesses
 - - View other teams' guesses, once the hunt is over
