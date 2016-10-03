@@ -3,6 +3,7 @@
 - Make ssl work! Use a ssl-test website.
 - Make the server a nice process. There should be a way to stop and
   start it in the background, and it should write to a log file.
+- Use a real web server (like Apache or Nginx) instead of Flask's builtin server.
 - Move web page generation to Flask. This will give benefits:
 - - No more many-round-trip-post-requests to slow the site down.
 - - Can use forms instead of JS buttons. Should give better keyboard
