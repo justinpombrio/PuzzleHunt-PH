@@ -171,6 +171,8 @@ def setPuzzles():
         wave, is_released = wave_rec
         if tooLong(puzzle_name, "puzzle_name"):
             return abortMessage("Puzzle name too long", c, db)
+        if tooShort(puzzle_name, "puzzle_name"):
+            return abortMessage("Puzzle name too short", c, db)
         if tooLong(number, "number"):
             return abortMessage("Puzzle number too long", c, db)
         c.execute("INSERT INTO Puzzle VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (puzzle_name, number, points, points, answer, wave, key, is_released))

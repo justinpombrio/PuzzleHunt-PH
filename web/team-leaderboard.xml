@@ -3,15 +3,12 @@
 
 <page action="viewTeamsStats">
   <title>Leaderboard</title>
-  <subtitle>
-    No, no, the goal is to be on TOP of the leaderboard.
-  </subtitle>
   <table>
     <column id="rank">Rank</column>
     <column id="team">Team</column>
     <column id="totalScore">Score</column>
     <column id="totalSolves">Solves</column>
-    <column id="avgSolveTime">Avg. Solve Time</column>
+    <column id="avgSolveTime">A.S.T.</column>
     <column id="guesses">Guesses</column>
   </table>
   <content>

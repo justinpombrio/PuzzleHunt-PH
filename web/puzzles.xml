@@ -3,6 +3,11 @@
 
 <page>
   <title>The Puzzles</title>
+   <content>
+    <p>
+	<b>Introduction: </b> <a href="https://crumspuzzlehunt.com/Orientation.pdf">Orientation</a> (not a puzzle – relevant only to the metapuzzle) 
+    </p>
+   </content>
   <list-all-puzzles/>
   <content>
     <p>

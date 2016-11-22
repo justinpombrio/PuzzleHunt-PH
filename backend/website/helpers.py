@@ -2,27 +2,32 @@ import bcrypt
 from flask import jsonify, make_response
 import psycopg2
 import datetime
+import time
 from website import db, START_TIME
 from functools import wraps, update_wrapper
 
-SIZE_LIMITS = {"team_name": 64,
-        "member_name": 128,
-        "email": 256,
-        "wave_name": 64,
-        "guess": 64,
-        "puzzle_name": 64,
-        "number": 64
-    }
+SIZE_LIMITS = {
+    "team_name": (1, 64),
+    "member_name": (1, 128),
+    "email": (1, 256),
+    "wave_name": (0, 64),
+    "guess": (0, 64),
+    "puzzle_name": (1, 64),
+    "number": (0, 64)
+}
 
 NEXT_CHECK = START_TIME
 FREQ_CHECK = datetime.timedelta(0, 1)
 
 def tooLong(string, field):
-    return len(string) >= SIZE_LIMITS[field]
+    return len(string) >= SIZE_LIMITS[field][1]
+
+def tooShort(string, field):
+    return len(string) < SIZE_LIMITS[field][0]
 
 def releaseWaves():
     global NEXT_CHECK
-    curr_time = datetime.datetime.now() - datetime.timedelta(hours=4)
+    curr_time = datetime.datetime.utcnow()
     if curr_time < NEXT_CHECK:
         return
 
@@ -37,7 +42,7 @@ def releaseWaves():
         releaseWave(wave_rec, c)
 
     # Update next check time
-    NEXT_CHECK = datetime.datetime.now() - datetime.timedelta(hours=4) + FREQ_CHECK
+    NEXT_CHECK = datetime.datetime.utcnow() + FREQ_CHECK
 
     db.commit()
     c.close()
@@ -149,7 +154,7 @@ def nocache(view):
     @wraps(view)
     def no_cache(*args, **kwargs):
         response = make_response(view(*args, **kwargs))
-        response.headers['Last-Modified'] = datetime.datetime.now()
+        response.headers['Last-Modified'] = datetime.datetime.utcnow()
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '-1'

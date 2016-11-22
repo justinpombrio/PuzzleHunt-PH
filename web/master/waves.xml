@@ -10,7 +10,7 @@
     <input type="datetime" id="time" name="Release">
       When the wave will occur. (If you get a date-selector, use
       it. If instead you get a regular text box, use the format
-      yyyy-mm-ddT--:--:--)
+      yyyy-mm-dd --:--:--)
     </input>
     <input type="number" id="guesses" name="Guesses">
       How many guesses to provide to all teams when the wave occurs

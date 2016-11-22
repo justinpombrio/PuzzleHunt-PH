@@ -23,6 +23,10 @@ function panic(msg, details) {
   console.log(details);
 }
 
+function popup(message) {
+  window.alert(message);
+}
+
 function get(id) {
   return document.getElementById(id);
 }
@@ -228,8 +232,12 @@ function addRow(data, item) {
       });
       link.appendChild(box);
       child.appendChild(link);
-    }
-    if (data && data.hasOwnProperty(cell.name)) {
+    } else if (cell.name === "time") {
+      if (data && data.hasOwnProperty(cell.name)) {
+        var local_time = new Date(data[cell.name]);
+        cell.value = local_time.toLocaleString();
+      }
+    } else if (data && data.hasOwnProperty(cell.name)) {
       cell.value = data[cell.name];
     }
   }
@@ -421,6 +429,15 @@ function getInput(dict, input) {
     dict[input.name] = parseInt(input.value);
   } else if (hasClass(input, "checkbox")) {
     dict[input.name] = input.checked;
+  } else if (hasClass(input, "datetime")) {
+    try {
+      var local_time = new Date(input.value);
+      var iso_time = local_time.toISOString().split(".")[0];
+      dict[input.name] = iso_time;
+    } catch (e) {
+      failure("Invalid time: " + input.value);
+      throw e;
+    }
   } else {
     dict[input.name] = input.value;
   }
@@ -616,13 +633,13 @@ function performAction(action) {
     return post("submitGuess", inputs, function(response) {
       switch (response.isCorrect) {
       case "Correct":
-        success("Correct!");
+        popup("Correct guess!");
         break;
       case "Incorrect":
-        failure("Incorrect.");
+        popup("Incorrect guess.");
         break;
       case "OutOfGuesses":
-        failure("You are out of guesses!");
+        popup("You are out of guesses!");
         break;
       }
     });
@@ -659,6 +676,11 @@ function performAction(action) {
         puzzle.solveTime = secondsToHours(puzzle.solveTime);
       }
       fillTable(response.puzzles);
+      return post("viewMembers", {"team": team}, function(response) {
+        get("table").id = "unused";
+        get("table2").id = "table";
+        fillTable(response.members);
+      });
     });
 
   case "viewPuzzleStats":

@@ -148,6 +148,22 @@
     </p>
   </xsl:template>
 
+  <xsl:template match="table2">
+    <p>
+      <table class="grid">
+        <tbody id="table2">
+          <tr>
+            <xsl:for-each select="column">
+              <th id="{@id}">
+                <xsl:value-of select="."/>
+              </th>
+            </xsl:for-each>
+          </tr>
+        </tbody>
+      </table>
+    </p>
+  </xsl:template>
+
   <xsl:template match="multi-form">
     <p>
       <table>
@@ -192,7 +208,7 @@
                          class="multi-form-cell fixed-text"/>
                 </xsl:if>
                 <xsl:if test="contains(@type, 'datetime')">
-                  <input type="datetime-local"
+                  <input type="text"
                          name="{@id}"
                          class="multi-form-cell datetime"
                          step="1"/>

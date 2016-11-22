@@ -4,6 +4,9 @@
 <page action="viewTeamStats">
   <title>Team Stats</title>
   <subtitle></subtitle>
+  <table2>
+    <column id="member">Members</column>
+  </table2>
   <table>
     <column id="puzzle">Puzzle</column>
     <column id="score">Score</column>

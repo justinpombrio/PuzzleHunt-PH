@@ -11,7 +11,7 @@ c = db.cursor()
 c.execute("SELECT teamSize, initGuesses FROM Hunt")
 TEAM_SIZE, INIT_GUESSES = c.fetchone()
 email_regex = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
-now = datetime.datetime.now
+now = datetime.datetime.utcnow
 
 @puzzler_api.route("/registerTeam", methods=['POST'])
 def registerTeam():
@@ -28,6 +28,10 @@ def registerTeam():
     # Team name too long
     if tooLong(team_name, "team_name"):
         return abortMessage("Team name too long", c)
+
+    # Team name too short
+    if tooShort(team_name, "team_name"):
+        return abortMessage("Team name too short", c)
 
     # No team members given
     if not members:
@@ -54,6 +58,8 @@ def registerTeam():
         # Bad email address
         if tooLong(member_name, "member_name"):
             return abortMessage("Member name too long", c, db)
+        elif tooShort(member_name, "member_name"):
+            return abortMessage("Member name too short", c, db)
         elif not re.search(email_regex, email) or tooLong(email, "email"):
             return abortMessage("Invalid email address", c, db)
 
@@ -139,6 +145,8 @@ def changeMembers():
         # Bad email address
         if tooLong(member_name, "member_name"):
             return abortMessage(c, db, "Member name too long")
+        elif tooShort(member_name, "member_name"):
+            return abortMessage("Member name too short", c, db)
         elif not re.search(email_regex, email) or tooLong(email, "email"):
             return abortMessage(c, db, "Invalid email address")
 
@@ -174,7 +182,7 @@ def viewOwnTeam():
 
 @puzzler_api.route("/submitGuess", methods=['POST'])
 def submitGuess():
-    submit_time_dt = now() - datetime.timedelta(hours=4)
+    submit_time_dt = now()
     submit_time = submit_time_dt.isoformat()
     releaseWaves()
     fail, content = parseJson(request, {"name": unicode, "password": unicode, "guess": unicode, "puzzle": unicode})
@@ -291,7 +299,7 @@ def viewPuzzles():
     for puzzle_rec in c.fetchall():
         puzzle_name, number, currPoints, wave, key = puzzle_rec
         # Get hints
-        c.execute("SELECT number, key FROM Hint WHERE puzzle = %s AND released = true", (puzzle_name,))
+        c.execute("SELECT number, key FROM Hint WHERE puzzle = %s AND released = true ORDER BY number", (puzzle_name,))
         hints = [{"number": rec[0], "key": rec[1]} for rec in c.fetchall()]
         # Get wave release time
         c.execute("SELECT to_char(time, 'YYYY-MM-DDThh24:MI:SS') FROM Wave WHERE name = %s", (wave,))
@@ -396,9 +404,9 @@ def viewMembers():
     team_name = content["team"]
     c = db.cursor()
 
-    c.execute("SELECT Member.name FROM Team, Member WHERE Member.teamID = Team.teamID AND Team.name")
+    c.execute("SELECT Member.name FROM Team, Member WHERE Member.teamID = Team.teamID AND Team.name = %s", (team_name,))
     member_recs = c.fetchall()
-    if not members:
+    if not member_recs:
         return abortMessage("Team '%s' does not exist" % team_name, c)
 
     members = sorted([{"member": rec[0]} for rec in member_recs])
