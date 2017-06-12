@@ -89,3 +89,7 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+Cargo.lock
+rust/target/
+rust/db/

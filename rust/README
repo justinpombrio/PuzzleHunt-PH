@@ -1,0 +1,31 @@
+
+
+
+### Install Postgres
+
+See [http://www.yolinux.com/TUTORIALS/LinuxTutorialPostgreSQL.html](tutorial).
+
+    sudo apt-get install postgresql
+    sudo service postgresql start
+    sudo passwd postgres
+    su - postgres
+    createdb ph
+    exit
+    service postgresql start
+    su - postgres
+    psql
+      alter user postgres with password '';
+      \q
+    exit
+
+### Use Postgres
+
+    su - postgres
+    psql ph
+
+    \l :List databases
+    \c database-name :Connect to database
+    \c :Show the database your are connected to
+    \d :List tables in database
+    \d table-name :Describe table
+    SELECT * FROM table-name :List table contents
