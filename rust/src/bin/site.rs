@@ -6,6 +6,8 @@ extern crate mustache;
 use std::path::Path;
 use std::io::Cursor;
 
+use std::collections::HashMap;
+
 use ph::*;
 
 use nickel::{Nickel, HttpRouter, MediaType};
