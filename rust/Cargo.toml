@@ -1,9 +1,9 @@
 [package]
-name = "rust"
+name = "ph"
 version = "0.1.0"
 authors = ["Justin Pombrio <justinpombrio@cs.brown.edu>"]
 
 [dependencies]
-iron = "*"
-time = "0.1"
+nickel = "*"
 postgres = "*"
+htmlescape = "*"
