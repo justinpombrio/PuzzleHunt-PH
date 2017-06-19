@@ -6,6 +6,8 @@ use rocket;
 use rocket::response::content::{XML};
 
 use util::*;
+use data::Convert;
+use database::Database;
 
 
 fn serve_file<P : AsRef<Path>>(path: P) -> Option<File> {
@@ -26,32 +28,22 @@ fn get_ph() -> Option<File> {
     serve_file("ph.xsl")
 }
 
-#[get("/index.xml")]
-fn get_index() -> XML<String> {
+#[get("/<hunt>/index.xml")]
+fn get_index(hunt: &str) -> XML<String> {
+    let db = Database::new();
+    let waves = db.get_waves(&hunt);
+    println!("Waves Data! {:?}", waves);
     let data = mustache::MapBuilder::new()
-        .insert_str("hunt", "The <b>best</b> hunt")
-        .insert_vec("waves", |waves| {
-            waves
-                .push_map(|wave| {
-                    wave
-                        .insert_str("name", "One and only Wave")
-                        .insert_vec("puzzles", |puzzles| {
-                            puzzles
-                                .push_map(|puzzle| {
-                                    puzzle
-                                        .insert_str("name", "First \"Puzzle")
-                                        .insert_str("key", "puzzle1")
-                                })
-                                .push_map(|puzzle| {
-                                    puzzle
-                                        .insert_str("name", "Second Puzzle")
-                                        .insert_str("key", "puzzle2")
-                                })
-                        })
-                })
+        .insert_str("hunt", hunt)
+        .insert_vec("waves", |mut ws| {
+            for wave in &waves {
+                println!("Wave Data!");
+                ws = ws.push_map(|w| wave.to_data(w))
+            }
+            ws
         })
         .build();
-    render_xml("index.xml", data)
+    render_xml(format!("{}/index.xml", hunt), data)
 }
 
 pub fn start() {

@@ -6,6 +6,10 @@ authors = ["Justin Pombrio <justinpombrio@cs.brown.edu>"]
 [dependencies]
 rocket = "0.2.8"
 rocket_codegen = "0.2.8"
-postgres = "*"
 htmlescape = "*"
 mustache = "*"
+chrono = "*"
+
+[dependencies.postgres]
+version = "*"
+features = ["with-chrono"]
