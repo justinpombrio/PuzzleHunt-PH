@@ -3,7 +3,7 @@ use std::fs::File;
 
 use mustache;
 use rocket;
-use rocket::response::content::{XML};
+use rocket::response::content::{Xml};
 
 use util::*;
 use data::Convert;
@@ -14,8 +14,8 @@ fn serve_file<P : AsRef<Path>>(path: P) -> Option<File> {
     File::open(path).ok()
 }
 
-fn render_xml<P : AsRef<Path>>(path: P, data: mustache::Data) -> XML<String> {
-    XML(render_mustache(path, data))
+fn render_xml<P : AsRef<Path>>(path: P, data: mustache::Data) -> Xml<String> {
+    Xml(render_mustache(path, data))
 }
 
 #[get("/css/<path..>")]
@@ -28,13 +28,13 @@ fn get_ph() -> Option<File> {
     serve_file("ph.xsl")
 }
 
-#[get("/<hunt>/index.xml")]
-fn get_index(hunt: &str) -> XML<String> {
+#[get("/<hunt>/index.xml", rank = 0)]
+fn get_index(hunt: String) -> Xml<String> {
     let db = Database::new();
     let waves = db.get_waves(&hunt);
     println!("Waves Data! {:?}", waves);
     let data = mustache::MapBuilder::new()
-        .insert_str("hunt", hunt)
+        .insert_str("hunt", &hunt)
         .insert_vec("waves", |mut ws| {
             for wave in &waves {
                 println!("Wave Data!");
@@ -43,7 +43,7 @@ fn get_index(hunt: &str) -> XML<String> {
             ws
         })
         .build();
-    render_xml(format!("{}/index.xml", hunt), data)
+    render_xml(format!("{}/index.xml", &hunt), data)
 }
 
 pub fn start() {

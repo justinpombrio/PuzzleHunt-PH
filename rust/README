@@ -7,15 +7,16 @@ See [http://www.yolinux.com/TUTORIALS/LinuxTutorialPostgreSQL.html](tutorial).
 
     sudo apt-get install postgresql
     sudo service postgresql start
-    sudo passwd postgres
+    sudo passwd postgres # set a temp password (e.g. "pass")
     su - postgres
-    createdb ph
-    exit
-    service postgresql start
-    su - postgres
-    psql
-      alter user postgres with password '';
-      \q
+      #?createuser postgres
+      createdb ph
+      service postgresql start
+      psql
+        alter user postgres with password '';
+        \q
+      service postgresql stop
+      service postgresql start
     exit
 
 ### Use Postgres

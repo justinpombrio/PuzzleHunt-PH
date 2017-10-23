@@ -60,6 +60,9 @@
   <!-- Page Template -->
 
   <xsl:template match="page">
+    <xsl:variable name="hunt">
+      <xsl:value-of select="hunt"/>
+    </xsl:variable>
     <html>
       <head>
         <title><xsl:value-of select="hunt"/></title>
@@ -68,12 +71,12 @@
       <body>
         <ul class="nav">
           <li class="nav1">
-            <a href="/index.xml"><xsl:value-of select="hunt"/></a>
+            <a href="index.xml"><xsl:value-of select="hunt"/></a>
           </li>
-          <li class="nav2"><a href="/team.xml">Team</a></li>
-          <li class="nav3"><a href="/team-leaderboard.xml">Leaderboard</a></li>
-          <li class="nav4"><a href="/puzzle-leaderboard.xml">Puzzle Stats</a></li>
-          <li class="nav5"><a href="/puzzles.xml">Puzzles</a></li>
+          <li class="nav2"><a href="team.xml">Team</a></li>
+          <li class="nav3"><a href="team-leaderboard.xml">Leaderboard</a></li>
+          <li class="nav4"><a href="puzzle-leaderboard.xml">Puzzle Stats</a></li>
+          <li class="nav5"><a href="puzzles.xml">Puzzles</a></li>
         </ul>
         <p id="success-message"/>
         <p id="failure-message"/>

@@ -9,7 +9,7 @@ pub struct Database {
 
 impl Database {
     pub fn new() -> Database {
-        match Connection::connect("postgresql://postgres:@localhost",
+        match Connection::connect("postgresql://postgres:pass@localhost",
                                   TlsMode::None) {
             Err(err) => panic!(
                 format!("Could not connect to database: {}", err)),

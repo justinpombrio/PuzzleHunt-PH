@@ -4,8 +4,8 @@ version = "0.1.0"
 authors = ["Justin Pombrio <justinpombrio@cs.brown.edu>"]
 
 [dependencies]
-rocket = "0.2.8"
-rocket_codegen = "0.2.8"
+rocket = "*"
+rocket_codegen = "*"
 htmlescape = "*"
 mustache = "*"
 chrono = "*"

@@ -1,4 +1,4 @@
-use chrono::{UTC, DateTime};
+use chrono::{Utc, DateTime};
 use mustache::{MapBuilder};
 use postgres::rows::Row;
 
@@ -80,7 +80,7 @@ values ('Best Hunt Ever', 'besthuntever', 4, 100, 'pass', 'secret', true);"
 pub struct Wave {
     pub name: String,
     pub hunt: i32,
-    pub time: DateTime<UTC>,
+    pub time: DateTime<Utc>,
     pub guesses: i32,
     pub released: bool,
     pub puzzles: Vec<Puzzle>
@@ -390,7 +390,7 @@ pub struct Guess {
     pub hunt: i32,
     pub puzzle: String,
     pub guess: String,
-    pub time: DateTime<UTC>
+    pub time: DateTime<Utc>
 }
 
 impl Convert for Guess {
@@ -441,7 +441,7 @@ pub struct Solve {
     pub team_id: i32,
     pub hunt: i32,
     pub puzzle: String,
-    pub time: DateTime<UTC>
+    pub time: DateTime<Utc>
 }
 
 impl Convert for Solve {
