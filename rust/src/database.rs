@@ -32,22 +32,21 @@ impl Database {
             Ok(rows) => rows
         }
     }
-
-    fn query_one(&self, query: &str, params: &[&ToSql]) -> Rows {
+/*
+    fn query_one(&self, query: &str, params: &[&ToSql]) -> Option<Rows> {
         match self.connection.query(query, params) {
             Err(err) => panic!(
                 format!("Failed to execute query: {}", err)),
             Ok(rows) => {
-                if rows.len() != 1 {
-                    panic!(
-                        format!("Expected exactly one row, but found {}. Query: {}",
-                                rows.len(), query));
+                if rows.len() == 1 {
+                    None
+                } else {
+                    Some(rows)
                 }
-                rows
             }
         }
     }
-
+*/
     pub fn clear(&self) {
         // Drop existing tables
         self.execute(Hunt::drop_query(), &[]);
@@ -58,7 +57,7 @@ impl Database {
         self.execute(Member::drop_query(), &[]);
         self.execute(Guess::drop_query(), &[]);
         self.execute(Solve::drop_query(), &[]);
-        self.execute(Stats::drop_query(), &[]);
+        self.execute(Stat::drop_query(), &[]);
         // Initialize tables
         self.execute(Hunt::init_query(), &[]);
         self.execute(Wave::init_query(), &[]);
@@ -68,7 +67,7 @@ impl Database {
         self.execute(Member::init_query(), &[]);
         self.execute(Guess::init_query(), &[]);
         self.execute(Solve::init_query(), &[]);
-        self.execute(Stats::init_query(), &[]);
+        self.execute(Stat::init_query(), &[]);
     }
 
     pub fn init_test(&self) {
@@ -80,44 +79,58 @@ impl Database {
         self.execute(Member::test_init_query(), &[]);
         self.execute(Guess::test_init_query(), &[]);
         self.execute(Solve::test_init_query(), &[]);
-        self.execute(Stats::test_init_query(), &[]);
+        self.execute(Stat::test_init_query(), &[]);
     }
 
-    pub fn get_waves(&self, hunt: &str) -> Vec<Wave> {
-        let hunt_id = self.get_hunt_id(&hunt);
-        let mut waves = self.grab_waves(hunt_id);
-        for wave in &mut waves {
-            wave.puzzles = self.grab_puzzles(hunt_id, &wave.name);
-        }
-        waves
-    }
+    
+    //// Puzzles ////
 
-    pub fn grab_waves(&self, hunt: i32) -> Vec<Wave> {
+    pub fn get_waves(&self, hunt_id: i32) -> Vec<Wave> {
         let mut waves: Vec<Wave> = vec!();
-        for row in &self.query(WAVE_QUERY, &[&hunt]) {
-            waves.push(Wave::from_row(row))
+        for row in &self.query(WAVE_QUERY, &[&hunt_id]) {
+            let mut wave = Wave::from_row(row);
+            wave.puzzles = self.get_puzzles(hunt_id, &wave.name);
+            waves.push(wave);
         }
         waves
     }
 
-    pub fn grab_hunt(&self, hunt: &str) -> Hunt {
-        let rows = self.query_one(HUNT_QUERY, &[&hunt]);
+    pub fn get_hunt(&self, hunt_key: &str) -> Hunt {
+        let rows = self.query(HUNT_QUERY, &[&hunt_key]);
+        if rows.len() != 1 {
+            panic!("Did not find hunt"); // TODO: error handling
+        }
         Hunt::from_row(rows.get(0))
     }
 
-    pub fn grab_puzzles(&self, hunt: i32, wave: &str) -> Vec<Puzzle> {
+    pub fn get_puzzles(&self, hunt_id: i32, wave: &str) -> Vec<Puzzle> {
         let mut puzzles: Vec<Puzzle> = vec!();
-        for row in &self.query(PUZZLE_QUERY, &[&hunt, &wave]) {
-            puzzles.push(Puzzle::from_row(row))
+        for row in &self.query(PUZZLE_QUERY, &[&hunt_id, &wave]) {
+            let mut puzzle = Puzzle::from_row(row);
+            puzzle.hints = self.get_hints(hunt_id, &puzzle.name);
+            puzzles.push(puzzle);
         }
         puzzles
     }
 
-    pub fn get_hunt_id(&self, hunt: &str) -> i32 {
-        let rows = self.query(HUNT_ID_QUERY, &[&hunt]);
-        // TODO: error checking
-        println!("Hunt {}", hunt);
-        rows.get(0).get(0)
+    pub fn get_hints(&self, hunt_id: i32, puzzle: &str) -> Vec<Hint> {
+        let mut hints: Vec<Hint> = vec!();
+        for row in &self.query(HINT_QUERY, &[&hunt_id, &puzzle]) {
+            hints.push(Hint::from_row(row));
+        }
+        hints
+    }
+
+    
+    //// Teams ////
+
+    pub fn get_team(&self, hunt_id: i32, name: &str, password: &str) -> Option<Team> {
+        let rows = self.query(TEAM_QUERY, &[&hunt_id, &name, &password]);
+        if rows.len() == 1 {
+            Some(Team::from_row(rows.get(0)))
+        } else {
+            None
+        }
     }
 }
 
@@ -125,14 +138,17 @@ impl Database {
 //                 &[&me.name, &me.data]).unwrap();
 //    for row in &conn.query("SELECT id, name, data FROM person", &[]).unwrap() {
 
-const PUZZLE_QUERY: &'static str =
-    "select * from Puzzle where hunt = $1 and wave = $2;";
+const HUNT_QUERY: &'static str =
+    "select * from Hunt where key = $1";
 
 const WAVE_QUERY: &'static str =
     "select * from Wave where hunt = $1;";
 
-const HUNT_ID_QUERY: &'static str =
-    "select huntID from Hunt where key = $1";
+const PUZZLE_QUERY: &'static str =
+    "select * from Puzzle where hunt = $1 and wave = $2;";
 
-const HUNT_QUERY: &'static str =
-    "select * from Hunt where key = $1";
+const HINT_QUERY: &'static str =
+    "select * from Hint where hunt = $1 and puzzle = $2;";
+
+const TEAM_QUERY: &'static str =
+    "select * from Team where hunt = $1 and name = $2 and password = $3";

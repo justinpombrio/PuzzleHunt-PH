@@ -1,18 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
+
 <page>
-  <hunt>{{hunt}}</hunt>
-  <content>{{body}}
-  <waves>
-  {{#waves}}
-    <wave name="{{name}}">
-      <puzzles>
-      {{#puzzles}}
-        <puzzle name="{{name}}" key="{{key}}"/>
-      {{/puzzles}}
-      </puzzles>
-    </wave>
-  {{/waves}}
-  </waves>
+  <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
+  <title>{{hunt.name}}</title>
+  <content>
+    <p>
+      This is a hunt or something.
+    </p>
   </content>
 </page>

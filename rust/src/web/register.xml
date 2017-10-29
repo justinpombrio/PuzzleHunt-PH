@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
+
+<page>
+  <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
+  <title>Team Registration</title>
+  <form>
+    <input type="text" id="name">
+      Team name
+    </input>
+    <input type="password" id="password">
+      Password
+    </input>
+    <input type="password" id="password_verify">
+      Repeat password
+    </input>
+    <multiple item="Member">
+      <input type="text" id="member_name" name="Name"/>
+      <input type="text" id="member_email" name="Email Address"/>
+    </multiple>
+    <submit-button>
+      Register Team
+    </submit-button>
+  </form>
+</page>

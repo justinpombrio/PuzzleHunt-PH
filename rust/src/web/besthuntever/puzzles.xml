@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
+
+<page>
+  <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
+  <title>Puzzles</title>
+  <content>
+    <p>
+      Without further ado, here are... the... puzzles!
+    </p>
+  </content>
+  <waves>
+    {{#waves}}
+    <wave name="{{name}}">
+      <puzzles>
+        {{#puzzles}}
+        <puzzle name="{{name}}" key="{{key}}">
+          {{#hints}}
+          <hint name="{{name}}" key="{{key}}" number="{{number}}"/>
+          {{/hints}}
+        </puzzle>
+        {{/puzzles}}
+      </puzzles>
+    </wave>
+    {{/waves}}
+  </waves>
+</page>
