@@ -1,3 +1,9 @@
+var ON_LOAD = [];
+
+function onLoad(f) {
+  ON_LOAD.push(f);
+}
+
 function get(id) {
   return document.getElementById(id);
 }
@@ -41,4 +47,10 @@ function addRow(id) {
   } */
   var table = get(id + "-table");
   table.appendChild(row);
+}
+
+window.onload = function() {
+  for (i in ON_LOAD) {
+    ON_LOAD[i]();
+  }
 }

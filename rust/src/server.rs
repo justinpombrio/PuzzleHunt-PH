@@ -3,7 +3,7 @@ use std::fs::File;
 
 use rocket;
 use rocket::response::content::{Xml};
-use rocket::request::Form;
+use rocket::request::{Form, FromForm, FormItems};
 
 use util::*;
 use data::{AddToData, build_data};
@@ -84,6 +84,12 @@ fn get_view_team(hunt_key: String) -> Xml<String> {
     render_xml("view-team.xml", vec!(&hunt))
 }
 
+#[derive(FromForm, Debug)]
+struct ViewTeamInput {
+    name: String,
+    password: String
+}
+
 #[post("/<hunt_key>/view-team.xml", rank=0, data="<input>")]
 fn post_view_team(hunt_key: String, input: Form<ViewTeamInput>) -> Xml<String> {
     let input = input.into_inner();
@@ -96,17 +102,59 @@ fn post_view_team(hunt_key: String, input: Form<ViewTeamInput>) -> Xml<String> {
     render_xml("your-team.xml", vec!(&hunt, &team))
 }
 
-#[derive(FromForm, Debug)]
-struct ViewTeamInput {
-    name: String,
-    password: String
-}
-
 #[get("/<hunt_key>/register.xml", rank=0)]
 fn get_register(hunt_key: String) -> Xml<String> {
     let db = Database::new();
     let hunt = db.get_hunt(&hunt_key);
     render_xml("register.xml", vec!(&hunt))
+}
+
+#[derive(Debug)]
+struct RegistrationInput {
+    name: String,
+    password: String,
+    password_verify: String,
+    members: Vec<TeamMemberInput>
+}
+
+#[derive(Debug)]
+struct TeamMemberInput {
+    name: String,
+    email: String
+}
+
+impl<'f> FromForm<'f> for RegistrationInput {
+    type Error = ();
+    fn from_form(iter: &mut FormItems<'f>, strict: bool) -> Result<RegistrationInput, ()> {
+        if !strict { return Err(()); }
+        let mut name = "";
+        let mut password = "";
+        let mut password_verify = "";
+        let mut member_name = "";
+        let mut members = vec!();
+        for (key, value) in iter {
+            match key.as_str() {
+                "name" => name = value,
+                "password" => password = value,
+                "password_verify" => password_verify = value,
+                "member_name" => member_name = value,
+                "member_email" => {
+                    let member = TeamMemberInput{
+                        name: member_name.to_string(),
+                        email: value.to_string()
+                    };
+                    members.push(member);
+                },
+                _ => return Err(())
+            }
+        }
+        Ok(RegistrationInput{
+            name: name.to_string(),
+            password: password.to_string(),
+            password_verify: password_verify.to_string(),
+            members: members
+        })
+    }
 }
 
 #[post("/<hunt_key>/register.xml", data="<input>")]
@@ -118,16 +166,7 @@ fn post_register(hunt_key: String, input: Form<RegistrationInput>) -> Xml<String
         panic!("Passwords do not match");
     }
     println!("Team Registration: {:?}", input);
-    render_xml("view-team.xml", vec!(&hunt))
-}
-
-#[derive(FromForm, Debug)]
-struct RegistrationInput {
-    name: String,
-    password: String,
-    password_verify: String,
-    member_name: String,
-    member_email: String,
+    render_xml("your-team.xml", vec!(&hunt))
 }
 
 

@@ -112,6 +112,11 @@ impl Database {
     
     //// Teams ////
 
+    pub fn team_exists(&self, hunt_id: i32, name: &str) -> bool {
+        let rows = self.query(TEAM_EXISTS_QUERY, &[&hunt_id, &name]);
+        rows.len() >= 1
+    }
+
     pub fn get_team(&self, hunt_id: i32, name: &str, password: &str) -> Option<Team> {
         let rows = self.query(TEAM_QUERY, &[&hunt_id, &name, &password]);
         if rows.len() == 1 {
@@ -134,6 +139,9 @@ const PUZZLE_QUERY: &'static str =
 
 const HINT_QUERY: &'static str =
     "select * from Hint where hunt = $1 and puzzle = $2;";
+
+const TEAM_EXISTS_QUERY: &'static str =
+    "select () from Team where hunt = $1 and name = $2;";
 
 const TEAM_QUERY: &'static str =
     "select * from Team where hunt = $1 and name = $2 and password = $3";

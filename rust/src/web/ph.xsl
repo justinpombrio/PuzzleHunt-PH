@@ -50,7 +50,7 @@
 
   <xsl:template match="form">
     <form method="post">
-      <table>
+      <table onload="console.log('loaded!');"><!-- onload="addRow('{@item}')"> -->
         <tbody id="form" action="{@action}">
           <xsl:for-each select="input">
             <tr>
@@ -150,6 +150,12 @@
             Add <xsl:value-of select="@item"/>
           </a>
         </p>
+        <script type="text/javascript">
+          onLoad(function() {
+            var item = '<xsl:value-of select="@item"/>';
+            addRow(item);
+          });
+        </script>
       </xsl:for-each>
       <xsl:for-each select="submit-button">
         <input type="submit"
