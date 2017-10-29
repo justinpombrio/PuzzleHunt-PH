@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
+
 <page>
-  <hunt>{{hunt}}</hunt>
+  <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
+  <title>Teams</title>
   <prose>
-    <h2>Teams</h2>
     <p>
-      <a href="{{hunt_key}}/register.xml">
+      <a href="/{{hunt.key}}/register.xml">
         Register a team
       </a>
     </p>
     <p>
-      <a href="{{hunt_key}}/view-team.xml">
+      <a href="/{{hunt.key}}/view-team.xml">
         View your team
       </a>
     </p>

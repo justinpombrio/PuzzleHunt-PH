@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../ph.xsl"?>
+
+<page>
+  <title>Your Team</title>
+  <form>
+    <input type="text" id="name">
+      Team name
+    </input>
+    <input type="fixed" id="guesses">
+      Remaining guesses
+    </input>
+    <input type="text" id="member_name_1">
+      Member 1 - Name
+    </input>
+    <input type="text" id="member_email_1">
+      Member 1 - Email Address
+    </input>
+    <input type="text" id="member_name_2">
+      Member 2 - Name
+    </input>
+    <input type="text" id="member_email_2">
+      Member 2 - Email Address
+    </input>
+    <input type="text" id="member_name_3">
+      Member 3 - Name
+    </input>
+    <input type="text" id="member_email_3">
+      Member 3 - Email Address
+    </input>
+    <input type="text" id="member_name_4">
+      Member 4 - Name
+    </input>
+    <input type="text" id="member_email_4">
+      Member 4 - Email Address
+    </input>
+    <input type="password" id="password">
+      Password
+    </input>
+    <submit-button action="changeMembers">
+      Update
+    </submit-button>
+  </form>
+</page>

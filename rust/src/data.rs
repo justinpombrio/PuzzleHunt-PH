@@ -1,13 +1,50 @@
 use chrono::{Utc, DateTime};
-use mustache::{MapBuilder};
+use mustache::{MapBuilder, VecBuilder, Data};
 use postgres::rows::Row;
+
 
 pub trait Convert {
     fn from_row(row: Row) -> Self;
-    fn to_data(&self, map: MapBuilder) -> MapBuilder;
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder;
     fn drop_query() -> &'static str;
     fn init_query() -> &'static str;
     fn test_init_query() -> &'static str;
+    fn name() -> &'static str;
+    fn names() -> &'static str;
+}
+
+
+pub fn build_data(items: Vec<&AddToData>) -> Data {
+    let mut builder = MapBuilder::new();
+    for item in &items {
+        builder = item.add_to_data(builder);
+    }
+    builder.build()
+}
+
+
+pub trait AddToData {
+    fn add_to_data(&self, builder: MapBuilder) -> MapBuilder;
+}
+
+impl<C : Convert> AddToData for C {
+    fn add_to_data(&self, builder: MapBuilder) -> MapBuilder {
+        builder.insert_map(Self::name(), |m| self.to_data(m))
+    }
+}
+
+impl<C : Convert> AddToData for Vec<C> {
+    fn add_to_data(&self, builder: MapBuilder) -> MapBuilder {
+        builder.insert_vec(C::names(), |b| vec_to_data(self, b))
+    }
+}
+
+fn vec_to_data<C : Convert>(items: &Vec<C>, builder: VecBuilder) -> VecBuilder {
+    let mut builder = builder;
+    for item in items {
+        builder = builder.push_map(|map| item.to_data(map))
+    }
+    builder
 }
 
 
@@ -15,7 +52,7 @@ pub trait Convert {
 
 #[derive(Debug)]
 pub struct Hunt {
-    pub hunt_id: i32,
+    pub id: i32,
     pub name: String,
     pub key: String,
     pub team_size: i32,
@@ -26,9 +63,12 @@ pub struct Hunt {
 }
 
 impl Convert for Hunt {
+    fn name()  -> &'static str { "hunt" }
+    fn names() -> &'static str { "hunts" }
+    
     fn from_row(row: Row) -> Hunt {
         Hunt{
-            hunt_id:      row.get(0),
+            id:           row.get(0),
             name:         row.get(1),
             key:          row.get(2),
             team_size:    row.get(3),
@@ -39,9 +79,9 @@ impl Convert for Hunt {
         }
     }
 
-    fn to_data(&self, map: MapBuilder) -> MapBuilder {
-        map
-            .insert_str("huntID", self.hunt_id)
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
+        builder
+            .insert_str("id", self.id)
             .insert_str("name", &self.name)
             .insert_str("key", &self.key)
             .insert_str("teamSize", self.team_size)
@@ -87,6 +127,9 @@ pub struct Wave {
 }
 
 impl Convert for Wave {
+    fn name()  -> &'static str { "wave" }
+    fn names() -> &'static str { "waves" }
+    
     fn from_row(row: Row) -> Wave {
         Wave{
             name:     row.get(0),
@@ -98,19 +141,14 @@ impl Convert for Wave {
         }
     }
 
-    fn to_data(&self, map: MapBuilder) -> MapBuilder {
-        map
-            .insert_str("name", &self.name)
-            .insert_str("hunt", self.hunt)
-            .insert_str("time", &self.time)
-            .insert_str("guesses", self.guesses)
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
+        builder
+            .insert_str("name",     &self.name)
+            .insert_str("hunt",     self.hunt)
+            .insert_str("time",     &self.time)
+            .insert_str("guesses",  self.guesses)
             .insert_str("released", self.released)
-            .insert_vec("puzzles", |mut puzzles| {
-                for puzzle in &self.puzzles {
-                    puzzles = puzzles.push_map(|p| puzzle.to_data(p))
-                }
-                puzzles
-            })
+            .insert_vec("puzzles",  |b| vec_to_data(&self.puzzles, b))
     }
 
     fn drop_query() -> &'static str {
@@ -152,6 +190,9 @@ pub struct Puzzle {
 }
 
 impl Convert for Puzzle {
+    fn name()  -> &'static str { "puzzle" }
+    fn names() -> &'static str { "puzzles" }
+    
     fn from_row(row: Row) -> Puzzle {
         Puzzle{
             name:           row.get(0),
@@ -167,8 +208,8 @@ impl Convert for Puzzle {
         }
     }
 
-    fn to_data(&self, map: MapBuilder) -> MapBuilder {
-        map
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
+        builder
             .insert_str("name", &self.name)
             .insert_str("number", &self.number)
             .insert_str("hunt", self.hunt)
@@ -177,12 +218,7 @@ impl Convert for Puzzle {
             .insert_str("wave", &self.wave)
             .insert_str("key", &self.key)
             .insert_str("released", self.released)
-            .insert_vec("hints", |mut hints| {
-                for hint in &self.hints {
-                    hints = hints.push_map(|h| hint.to_data(h));
-                }
-                hints
-            })
+            .insert_vec("hints", |b| vec_to_data(&self.hints, b))
     }
 
     fn drop_query() -> &'static str {
@@ -227,6 +263,9 @@ pub struct Hint {
 }
 
 impl Convert for Hint {
+    fn name()  -> &'static str { "hint" }
+    fn names() -> &'static str { "hints" }
+    
     fn from_row(row: Row) -> Hint {
         Hint{
             puzzle:   row.get(0),
@@ -239,8 +278,8 @@ impl Convert for Hint {
         }
     }
 
-    fn to_data(&self, map: MapBuilder) -> MapBuilder {
-        map
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
+        builder
             .insert_str("puzzle", &self.puzzle)
             .insert_str("number", self.number)
             .insert_str("hunt", self.hunt)
@@ -287,6 +326,9 @@ pub struct Team {
 }
 
 impl Convert for Team {
+    fn name()  -> &'static str { "team" }
+    fn names() -> &'static str { "teams" }
+    
     fn from_row(row: Row) -> Team {
         Team{
             team_id:  row.get(0),
@@ -298,19 +340,14 @@ impl Convert for Team {
         }
     }
 
-    fn to_data(&self, map: MapBuilder) -> MapBuilder {
-        map
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
+        builder
             .insert_str("teamID",   self.team_id)
             .insert_str("hunt",     self.hunt)
             .insert_str("password", &self.password)
             .insert_str("name",     &self.name)
             .insert_str("guesses",  self.guesses)
-            .insert_vec("members", |mut members| {
-                for member in &self.members {
-                    members = members.push_map(|m| member.to_data(m))
-                }
-                members
-            })
+            .insert_vec("members",  |b| vec_to_data(&self.members, b))
     }
     
     fn drop_query() -> &'static str {
@@ -346,6 +383,9 @@ pub struct Member {
 }
 
 impl Convert for Member {
+    fn name()  -> &'static str { "member" }
+    fn names() -> &'static str { "members" }
+    
     fn from_row(row: Row) -> Member {
         Member{
             team_id: row.get(0),
@@ -355,8 +395,8 @@ impl Convert for Member {
         }
     }
 
-    fn to_data(&self, map: MapBuilder) -> MapBuilder {
-        map
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
+        builder
             .insert_str("teamID", self.team_id)
             .insert_str("hunt", self.hunt)
             .insert_str("name", &self.name)
@@ -396,6 +436,9 @@ pub struct Guess {
 }
 
 impl Convert for Guess {
+    fn name()  -> &'static str { "guess" }
+    fn names() -> &'static str { "guesss" }
+    
     fn from_row(row: Row) -> Guess {
         Guess{
             team_id: row.get(0),
@@ -406,8 +449,8 @@ impl Convert for Guess {
         }
     }
 
-    fn to_data(&self, map: MapBuilder) -> MapBuilder {
-        map
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
+        builder
             .insert_str("teamID", self.team_id)
             .insert_str("hunt", self.hunt)
             .insert_str("puzzle", &self.puzzle)
@@ -447,6 +490,9 @@ pub struct Solve {
 }
 
 impl Convert for Solve {
+    fn name()  -> &'static str { "solve" }
+    fn names() -> &'static str { "solves" }
+    
     fn from_row(row: Row) -> Solve {
         Solve{
             team_id: row.get(0),
@@ -456,8 +502,8 @@ impl Convert for Solve {
         }
     }
 
-    fn to_data(&self, map: MapBuilder) -> MapBuilder {
-        map
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
+        builder
             .insert_str("teamID", self.team_id)
             .insert_str("hunt", self.hunt)
             .insert_str("puzzle", &self.puzzle)
@@ -489,7 +535,7 @@ values (1, 1, 'Puzzle One', '2004-10-19 10:23:54');"
 ////// Stats //////
 
 #[derive(Debug)]
-pub struct Stats {
+pub struct Stat {
     pub team_id: i32,
     pub hunt: i32,
     pub puzzle: String,
@@ -498,9 +544,12 @@ pub struct Stats {
     pub guesses: i32
 }
 
-impl Convert for Stats {
-    fn from_row(row: Row) -> Stats {
-        Stats{
+impl Convert for Stat {
+    fn name()  -> &'static str { "stat" }
+    fn names() -> &'static str { "stats" }
+    
+    fn from_row(row: Row) -> Stat {
+        Stat{
             team_id:    row.get(0),
             hunt:       row.get(1),
             puzzle:     row.get(2),
@@ -510,8 +559,8 @@ impl Convert for Stats {
         }
     }
 
-    fn to_data(&self, map: MapBuilder) -> MapBuilder {
-        map
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
+        builder
             .insert_str("teamID", self.team_id)
             .insert_str("hunt", self.hunt)
             .insert_str("puzzle", &self.puzzle)

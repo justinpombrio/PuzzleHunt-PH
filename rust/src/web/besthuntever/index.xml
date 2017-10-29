@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
+
 <page>
-  <hunt>{{hunt}}</hunt>
+  <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
+  <title>{{hunt.name}}</title>
   <prose>
     <p>
-      Here is a puzzle hunt.
+      This is a hunt or something.
     </p>
   </prose>
 </page>
