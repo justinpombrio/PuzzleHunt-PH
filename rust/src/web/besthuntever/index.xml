@@ -2,17 +2,9 @@
 <?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
 <page>
   <hunt>{{hunt}}</hunt>
-  <content>{{body}}
-  <waves>
-  {{#waves}}
-    <wave name="{{name}}">
-      <puzzles>
-      {{#puzzles}}
-        <puzzle name="{{name}}" key="{{key}}"/>
-      {{/puzzles}}
-      </puzzles>
-    </wave>
-  {{/waves}}
-  </waves>
-  </content>
+  <prose>
+    <p>
+      Here is a puzzle hunt.
+    </p>
+  </prose>
 </page>

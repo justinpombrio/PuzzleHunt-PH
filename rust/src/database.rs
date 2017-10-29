@@ -100,7 +100,7 @@ impl Database {
         waves
     }
 
-    pub fn grab_hunt(&self, hunt: &str) -> Hunt {
+    pub fn get_hunt(&self, hunt: &str) -> Hunt {
         let rows = self.query_one(HUNT_QUERY, &[&hunt]);
         Hunt::from_row(rows.get(0))
     }

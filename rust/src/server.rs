@@ -29,12 +29,13 @@ fn get_ph() -> Option<File> {
 }
 
 #[get("/<hunt>/index.xml", rank = 0)]
-fn get_index(hunt: String) -> Xml<String> {
+fn get_hunt(hunt: String) -> Xml<String> {
     let db = Database::new();
     let waves = db.get_waves(&hunt);
+    let hunt_info = db.get_hunt(&hunt);
     println!("Waves Data! {:?}", waves);
     let data = mustache::MapBuilder::new()
-        .insert_str("hunt", &hunt)
+        .insert_str("hunt", &hunt_info.name)
         .insert_vec("waves", |mut ws| {
             for wave in &waves {
                 println!("Wave Data!");
@@ -46,6 +47,37 @@ fn get_index(hunt: String) -> Xml<String> {
     render_xml(format!("{}/index.xml", &hunt), data)
 }
 
+#[get("/<hunt>/puzzles.xml", rank=0)]
+fn get_puzzles(hunt: String) -> Xml<String> {
+    let db = Database::new();
+    let waves = db.get_waves(&hunt);
+    let hunt_info = db.get_hunt(&hunt);
+    let data = mustache::MapBuilder::new()
+        .insert_str("hunt", &hunt_info.name)
+        .insert_vec("waves", |mut ws| {
+            for wave in &waves {
+                ws = ws.push_map(|w| wave.to_data(w))
+            }
+            ws
+        })
+        .build();
+    render_xml(format!("{}/puzzles.xml", &hunt), data)
+}
+
+#[get("/<hunt>/team.xml", rank=0)]
+fn get_team(hunt: String) -> Xml<String> {
+    let db = Database::new();
+    let hunt_info = db.get_hunt(&hunt);
+    let data = mustache::MapBuilder::new()
+        .insert_str("hunt", &hunt_info.name)
+        .insert_str("hunt_key", hunt)
+        .build();
+    render_xml("team.xml", data)
+}
+
 pub fn start() {
-    rocket::ignite().mount("/", routes![get_css, get_ph, get_index]).launch();
+    rocket::ignite().mount("/", routes![
+        get_css, get_ph,
+        get_hunt, get_team, get_puzzles
+            ]).launch();
 }

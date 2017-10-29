@@ -206,7 +206,9 @@ impl Convert for Puzzle {
 
     fn test_init_query() -> &'static str {
 "insert into Puzzle (name, number, hunt, basePoints, currentPoints, answer, wave, key, released)
-values ('Puzzle One', '#1', 1, 2, 1, 'answer', 'Wave One', 'PPP', true);"
+values ('Puzzle One', '#1', 1, 2, 1, 'answer1', 'Wave One', 'PPP', true),
+       ('Puzzle Two', '#2', 1, 3, 2, 'answer2', 'Wave One', 'QQQ', true),
+       ('Puzzle Three', '#3', 1, 3, 2, 'answer3', 'Wave One', 'RRR', false);"
     }
 }
 

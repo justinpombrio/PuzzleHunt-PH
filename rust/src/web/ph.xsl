@@ -24,6 +24,10 @@
     <h2>Puzzles</h2>
     <xsl:apply-templates select="*"/>
   </xsl:template>
+  
+  <xsl:template match="prose">
+    <xsl:copy-of select="*"/>
+  </xsl:template>
 
 
 <!--

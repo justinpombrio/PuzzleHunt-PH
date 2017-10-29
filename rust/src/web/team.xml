@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
+<page>
+  <hunt>{{hunt}}</hunt>
+  <prose>
+    <h2>Teams</h2>
+    <p>
+      <a href="{{hunt_key}}/register.xml">
+        Register a team
+      </a>
+    </p>
+    <p>
+      <a href="{{hunt_key}}/view-team.xml">
+        View your team
+      </a>
+    </p>
+  </prose>
+</page>
