@@ -5,12 +5,14 @@
   <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
   <title>View Your Team</title>
   <form>
-    <input type="text" id="name">
-      Team name
-    </input>
-    <input type="password" id="password">
-      Password
-    </input>
+    <section>
+      <input type="text" id="name">
+        Team name
+      </input>
+      <input type="password" id="password">
+        Password
+      </input>
+    </section>
     <submit-button>
       View Team
     </submit-button>

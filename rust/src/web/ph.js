@@ -1,3 +1,5 @@
+"use strict";
+
 var ON_LOAD = [];
 
 function onLoad(f) {
@@ -16,12 +18,17 @@ function deleteRow(self) {
   deleteNode(self.parentNode.parentNode);
 }
 
-function addRow(id) {
+function makeRow(id) {
   var rowTemplate = get(id + "-template");
   var row = rowTemplate.cloneNode(true);
   row.style.display = "";
   delete row.id;
   row.name = "a-row";
+  return row;
+}
+
+function addRow(id) {
+  var row = makeRow(id);
 /*  for (var i = 0; i < row.children.length; i++) {
     var child = row.children[i];
     if (!child.children || child.children.length === 0) { continue; }
@@ -49,8 +56,18 @@ function addRow(id) {
   table.appendChild(row);
 }
 
+function insertRow(id, values) {
+  var row = makeRow(id);
+  for (var i in values) {
+    var value = values[i];
+    row.cells[i].childNodes[0].value = value;
+  }
+  var table = get(id + "-table");
+  table.appendChild(row);
+}
+
 window.onload = function() {
-  for (i in ON_LOAD) {
+  for (var i in ON_LOAD) {
     ON_LOAD[i]();
   }
 }

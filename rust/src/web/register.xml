@@ -5,19 +5,25 @@
   <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
   <title>Team Registration</title>
   <form>
-    <input type="text" id="name">
-      Team name
-    </input>
-    <input type="password" id="password">
-      Password
-    </input>
-    <input type="password" id="password_verify">
-      Repeat password
-    </input>
-    <multiple item="Member">
-      <input type="text" id="member_name" name="Name"/>
-      <input type="text" id="member_email" name="Email Address"/>
-    </multiple>
+    <section>
+      <input type="text" id="name">
+        Team name
+      </input>
+      <input type="password" id="password">
+        Password
+      </input>
+      <input type="password" id="password_verify">
+        Repeat password
+      </input>
+    </section>
+    <expandable-section item="Member">
+        <input type="text" id="member_name" name="Name"/>
+        <input type="text" id="member_email" name="Email Address"/>
+        <row>
+          <value/>
+          <value/>
+        </row>
+    </expandable-section>
     <submit-button>
       Register Team
     </submit-button>

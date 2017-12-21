@@ -11,9 +11,9 @@ See [http://www.yolinux.com/TUTORIALS/LinuxTutorialPostgreSQL.html](tutorial).
     su - postgres
       #?createuser postgres
       createdb ph
-      service postgresql start
+      service postgresql start # may have to run as root
       psql
-        alter user postgres with password '';
+        alter user postgres with password 'pass';
         \q
       service postgresql stop
       service postgresql start

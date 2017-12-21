@@ -117,13 +117,24 @@ impl Database {
         rows.len() >= 1
     }
 
-    pub fn get_team(&self, hunt_id: i32, name: &str, password: &str) -> Option<Team> {
+    fn grab_team(&self, hunt_id: i32, name: &str, password: &str) -> Option<Team> {
         let rows = self.query(TEAM_QUERY, &[&hunt_id, &name, &password]);
         if rows.len() == 1 {
             Some(Team::from_row(rows.get(0)))
         } else {
             None
         }
+    }
+
+    pub fn get_team(&self, hunt_id: i32, name: &str, password: &str) -> Option<Team> {
+        let mut team = match self.grab_team(hunt_id, name, password) {
+            None => return None,
+            Some(team) => team
+        };
+        let rows = self.query(MEMBER_QUERY, &[&hunt_id, &team.team_id]);
+        let members = rows.iter().map(|row| Member::from_row(row)).collect();
+        team.members = members;
+        Some(team)
     }
 }
 
@@ -145,3 +156,6 @@ const TEAM_EXISTS_QUERY: &'static str =
 
 const TEAM_QUERY: &'static str =
     "select * from Team where hunt = $1 and name = $2 and password = $3";
+
+const MEMBER_QUERY: &'static str =
+    "select * from Member where hunt = $1 and TeamID = $2";
