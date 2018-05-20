@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../ph.xsl"?>
+
+<page>
+  <title>View Your Team</title>
+  <form>
+    <input type="text" id="name">
+      Team name
+    </input>
+    <input type="password" id="password">
+      Password
+    </input>
+    <submit-button action="viewOwnTeam">
+      View Team
+    </submit-button>
+  </form>
+</page>

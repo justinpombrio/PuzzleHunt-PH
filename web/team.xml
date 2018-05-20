@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="../ph.xsl"?>
+<?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
 
 <page>
+  <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
   <title>Teams</title>
-  <content>
+  <prose>
     <p>
-      <a href="/register.xml">
+      <a href="/{{hunt.key}}/register.xml">
         Register a team
       </a>
     </p>
     <p>
-      <a href="/view-team.xml">
+      <a href="/{{hunt.key}}/view-team.xml">
         View your team
       </a>
     </p>
-  </content>
+  </prose>
 </page>
