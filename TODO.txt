@@ -1,0 +1,60 @@
+
+Basics:
+  [ ] Meta pages
+      [ ] Create-hunt page (w/ gradient)
+      [ ] Have both site-wide and hunt-specific passwords
+      [ ] Overview page (redirect from /)
+  [ ] Puzzler pages
+      [ ] Login/logout
+          [ ] Sign In
+          [ ] Sign Out
+          [ ] signin redirect
+      [ ] Team
+          [ ] Register New Team
+          [ ] View Your Team
+          [ ] update team
+      [ ] Puzzles
+          [ ] Nested waves & puzzles
+          [ ] Hints
+          [ ] Release times
+      [ ] Stats
+          [ ] Switchboard?
+          [ ] Team Leaderboard
+          [ ] Puzzle Leaderboard
+  [ ] Admin pages
+      [ ] Login/logout
+          [ ] Sign In
+          [ ] Sign Out
+          [ ] signin redirect
+      [ ] Hunt
+      [ ] Waves
+      [ ] Puzzles (w/ upload)
+      [ ] Teams
+      [ ] Email List
+
+Testing:
+  [ ] Timezones
+  [ ] Scaling (incl. puzzler, admin, meta)
+  [ ] Teams with blank names
+  [ ] Ordering of elements (e.g. hint1, hint2)
+  [ ] What if hint penalties make a score negative?
+  [ ] Make sure table columns are named consistently
+
+Features:
+  [ ] Make ssl work! Use a ssl[ ]test website.
+  [ ] Make the server a nice process. There should be a way to stop and
+      start it in the background, and it should write to a log file.
+  [ ] Eliminate all (or almost all) JS on the site, making it much more
+      compatible with different browsers. (Only expected difficulty:
+      adding/deleting rows from forms.)
+  [ ] Align hints?
+  [ ] When submitting a guess, maybe have a popup.
+  [ ] View your team's guesses
+  [ ] View other teams' guesses, once the hunt is over
+  [ ] View solutions, once the hunt is over
+  [ ] Allow changing your password
+  [ ] Allow file uploads?
+  [ ] Encouragements.
+  [ ] Support multiple hunts (You should be able to view old puzzles,
+      hints, solutions, leaderboards, and guesses. You should not be able
+      to register a team or submit guesses.
