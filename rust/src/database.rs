@@ -2,6 +2,7 @@ use postgres::{Connection, TlsMode};
 use postgres::types::ToSql;
 use postgres::rows::{Rows};
 use data::*;
+use forms::*;
 
 pub struct Database {
     connection: Connection
@@ -81,8 +82,26 @@ impl Database {
         waves
     }
 
+    pub fn get_hunts(&self) -> Vec<Hunt> {
+        let mut hunts: Vec<Hunt> = vec!();
+        for row in &self.query("select * from Hunt", &[]) {
+            hunts.push(Hunt::from_row(row));
+        }
+        hunts
+    }
+
     pub fn get_hunt(&self, hunt_key: &str) -> Hunt {
         let rows = self.query(HUNT_QUERY, &[&hunt_key]);
+        if rows.len() != 1 {
+            panic!("Did not find hunt"); // TODO: error handling
+        }
+        Hunt::from_row(rows.get(0))
+    }
+
+    pub fn get_hunt_by_id(&self, hunt_id: i32) -> Hunt {
+        let rows = self.query(
+            "select * from Hunt where huntID = $1",
+            &[&hunt_id]);
         if rows.len() != 1 {
             panic!("Did not find hunt"); // TODO: error handling
         }
@@ -113,12 +132,16 @@ impl Database {
     //// Teams ////
 
     pub fn team_exists(&self, hunt_id: i32, name: &str) -> bool {
-        let rows = self.query(TEAM_EXISTS_QUERY, &[&hunt_id, &name]);
+        let rows = self.query(
+            "select from Team where hunt = $1 and name = $2;",
+            &[&hunt_id, &name]);
         rows.len() >= 1
     }
 
     fn grab_team(&self, hunt_id: i32, name: &str, password: &str) -> Option<Team> {
-        let rows = self.query(TEAM_QUERY, &[&hunt_id, &name, &password]);
+        let rows = self.query(
+            "select * from Team where hunt = $1 and name = $2 and password = $3",
+            &[&hunt_id, &name, &password]);
         if rows.len() == 1 {
             Some(Team::from_row(rows.get(0)))
         } else {
@@ -136,8 +159,66 @@ impl Database {
         team.members = members;
         Some(team)
     }
-}
 
+    pub fn register(&self, hunt_id: i32, form: &RegisterForm) -> Result<Team, String> {
+        // Validate
+        if form.password != form.password_verify {
+            return Err("Passwords do not match".to_string())
+        }
+        if self.team_exists(hunt_id, &form.name) {
+            return Err("A team of that name already exists.".to_string())
+        }
+        
+        // Update
+        let hunt = self.get_hunt_by_id(hunt_id);
+        let team_id: i32 = self.query(
+            "insert into Team values (default, $1, $2, $3, $4) returning teamID",
+            &[&hunt_id, &form.password, &form.name, &hunt.init_guesses]).get(0).get(0);
+        for member in &form.members {
+            println!("member: {:?}", member);
+            self.execute(
+                "insert into Member values ($1, $2, $3, $4)",
+                &[&team_id, &hunt_id, &member.name, &member.email]);
+        }
+
+        // Return newly registred team
+        match self.get_team(hunt_id, &form.name, &form.password) {
+            None => Err("Failed to find team.".to_string()),
+            Some(team) => {
+                println!("team: {:?}", team);
+                Ok(team)
+            }
+        }
+    }
+
+    pub fn update_team(&self, hunt_id: i32, form: &UpdateTeamForm) -> Result<Team, String> {
+        // Validate
+        let team = match self.get_team(hunt_id, &form.name, &form.password) {
+            None => return Err("Team does not exist, or password does not match.".to_string()),
+            Some(team) => team
+        };
+        
+        // Update
+        self.execute(
+            "delete from Member where teamID = $1 and hunt = $2",
+            &[&team.team_id, &hunt_id]);
+        for member in &form.members {
+            println!("member: {:?}", member);
+            self.execute(
+                "insert into Member values ($1, $2, $3, $4)",
+                &[&team.team_id, &hunt_id, &member.name, &member.email]);
+        }
+
+        // Return updated team
+        match self.get_team(hunt_id, &form.name, &form.password) {
+            None => Err("Failed to find team.".to_string()),
+            Some(team) => {
+                println!("team: {:?}", team);
+                Ok(team)
+            }
+        }
+    }
+}
 
 const HUNT_QUERY: &'static str =
     "select * from Hunt where key = $1";
@@ -151,11 +232,11 @@ const PUZZLE_QUERY: &'static str =
 const HINT_QUERY: &'static str =
     "select * from Hint where hunt = $1 and puzzle = $2;";
 
-const TEAM_EXISTS_QUERY: &'static str =
-    "select () from Team where hunt = $1 and name = $2;";
-
-const TEAM_QUERY: &'static str =
-    "select * from Team where hunt = $1 and name = $2 and password = $3";
-
 const MEMBER_QUERY: &'static str =
     "select * from Member where hunt = $1 and TeamID = $2";
+
+const ADD_TEAM_QUERY: &'static str =
+    "insert into Team values (default, $1, $2, $3, $4, $5) returning teamID";
+
+const ADD_MEMBER_QUERY: &'static str =
+    "insert ($1, $2, $3, $4) into Member";

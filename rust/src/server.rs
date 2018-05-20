@@ -3,12 +3,13 @@ use std::fs::File;
 
 use rocket;
 use rocket::response::content::Xml;
+use rocket::response::Redirect;
 use rocket::request::Form;
 
 use util::*;
 use data::{AddToData, build_data};
 use database::Database;
-use logic::{ViewTeam, Register};
+use forms::{RegisterForm, ViewTeam, UpdateTeamForm};
 
 
 fn serve_file<P : AsRef<Path>>(path: P) -> Option<File> {
@@ -18,6 +19,9 @@ fn serve_file<P : AsRef<Path>>(path: P) -> Option<File> {
 fn render_xml<P : AsRef<Path>>(path: P, data: Vec<&AddToData>) -> Xml<String> {
     Xml(render_mustache(path, build_data(data)))
 }
+
+
+// Resources //
 
 #[get("/css/<path..>")]
 fn get_css(path: PathBuf) -> Option<File> {
@@ -34,6 +38,19 @@ fn get_js() -> Option<File> {
     serve_file("ph.js")
 }
 
+
+// Index //
+
+#[get("/")]
+fn get_index() -> Xml<String> {
+    let db = Database::new();
+    let hunts = db.get_hunts();
+    render_xml("index.xml", vec!(&hunts))
+}
+
+
+// Hunts //
+
 #[get("/<hunt_key>/puzzles.xml", rank=0)]
 fn get_puzzles(hunt_key: String) -> Xml<String> {
     let db = Database::new();
@@ -48,6 +65,11 @@ fn get_team(hunt_key: String) -> Xml<String> {
     let hunt = db.get_hunt(&hunt_key);
     let waves = db.get_waves(hunt.id);
     render_xml("team.xml", vec!(&hunt, &waves))
+}
+
+#[get("/<hunt_key>", rank=0)]
+fn get_hunt_base(hunt_key: String) -> Redirect {
+    Redirect::to(&format!("/{}/index.xml", hunt_key))
 }
 
 #[get("/<hunt_key>/index.xml", rank=0)]
@@ -70,7 +92,7 @@ fn post_view_team(hunt_key: String, form: Form<ViewTeam>) -> Xml<String> {
     let hunt = db.get_hunt(&hunt_key);
     let team = match form.get().view_team(hunt.id) {
         Ok(team) => team,
-        Err(msg) => panic!("{}", msg)
+        Err(msg) => panic!("{}", msg) // TODO: error handling
     };
     println!("team: {:?}", &team);
     render_xml("your-team.xml", vec!(&hunt, &team))
@@ -84,22 +106,35 @@ fn get_register(hunt_key: String) -> Xml<String> {
 }
 
 #[post("/<hunt_key>/register.xml", data="<form>")]
-fn post_register(hunt_key: String, form: Form<Register>) -> Xml<String> {
+fn post_register(hunt_key: String, form: Form<RegisterForm>) -> Xml<String> {
     let db = Database::new();
     let hunt = db.get_hunt(&hunt_key);
     let form = form.into_inner();
-    if form.password != form.password_verify {
-        panic!("Passwords do not match");
-    }
-    println!("Team Registration: {:?}", form);
-    render_xml("your-team.xml", vec!(&hunt))
+    let team = match db.register(hunt.id, &form) {
+        Ok(team) => team,
+        Err(msg) => panic!("{}", msg) // TODO: error handling
+    };
+    render_xml("your-team.xml", vec!(&hunt, &team))
+}
+
+#[post("/<hunt_key>/your-team.xml", data="<form>")]
+fn post_your_team(hunt_key: String, form: Form<UpdateTeamForm>) -> Xml<String> {
+    let db = Database::new();
+    let hunt = db.get_hunt(&hunt_key);
+    let form = form.into_inner();
+    let team = match db.update_team(hunt.id, &form) {
+        Ok(team) => team,
+        Err(msg) => panic!("{}", msg) // TODO: error handling
+    };
+    render_xml("your-team.xml", vec!(&hunt, &team))
 }
 
 
 pub fn start() {
     rocket::ignite().mount("/", routes![
         get_css, get_ph, get_js,
-        get_hunt, get_puzzles, get_team, get_register, get_view_team,
+        get_index,
+        get_hunt_base, get_hunt, get_puzzles, get_team, get_register, get_view_team,
         post_register, post_view_team
     ]).launch();
 }

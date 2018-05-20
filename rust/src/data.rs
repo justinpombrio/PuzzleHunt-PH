@@ -81,12 +81,12 @@ impl Convert for Hunt {
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
-            .insert_str("id", self.id)
-            .insert_str("name", &self.name)
-            .insert_str("key", &self.key)
-            .insert_str("teamSize", self.team_size)
-            .insert_str("initGuesses", self.init_guesses)
-            .insert_str("closed", self.closed)
+            .insert_str("id",          format!("{}", self.id))
+            .insert_str("name",        self.name.clone())
+            .insert_str("key",         self.key.clone())
+            .insert_str("teamSize",    format!("{}", self.team_size))
+            .insert_str("initGuesses", format!("{}", self.init_guesses))
+            .insert_bool("closed",     self.closed)
     }
 
     fn drop_query() -> &'static str {
@@ -143,12 +143,12 @@ impl Convert for Wave {
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
-            .insert_str("name",     &self.name)
-            .insert_str("hunt",     self.hunt)
-            .insert_str("time",     &self.time)
-            .insert_str("guesses",  self.guesses)
-            .insert_str("released", self.released)
-            .insert_vec("puzzles",  |b| vec_to_data(&self.puzzles, b))
+            .insert_str("name",      self.name.clone())
+            .insert_str("hunt",      format!("{}", self.hunt))
+            .insert_str("time",      format!("{}", self.time))
+            .insert_str("guesses",   format!("{}", self.guesses))
+            .insert_bool("released", self.released)
+            .insert_vec("puzzles",   |b| vec_to_data(&self.puzzles, b))
     }
 
     fn drop_query() -> &'static str {
@@ -210,15 +210,15 @@ impl Convert for Puzzle {
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
-            .insert_str("name", &self.name)
-            .insert_str("number", &self.number)
-            .insert_str("hunt", self.hunt)
-            .insert_str("basePoints", self.base_points)
-            .insert_str("currentPoints", self.current_points)
-            .insert_str("wave", &self.wave)
-            .insert_str("key", &self.key)
-            .insert_str("released", self.released)
-            .insert_vec("hints", |b| vec_to_data(&self.hints, b))
+            .insert_str("name",          self.name.clone())
+            .insert_str("number",        self.number.clone())
+            .insert_str("hunt",          format!("{}", self.hunt))
+            .insert_str("basePoints",    format!("{}", self.base_points))
+            .insert_str("currentPoints", format!("{}", self.current_points))
+            .insert_str("wave",          self.wave.clone())
+            .insert_str("key",           self.key.clone())
+            .insert_bool("released",     self.released)
+            .insert_vec("hints",         |b| vec_to_data(&self.hints, b))
     }
 
     fn drop_query() -> &'static str {
@@ -280,13 +280,13 @@ impl Convert for Hint {
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
-            .insert_str("puzzle", &self.puzzle)
-            .insert_str("number", self.number)
-            .insert_str("hunt", self.hunt)
-            .insert_str("penalty", self.penalty)
-            .insert_str("wave", &self.wave)
-            .insert_str("key", &self.key)
-            .insert_str("released", self.released)
+            .insert_str("puzzle",    self.puzzle.clone())
+            .insert_str("number",    format!("{}", self.number))
+            .insert_str("hunt",      format!("{}", self.hunt))
+            .insert_str("penalty",   format!("{}", self.penalty))
+            .insert_str("wave",      self.wave.clone())
+            .insert_str("key",       self.key.clone())
+            .insert_bool("released", self.released)
     }
 
     fn drop_query() -> &'static str {
@@ -342,11 +342,11 @@ impl Convert for Team {
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
-            .insert_str("teamID",   self.team_id)
-            .insert_str("hunt",     self.hunt)
-            .insert_str("password", &self.password)
-            .insert_str("name",     &self.name)
-            .insert_str("guesses",  self.guesses)
+            .insert_str("teamID",   format!("{}", self.team_id))
+            .insert_str("hunt",     format!("{}", self.hunt))
+            .insert_str("password", self.password.clone())
+            .insert_str("name",     self.name.clone())
+            .insert_str("guesses",  format!("{}", self.guesses))
             .insert_vec("members",  |b| vec_to_data(&self.members, b))
     }
     
@@ -397,10 +397,10 @@ impl Convert for Member {
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
-            .insert_str("teamID", self.team_id)
-            .insert_str("hunt", self.hunt)
-            .insert_str("name", &self.name)
-            .insert_str("email", &self.email)
+            .insert_str("teamID", format!("{}", self.team_id))
+            .insert_str("hunt", format!("{}", self.hunt))
+            .insert_str("name", self.name.clone())
+            .insert_str("email", self.email.clone())
     }
 
     fn drop_query() -> &'static str {
@@ -451,11 +451,11 @@ impl Convert for Guess {
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
-            .insert_str("teamID", self.team_id)
-            .insert_str("hunt", self.hunt)
-            .insert_str("puzzle", &self.puzzle)
-            .insert_str("guess", &self.guess)
-            .insert_str("time", &self.time)
+            .insert_str("teamID", format!("{}", self.team_id))
+            .insert_str("hunt", format!("{}", self.hunt))
+            .insert_str("puzzle", self.puzzle.clone())
+            .insert_str("guess", self.guess.clone())
+            .insert_str("time", format!("{}", self.time))
     }
 
     fn drop_query() -> &'static str {
@@ -504,10 +504,10 @@ impl Convert for Solve {
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
-            .insert_str("teamID", self.team_id)
-            .insert_str("hunt", self.hunt)
-            .insert_str("puzzle", &self.puzzle)
-            .insert_str("time", &self.time)
+            .insert_str("teamID", format!("{}", self.team_id))
+            .insert_str("hunt",   format!("{}", self.hunt))
+            .insert_str("puzzle", self.puzzle.clone())
+            .insert_str("time",   format!("{}", self.time))
     }
     
     fn drop_query() -> &'static str {
@@ -561,12 +561,12 @@ impl Convert for Stat {
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
-            .insert_str("teamID", self.team_id)
-            .insert_str("hunt", self.hunt)
-            .insert_str("puzzle", &self.puzzle)
-            .insert_str("score", self.score)
-            .insert_str("solveTime", self.solve_time)
-            .insert_str("guesses", self.guesses)
+            .insert_str("teamID",    format!("{}", self.team_id))
+            .insert_str("hunt",      format!("{}", self.hunt))
+            .insert_str("puzzle",    format!("{}", self.puzzle))
+            .insert_str("score",     format!("{}", self.score))
+            .insert_str("solveTime", format!("{}", self.solve_time))
+            .insert_str("guesses",   format!("{}", self.guesses))
     }
 
     fn drop_query() -> &'static str {
