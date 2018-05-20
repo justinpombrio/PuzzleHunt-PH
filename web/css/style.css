@@ -259,7 +259,11 @@ ul.nav li.nav6 {
     background: #ff7020;
 }
 
-@media screen and (max-width: 750px) {
+ul.nav li.nav-global {
+    background: linear-gradient(to right, #3bc185, #f5943b)
+}
+
+@media screen and (max-width: 900px) {
     ul.nav li.right, ul.nav li {
         float: none;
         border-bottom: 3px solid #554;

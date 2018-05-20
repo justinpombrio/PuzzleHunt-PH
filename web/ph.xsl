@@ -199,13 +199,25 @@
       </head>
       <body>
         <ul class="nav">
-          <li class="nav1">
-            <a href="index.xml"><xsl:value-of select="hunt"/></a>
-          </li>
-          <li class="nav2"><a href="team.xml">Team</a></li>
-          <li class="nav3"><a href="team-leaderboard.xml">Leaderboard</a></li>
-          <li class="nav4"><a href="puzzle-leaderboard.xml">Puzzle Stats</a></li>
-          <li class="nav5"><a href="puzzles.xml">Puzzles</a></li>
+          <xsl:if test="not(@page-type)">
+            <li class="nav1">
+              <a href="index.xml"><xsl:value-of select="hunt"/></a>
+            </li>
+            <li class="nav2"><a href="team.xml">Team</a></li>
+            <li class="nav3"><a href="team-leaderboard.xml">Leaderboard</a></li>
+            <li class="nav4"><a href="puzzle-leaderboard.xml">Puzzle Stats</a></li>
+            <li class="nav5"><a href="puzzles.xml">Puzzles</a></li>
+          </xsl:if>
+          <xsl:if test="@page-type = 'admin'">
+            <li class="nav1"><a href="admin-hunt.xml">Hunt</a></li>
+            <li class="nav2"><a href="admin-waves.xml">Waves</a></li>
+            <li class="nav3"><a href="admin-puzzles.xml">Puzzles</a></li>
+            <li class="nav4"><a href="admin-teams.xml">Puzzle Stats</a></li>
+            <li class="nav5"><a href="admin-logout.xml">Puzzles</a></li>
+          </xsl:if>
+          <xsl:if test="@page-type = 'global'">
+            <li class="nav-global"><a href="/">PuzzleHunt: PH</a></li>
+          </xsl:if>
         </ul>
         <p id="success-message"/>
         <p id="failure-message"/>

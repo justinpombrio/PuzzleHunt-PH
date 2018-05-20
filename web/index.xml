@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
 
-<page>
+<page page-type="global">
   <title>All Hunts</title>
   <prose>
     <table>
       {{#hunts}}
-      <p>
-        <a href="{{key}}/index.xml">
-          {{name}}{{#closed}}(closed){{/closed}}{{^closed}}(open){{/closed}}
-        </a>
-      </p>
+        {{#visible}}
+        <p>
+          <a href="{{key}}/index.xml">{{name}}</a>
+          {{#closed}}(closed){{/closed}}{{^closed}}(open){{/closed}}
+        </p>
+        {{/visible}}
       {{/hunts}}
     </table>
   </prose>

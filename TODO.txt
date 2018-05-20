@@ -3,7 +3,7 @@ Basics:
   [ ] Meta pages
       [ ] Create-hunt page (w/ gradient)
       [ ] Have both site-wide and hunt-specific passwords
-      [ ] Overview page (redirect from /)
+      [x] Overview page (redirect from /)
   [ ] Puzzler pages
       [ ] Login/logout
           [ ] Sign In

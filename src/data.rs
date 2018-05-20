@@ -59,7 +59,8 @@ pub struct Hunt {
     pub init_guesses: i32,
     pub password: String,
     pub secret_key: String,
-    pub closed: bool
+    pub closed: bool,
+    pub visible: bool
 }
 
 impl Convert for Hunt {
@@ -75,7 +76,8 @@ impl Convert for Hunt {
             init_guesses: row.get(4),
             password:     row.get(5),
             secret_key:   row.get(6),
-            closed:       row.get(7)
+            closed:       row.get(7),
+            visible:      row.get(8)
         }
     }
 
@@ -87,6 +89,7 @@ impl Convert for Hunt {
             .insert_str("teamSize",    format!("{}", self.team_size))
             .insert_str("initGuesses", format!("{}", self.init_guesses))
             .insert_bool("closed",     self.closed)
+            .insert_bool("visible",    self.visible)
     }
 
     fn drop_query() -> &'static str {
@@ -102,13 +105,14 @@ impl Convert for Hunt {
   initGuesses int NOT NULL,
   password varchar NOT NULL,
   secretKey varchar NOT NULL,
-  closed boolean NOT NULL
+  closed boolean NOT NULL,
+  visible boolean NOT NULL
 );"
     }
 
     fn test_init_query() -> &'static str {
-"insert into Hunt (name, key, teamSize, initGuesses, password, secretKey, closed)
-values ('Best Hunt Ever', 'besthuntever', 4, 100, 'pass', 'secret', true);"
+"insert into Hunt (name, key, teamSize, initGuesses, password, secretKey, closed, visible)
+values ('Best Hunt Ever', 'besthuntever', 4, 100, 'pass', 'secret', true, true);"
     }
 }
 
