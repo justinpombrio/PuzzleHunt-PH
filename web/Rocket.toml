@@ -2,3 +2,4 @@
 address = "localhost"
 port = 3000
 log = "normal"
+secret_key = "k9T3+ObIvXvIM6PTnt/+6cpYxP2vN6VOIrvAyStq874="

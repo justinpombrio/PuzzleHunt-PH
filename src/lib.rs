@@ -9,6 +9,7 @@ extern crate chrono;
 extern crate postgres;
 
 mod util;
+mod cookies;
 mod server;
 mod data;
 pub mod database;

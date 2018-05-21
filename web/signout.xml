@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
+
+<page>
+  <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
+  <title>Sign Out</title>
+  <form>
+    <submit-button>
+      Sign Out
+    </submit-button>
+  </form>
+</page>

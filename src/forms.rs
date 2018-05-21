@@ -61,22 +61,12 @@ impl<'f> FromForm<'f> for RegisterForm {
 }
 
 
-// View Team //
+// Sign In //
 
 #[derive(FromForm, Debug)]
-pub struct ViewTeam {
-    name: String,
-    password: String
-}
-
-impl ViewTeam {
-    pub fn view_team(&self, hunt_id: i32) -> Result<Team, String> {
-        let db = Database::new();
-        match db.get_team(hunt_id, &self.name, &self.password) {
-            None       => Err("Team not found".to_string()),
-            Some(team) => Ok(team)
-        }
-    }
+pub struct SignInForm {
+    pub name: String,
+    pub password: String
 }
 
 

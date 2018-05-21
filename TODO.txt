@@ -6,7 +6,7 @@ Basics:
       [x] Overview page (redirect from /)
   [ ] Puzzler pages
       [ ] Login/logout
-          [ ] Sign In
+          [x] Sign In
           [ ] Sign Out
           [ ] signin redirect
       [ ] Team
@@ -41,6 +41,7 @@ Testing:
   [ ] Make sure table columns are named consistently
 
 Features:
+  [ ] Password hashing
   [ ] Make ssl work! Use a ssl[ ]test website.
   [ ] Make the server a nice process. There should be a way to stop and
       start it in the background, and it should write to a log file.
