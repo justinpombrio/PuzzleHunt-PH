@@ -167,10 +167,10 @@ impl Database {
         rows.len() >= 1
     }
 
-    fn fill_team_members(&self, hunt_id: i32, team: &mut Team) {
+    fn fill_team_members(&self, team: &mut Team) {
         let rows = self.query(
-            "select * from Member where hunt = $1 and TeamID = $2",
-            &[&hunt_id, &team.team_id]);
+            "select * from Member where TeamID = $1",
+            &[&team.team_id]);
         let members = rows.iter().map(|row| Member::from_row(row)).collect();
         team.members = members;
     }
@@ -181,20 +181,20 @@ impl Database {
             &[&hunt_id, &name, &password]);
         if rows.len() == 1 {
             let mut team = Team::from_row(rows.get(0));
-            self.fill_team_members(hunt_id, &mut team);
+            self.fill_team_members(&mut team);
             Some(team)
         } else {
             None
         }
     }
 
-    pub fn get_team_by_id(&self, hunt_id: i32, team_id: i32) -> Option<Team> {
+    pub fn get_team_by_id(&self, team_id: i32) -> Option<Team> {
         let rows = self.query(
-            "select * from Team where hunt = $1 and teamID = $2",
-            &[&hunt_id, &team_id]);
+            "select * from Team where teamID = $1",
+            &[&team_id]);
         if rows.len() == 1 {
             let mut team = Team::from_row(rows.get(0));
-            self.fill_team_members(hunt_id, &mut team);
+            self.fill_team_members(&mut team);
             Some(team)
         } else {
             None

@@ -61,7 +61,7 @@ impl<'f> FromForm<'f> for RegisterForm {
 }
 
 
-// Sign In //
+// Sign in //
 
 #[derive(FromForm, Debug)]
 pub struct SignInForm {

@@ -7,7 +7,7 @@ Basics:
   [ ] Puzzler pages
       [ ] Login/logout
           [x] Sign In
-          [ ] Sign Out
+          [x] Sign Out
           [ ] signin redirect
       [ ] Team
           [ ] Register New Team

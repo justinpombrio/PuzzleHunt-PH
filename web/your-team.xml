@@ -23,13 +23,15 @@
         </row>
       {{/team.members}}
     </expandable-section>
-    <section>
-      <input type="password" id="password">
-        Confirm password
-      </input>
-    </section>
     <submit-button>
       Update
     </submit-button>
   </form>
+  <prose>
+    <p>
+      <a href="signout.xml">
+        Sign Out
+      </a>
+    </p>
+  </prose>
 </page>

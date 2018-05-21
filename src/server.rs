@@ -11,6 +11,7 @@ use util::*;
 use data::{AddToData, build_data};
 use database::Database;
 use forms::{SignInForm, RegisterForm, UpdateTeamForm};
+use cookies::{Puzzler};
 
 
 fn serve_file<P : AsRef<Path>>(path: P) -> Option<File> {
@@ -50,7 +51,46 @@ fn get_index() -> Xml<String> {
 }
 
 
-// Hunts //
+// Hunt //
+
+#[get("/<hunt_key>", rank=0)]
+fn get_hunt_base(hunt_key: String) -> Redirect {
+    Redirect::to(&format!("/{}/index.xml", hunt_key))
+}
+
+#[get("/<hunt_key>/index.xml", rank=0)]
+fn get_hunt(hunt_key: String) -> Xml<String> {
+    let db = Database::new();
+    let hunt = db.get_hunt(&hunt_key);
+    render_xml(format!("{}/index.xml", hunt.key), vec!(&hunt))
+}
+
+#[get("/<hunt_key>/puzzles.xml", rank=0)]
+fn get_puzzles(hunt_key: String) -> Xml<String> {
+    let db = Database::new();
+    let hunt = db.get_hunt(&hunt_key);
+    let waves = db.get_waves(hunt.id);
+    render_xml(format!("{}/puzzles.xml", hunt.key), vec!(&hunt, &waves))
+}
+
+
+// Team Page //
+
+#[get("/<hunt_key>/team.xml", rank=0)]
+#[allow(unused_variables)]
+fn get_team_signedin(hunt_key: String, puzzler: Puzzler) -> Redirect {
+    Redirect::to("your-team.xml")
+}
+
+#[get("/<hunt_key>/team.xml", rank=1)]
+fn get_team(hunt_key: String) -> Xml<String> {
+    let db = Database::new();
+    let hunt = db.get_hunt(&hunt_key);
+    render_xml("team.xml", vec!(&hunt))
+}
+
+
+// Team Page (not signed in) //
 
 #[get("/<hunt_key>/signin.xml", rank=0)]
 fn get_signin(hunt_key: String) -> Xml<String> {
@@ -71,67 +111,6 @@ fn post_signin(hunt_key: String, mut cookies: Cookies, form: Form<SignInForm>) -
     }
 }
 
-#[get("/<hunt_key>/signout.xml", rank=0)]
-fn get_signout(hunt_key: String) -> Xml<String> {
-    let db = Database::new();
-    let hunt = db.get_hunt(&hunt_key);
-    render_xml("signout.xml", vec!(&hunt))
-}
-
-#[allow(unused_variables)]
-#[post("/<hunt_key>/signout.xml")]
-fn post_signout(hunt_key: String, mut cookies: Cookies) -> Redirect {
-    let db = Database::new();
-    db.signout_team(&mut cookies);
-    Redirect::to("/<hunt_key>")
-}
-
-#[get("/<hunt_key>/puzzles.xml", rank=0)]
-fn get_puzzles(hunt_key: String) -> Xml<String> {
-    let db = Database::new();
-    let hunt = db.get_hunt(&hunt_key);
-    let waves = db.get_waves(hunt.id);
-    render_xml(format!("{}/puzzles.xml", hunt.key), vec!(&hunt, &waves))
-}
-
-#[get("/<hunt_key>/team.xml", rank=0)]
-fn get_team(hunt_key: String) -> Xml<String> {
-    let db = Database::new();
-    let hunt = db.get_hunt(&hunt_key);
-    render_xml("team.xml", vec!(&hunt))
-}
-
-#[get("/<hunt_key>", rank=0)]
-fn get_hunt_base(hunt_key: String) -> Redirect {
-    Redirect::to(&format!("/{}/index.xml", hunt_key))
-}
-
-#[get("/<hunt_key>/index.xml", rank=0)]
-fn get_hunt(hunt_key: String) -> Xml<String> {
-    let db = Database::new();
-    let hunt = db.get_hunt(&hunt_key);
-    render_xml(format!("{}/index.xml", hunt.key), vec!(&hunt))
-}
-/*
-#[get("/<hunt_key>/view-team.xml", rank=0)]
-fn get_view_team(hunt_key: String) -> Xml<String> {
-    let db = Database::new();
-    let hunt = db.get_hunt(&hunt_key);
-    render_xml("view-team.xml", vec!(&hunt))
-}
-
-#[post("/<hunt_key>/view-team.xml", data="<form>")]
-fn post_view_team(hunt_key: String, form: Form<ViewTeam>) -> Xml<String> {
-    let db = Database::new();
-    let hunt = db.get_hunt(&hunt_key);
-    let team = match form.get().view_team(hunt.id) {
-        Ok(team) => team,
-        Err(msg) => panic!("{}", msg) // TODO: error handling
-    };
-    println!("team: {:?}", &team);
-    render_xml("your-team.xml", vec!(&hunt, &team))
-}
-*/
 #[get("/<hunt_key>/register.xml", rank=0)]
 fn get_register(hunt_key: String) -> Xml<String> {
     let db = Database::new();
@@ -151,11 +130,29 @@ fn post_register(hunt_key: String, form: Form<RegisterForm>) -> Xml<String> {
     render_xml("your-team.xml", vec!(&hunt, &team))
 }
 
+
+// Team Page (signed in) //
+
+#[get("/<hunt_key>/signout.xml", rank=0)]
+fn get_signout(hunt_key: String) -> Xml<String> {
+    let db = Database::new();
+    let hunt = db.get_hunt(&hunt_key);
+    render_xml("signout.xml", vec!(&hunt))
+}
+
+#[post("/<hunt_key>/signout.xml")]
+#[allow(unused_variables)]
+fn post_signout(hunt_key: String, mut cookies: Cookies) -> Redirect {
+    let db = Database::new();
+    db.signout_team(&mut cookies);
+    Redirect::to(".")
+}
+
 #[get("/<hunt_key>/your-team.xml", rank=0)]
 fn get_your_team(hunt_key: String, mut cookies: Cookies) -> Xml<String> {
     let db = Database::new();
     let hunt = db.get_hunt(&hunt_key);
-    let team = match db.signedin_team(&mut cookies, hunt.id) {
+    let team = match db.signedin_team(&mut cookies) {
         Some(team) => team,
         None => panic!("Team not found.") // TODO: error handling
     };
@@ -175,6 +172,8 @@ fn post_your_team(hunt_key: String, form: Form<UpdateTeamForm>) -> Xml<String> {
 }
 
 
+// Rocket //
+
 pub fn start() {
     rocket::ignite().mount("/", routes![
         get_css, get_ph, get_js,
@@ -183,7 +182,7 @@ pub fn start() {
         get_hunt_base, get_hunt,
         get_your_team, post_your_team,
         get_puzzles,
-        get_team, get_register,
+        get_team, get_team_signedin, get_register,
         post_register,
     ]).launch();
 }

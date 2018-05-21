@@ -6,13 +6,13 @@
   <title>Teams</title>
   <prose>
     <p>
-      <a href="/{{hunt.key}}/register.xml">
-        Register a team
+      <a href="/{{hunt.key}}/signin.xml">
+        Sign in
       </a>
     </p>
     <p>
-      <a href="/{{hunt.key}}/view-team.xml">
-        View your team
+      <a href="/{{hunt.key}}/register.xml">
+        Register a new team
       </a>
     </p>
   </prose>
