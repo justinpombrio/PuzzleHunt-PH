@@ -36,6 +36,7 @@ impl Database {
 
     pub fn clear(&self) {
         // Drop existing tables
+        self.execute(Site::drop_query(), &[]);
         self.execute(Hunt::drop_query(), &[]);
         self.execute(Wave::drop_query(), &[]);
         self.execute(Puzzle::drop_query(), &[]);
@@ -46,6 +47,7 @@ impl Database {
         self.execute(Solve::drop_query(), &[]);
         self.execute(Stat::drop_query(), &[]);
         // Initialize tables
+        self.execute(Site::init_query(), &[]);
         self.execute(Hunt::init_query(), &[]);
         self.execute(Wave::init_query(), &[]);
         self.execute(Puzzle::init_query(), &[]);
@@ -58,6 +60,7 @@ impl Database {
     }
 
     pub fn init_test(&self) {
+        self.execute(Site::test_init_query(), &[]);
         self.execute(Hunt::test_init_query(), &[]);
         self.execute(Wave::test_init_query(), &[]);
         self.execute(Puzzle::test_init_query(), &[]);
@@ -69,7 +72,36 @@ impl Database {
         self.execute(Stat::test_init_query(), &[]);
     }
 
+    
+    //// Site ////
 
+    pub fn get_site(&self) -> Site {
+        let rows = self.query("select * from Site", &[]);
+        if rows.len() != 1 {
+            panic!("Invalid site information in database: there must be exactly one row in 'Site' table.");
+        }
+        Site::from_row(rows.get(0))
+    }
+    
+    pub fn create_hunt(&self, form: &CreateHuntForm) -> Result<Hunt, String> {
+        // Validate
+        if form.password != form.password_verify {
+            return Err("Passwords do not match".to_string())
+        }
+        if self.hunt_exists(&form.key) {
+            return Err("A hunt of that name already exists.".to_string())
+        }
+        
+        // Update
+        self.query(
+            "insert into Hunt values(default, $1, $2, 4, 100, $3, false, false)",
+            &[&form.name, &form.key, &form.password]);
+
+        // Return newly registred hunt
+        Ok(self.get_hunt(&form.key))
+    }
+
+    
     //// Hunts ////
 
     pub fn get_admin(&self, hunt_key: &str, password: &str, secret: &str) -> Option<Hunt> {
@@ -118,6 +150,13 @@ impl Database {
             panic!("Did not find hunt"); // TODO: error handling
         }
         Hunt::from_row(rows.get(0))
+    }
+
+    pub fn hunt_exists(&self, hunt_key: &str) -> bool {
+        let rows = self.query(
+            "select from Hunt where key = $1;",
+            &[&hunt_key]);
+        rows.len() >= 1
     }
 
     pub fn get_hunt_by_id(&self, hunt_id: i32) -> Option<Hunt> {
@@ -175,10 +214,21 @@ impl Database {
         team.members = members;
     }
 
-    pub fn get_team(&self, hunt_id: i32, name: &str, password: &str) -> Option<Team> {
+    pub fn authenticate_team(&self, hunt_id: i32, name: &str, password: &str) -> Option<i32> {
         let rows = self.query(
-            "select * from Team where hunt = $1 and name = $2 and password = $3",
+            "select teamID from Team where hunt = $1 and name = $2 and password = $3",
             &[&hunt_id, &name, &password]);
+        if rows.len() == 1 {
+            Some(rows.get(0).get(0))
+        } else {
+            None
+        }
+    }
+    
+    pub fn get_team(&self, hunt_id: i32, name: &str) -> Option<Team> {
+        let rows = self.query(
+            "select * from Team where hunt = $1 and name = $2",
+            &[&hunt_id, &name]);
         if rows.len() == 1 {
             let mut team = Team::from_row(rows.get(0));
             self.fill_team_members(&mut team);
@@ -226,7 +276,7 @@ impl Database {
         }
 
         // Return newly registred team
-        match self.get_team(hunt_id, &form.name, &form.password) {
+        match self.get_team(hunt_id, &form.name) {
             None => Err("Failed to find team.".to_string()),
             Some(team) => {
                 println!("team: {:?}", team);
@@ -237,7 +287,7 @@ impl Database {
 
     pub fn update_team(&self, hunt_id: i32, form: &UpdateTeamForm) -> Result<Team, String> {
         // Validate
-        let team = match self.get_team(hunt_id, &form.name, &form.password) {
+        let team = match self.get_team(hunt_id, &form.name) {
             None => return Err("Team does not exist, or password does not match.".to_string()),
             Some(team) => team
         };
@@ -254,7 +304,7 @@ impl Database {
         }
 
         // Return updated team
-        match self.get_team(hunt_id, &form.name, &form.password) {
+        match self.get_team(hunt_id, &form.name) {
             None => Err("Failed to find team.".to_string()),
             Some(team) => {
                 println!("team: {:?}", team);

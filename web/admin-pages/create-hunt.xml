@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
+
+<page page-type="global">
+  <title>Create a New Hunt</title>
+  <prose>
+    <p>
+      To create a hunt, you need the <b>secret</b> for this site. Ask the
+      site owner if you don't know it.
+    </p>
+
+    <p>
+      The <b>key</b> is a short identifier for the hunt; it will be
+      used as part of the URL. The key must only contain LETTERS,
+      NUMBERS, and DASHES. The hunt key is permanent; you cannot
+      change it.
+    </p>
+
+    <p>
+      The hunt's <b>name</b> is the name that puzzlers will see. This
+      can contain whatever you want, including spaces. It can even be
+      the same name as a previous hunt (though you probably
+      shouldn't). You'll have the option of changing it later.
+    </p>
+
+    <p>
+      The <b>password</b> is the password for the hunt, and gives
+      permission to edit the hunt.
+    </p>
+  </prose>
+  <form>
+    <section>
+      <input type="text" id="key">
+        Key
+      </input>
+      <input type="text" id="name">
+        Name
+      </input>
+      <input type="password" id="password">
+        Password
+      </input>
+      <input type="password" id="password_verify">
+        Repeat password
+      </input>
+      <input type="password" id="secret">
+        Secret
+      </input>
+    </section>
+    <submit-button>
+      Create Hunt
+    </submit-button>
+  </form>
+</page>

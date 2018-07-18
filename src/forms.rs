@@ -1,7 +1,49 @@
 use rocket::request::{FromForm, FormItems};
 
-use data::{Team};
-use database::Database;
+
+// Create Hunt //
+
+#[derive(Debug)]
+pub struct CreateHuntForm {
+    pub key: String,
+    pub name: String,
+    pub password: String,
+    pub password_verify: String,
+    pub secret: String
+}
+
+impl CreateHuntForm {
+    fn empty() -> CreateHuntForm {
+        CreateHuntForm{
+            key: "".to_string(),
+            name: "".to_string(),
+            password: "".to_string(),
+            password_verify: "".to_string(),
+            secret: "".to_string()
+        }
+    }
+}
+
+impl<'f> FromForm<'f> for CreateHuntForm {
+    type Error = ();
+    fn from_form(iter: &mut FormItems<'f>, strict: bool) -> Result<CreateHuntForm, ()> {
+        if !strict { return Err(()); }
+        let mut form = CreateHuntForm::empty();
+        
+        for (key, value) in iter {
+            match key.as_str() {
+                "key"             => form.key = value.to_string(),
+                "name"            => form.name = value.to_string(),
+                "password"        => form.password = value.to_string(),
+                "password_verify" => form.password_verify = value.to_string(),
+                "secret"          => form.secret = value.to_string(),
+                _ => return Err(())
+            }
+        }
+        Ok(form)
+    }
+}
+
 
 
 // Register //
@@ -75,7 +117,6 @@ pub struct SignInForm {
 #[derive(Debug)]
 pub struct UpdateTeamForm {
     pub name: String,
-    pub password: String,
     pub members: Vec<TeamMember>
 }
 
@@ -83,7 +124,6 @@ impl UpdateTeamForm {
     fn empty() -> UpdateTeamForm {
         UpdateTeamForm{
             name: "".to_string(),
-            password: "".to_string(),
             members: vec!()
         }
     }
@@ -100,7 +140,6 @@ impl<'f> FromForm<'f> for UpdateTeamForm {
         for (key, value) in iter {
             match key.as_str() {
                 "name"            => form.name = value.to_string(),
-                "password"        => form.password = value.to_string(),
                 "member_name"     => member_name = value,
                 "member_email"    => {
                     let member = TeamMember{
@@ -114,15 +153,5 @@ impl<'f> FromForm<'f> for UpdateTeamForm {
             }
         }
         Ok(form)
-    }
-}
-
-impl UpdateTeamForm {
-    pub fn update_team(&self, hunt_id: i32) -> Result<Team, String> {
-        let db = Database::new();
-        match db.get_team(hunt_id, &self.name, &self.password) {
-            None       => Err("Team not found".to_string()),
-            Some(team) => Ok(team)
-        }
     }
 }

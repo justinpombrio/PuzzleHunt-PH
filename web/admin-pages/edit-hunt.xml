@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
+
+<page>
+  <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
+  <title>Edit Hunt</title>
+  <form>
+    <section>
+      <input type="fixed" id="key" value="{{hunt.key}}">
+        Hunt key
+      </input>
+      <input type="text" id="name" value="{{hunt.name}}">
+        Hunt name
+      </input>
+      <input type="number" id="teamSize" value="{{hunt.teamSize}}">
+        Maximum team size
+      </input>
+      <input type="number" id="initGuesses" value="{{hunt.initGuesses}}">
+        Initial Guesses
+      </input>
+      <input type="number" id="closed" value="{{hunt.closed}}">
+        Closed
+      </input>
+      <input type="number" id="visible" value="{{hunt.visible}}">
+        Visible
+      </input>
+    </section>
+    <submit-button>
+      Update
+    </submit-button>
+  </form>
+  <prose>
+    <p>
+      <a href="signout.xml">
+        Sign Out
+      </a>
+    </p>
+  </prose>
+</page>

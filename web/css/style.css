@@ -192,6 +192,7 @@ figcaption { float: right;
 a:link, a:visited { color: inherit; }
 
 footer, .note {
+    bottom: 1em;
     font-size: 1.1rem;
     font-style: italic;
     text-align: right;

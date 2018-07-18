@@ -4,6 +4,11 @@
 <page page-type="global">
   <title>All Hunts</title>
   <prose>
+    <p>
+      This is a test hunt website made by {{site.owner}}. In case I
+      forget, the secret for creating hunts is
+      {{site.secret}}. Here's all the (fake) hunts:
+    </p>
     <table>
       {{#hunts}}
         {{#visible}}
@@ -14,5 +19,9 @@
         {{/visible}}
       {{/hunts}}
     </table>
+    <p>
+      And here's the button to make a new hunt:
+      <a href="create-hunt.xml">Create a New Hunt</a>
+    </p>
   </prose>
 </page>

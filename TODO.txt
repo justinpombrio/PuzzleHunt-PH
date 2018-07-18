@@ -1,8 +1,11 @@
 
 Basics:
-  [ ] Meta pages
+  [ ] Site pages
+      [x] PuzzleHunt: PH page
       [ ] Create-hunt page (w/ gradient)
+      [ ] Update-hunt page
       [ ] Have both site-wide and hunt-specific passwords
+      [ ] Validate that hunt key is a-zA-Z-
       [x] Overview page (redirect from /)
   [ ] Puzzler pages
       [ ] Login/logout

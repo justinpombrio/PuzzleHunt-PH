@@ -3,7 +3,7 @@ use mustache::{MapBuilder, VecBuilder, Data};
 use postgres::rows::Row;
 
 
-pub trait Convert {
+pub trait DBTable {
     fn from_row(row: Row) -> Self;
     fn to_data(&self, builder: MapBuilder) -> MapBuilder;
     fn drop_query() -> &'static str;
@@ -27,25 +27,69 @@ pub trait AddToData {
     fn add_to_data(&self, builder: MapBuilder) -> MapBuilder;
 }
 
-impl<C : Convert> AddToData for C {
+impl<C : DBTable> AddToData for C {
     fn add_to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder.insert_map(Self::name(), |m| self.to_data(m))
     }
 }
 
-impl<C : Convert> AddToData for Vec<C> {
+impl<C : DBTable> AddToData for Vec<C> {
     fn add_to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder.insert_vec(C::names(), |b| vec_to_data(self, b))
     }
 }
 
-fn vec_to_data<C : Convert>(items: &Vec<C>, builder: VecBuilder) -> VecBuilder {
+fn vec_to_data<C : DBTable>(items: &Vec<C>, builder: VecBuilder) -> VecBuilder {
     let mut builder = builder;
     for item in items {
         builder = builder.push_map(|map| item.to_data(map))
     }
     builder
 }
+
+
+////// Site //////
+
+#[derive(Debug)]
+pub struct Site {
+    pub owner: String,
+    pub secret: String
+}
+
+impl DBTable for Site {
+    fn name()  -> &'static str { "site" }
+    fn names() -> &'static str { "sites" }
+
+    fn from_row(row: Row) -> Site {
+        Site{
+            owner:  row.get(0),
+            secret: row.get(1)
+        }
+    }
+
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
+        builder
+            .insert_str("owner",  self.owner.clone())
+            .insert_str("secret", self.secret.clone())
+    }
+
+    fn drop_query() -> &'static str {
+        "drop table if exists Site;"
+    }
+
+    fn init_query() -> &'static str {
+"create table Site (
+  owner varchar NOT NULL,
+  secret varchar NOT NULL
+);"
+    }
+
+    fn test_init_query() -> &'static str {
+"insert into Site (owner, secret)
+values ('me', 'secret');"
+    }
+}
+
 
 
 ////// Hunts //////
@@ -58,12 +102,11 @@ pub struct Hunt {
     pub team_size: i32,
     pub init_guesses: i32,
     pub password: String,
-    pub secret_key: String,
     pub closed: bool,
     pub visible: bool
 }
 
-impl Convert for Hunt {
+impl DBTable for Hunt {
     fn name()  -> &'static str { "hunt" }
     fn names() -> &'static str { "hunts" }
     
@@ -75,9 +118,8 @@ impl Convert for Hunt {
             team_size:    row.get(3),
             init_guesses: row.get(4),
             password:     row.get(5),
-            secret_key:   row.get(6),
-            closed:       row.get(7),
-            visible:      row.get(8)
+            closed:       row.get(6),
+            visible:      row.get(7)
         }
     }
 
@@ -104,15 +146,14 @@ impl Convert for Hunt {
   teamSize int NOT NULL,
   initGuesses int NOT NULL,
   password varchar NOT NULL,
-  secretKey varchar NOT NULL,
   closed boolean NOT NULL,
   visible boolean NOT NULL
 );"
     }
 
     fn test_init_query() -> &'static str {
-"insert into Hunt (name, key, teamSize, initGuesses, password, secretKey, closed, visible)
-values ('Best Hunt Ever', 'besthuntever', 4, 100, 'pass', 'secret', true, true);"
+"insert into Hunt (name, key, teamSize, initGuesses, password, closed, visible)
+values ('Best Hunt Ever', 'besthuntever', 4, 100, 'pass', true, true);"
     }
 }
 
@@ -130,7 +171,7 @@ pub struct Wave {
     pub puzzles: Vec<Puzzle>
 }
 
-impl Convert for Wave {
+impl DBTable for Wave {
     fn name()  -> &'static str { "wave" }
     fn names() -> &'static str { "waves" }
     
@@ -193,7 +234,7 @@ pub struct Puzzle {
     pub hints: Vec<Hint>
 }
 
-impl Convert for Puzzle {
+impl DBTable for Puzzle {
     fn name()  -> &'static str { "puzzle" }
     fn names() -> &'static str { "puzzles" }
     
@@ -266,7 +307,7 @@ pub struct Hint {
     pub released: bool
 }
 
-impl Convert for Hint {
+impl DBTable for Hint {
     fn name()  -> &'static str { "hint" }
     fn names() -> &'static str { "hints" }
     
@@ -329,7 +370,7 @@ pub struct Team {
     pub members: Vec<Member>
 }
 
-impl Convert for Team {
+impl DBTable for Team {
     fn name()  -> &'static str { "team" }
     fn names() -> &'static str { "teams" }
     
@@ -386,7 +427,7 @@ pub struct Member {
     pub email: String
 }
 
-impl Convert for Member {
+impl DBTable for Member {
     fn name()  -> &'static str { "member" }
     fn names() -> &'static str { "members" }
     
@@ -439,7 +480,7 @@ pub struct Guess {
     pub time: DateTime<Utc>
 }
 
-impl Convert for Guess {
+impl DBTable for Guess {
     fn name()  -> &'static str { "guess" }
     fn names() -> &'static str { "guesss" }
     
@@ -493,7 +534,7 @@ pub struct Solve {
     pub time: DateTime<Utc>
 }
 
-impl Convert for Solve {
+impl DBTable for Solve {
     fn name()  -> &'static str { "solve" }
     fn names() -> &'static str { "solves" }
     
@@ -548,7 +589,7 @@ pub struct Stat {
     pub guesses: i32
 }
 
-impl Convert for Stat {
+impl DBTable for Stat {
     fn name()  -> &'static str { "stat" }
     fn names() -> &'static str { "stats" }
     
