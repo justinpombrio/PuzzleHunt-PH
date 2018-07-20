@@ -92,14 +92,28 @@ impl Database {
             return Err("A hunt of that name already exists.".to_string())
         }
         
-        // Update
+        // Create hunt
         self.query(
             "insert into Hunt values(default, $1, $2, 4, 100, $3, false, false)",
             &[&form.name, &form.key, &form.password]);
 
-        // Return newly registred hunt
+        // Return newly created hunt
         Ok(self.get_hunt(&form.key))
     }
+
+
+    //// Admin ////
+
+    pub fn edit_hunt(&self, hunt_key: &str, form: &EditHuntForm) -> Result<Hunt, String> {
+        // Update
+        self.execute(
+            "update Hunt set name = $2, teamSize = $3, initGuesses = $4, closed = $5, visible = $6 where key = $1",
+            &[&hunt_key, &form.name, &form.team_size, &form.init_guesses, &form.closed, &form.visible]);
+
+        // Return updated hunt
+        Ok(self.get_hunt(&hunt_key))
+    }
+
 
     
     //// Hunts ////
@@ -109,7 +123,7 @@ impl Database {
             return None
         }
         let rows = self.query(
-            "select * from Hunt where key = $1 and password = $3",
+            "select * from Hunt where key = $1 and password = $2",
             &[&hunt_key, &password]);
         if rows.len() == 1 {
             Some(Hunt::from_row(rows.get(0)))

@@ -96,9 +96,16 @@
     </xsl:if>
     <xsl:if test="contains(@type, 'boolean')">
       <td><xsl:value-of select="normalize-space(.)"/>:</td>
-      <td><input type="checkbox"
-      name="{@id}" value="{@value}"
-      class="form-cell checkbox"/></td>
+      <xsl:if test="@value='true'">
+        <td><input type="checkbox"
+        name="{@id}" checked=""
+        class="form-cell checkbox"/></td>
+      </xsl:if>
+      <xsl:if test="not(@value='true')">
+        <td><input type="checkbox"
+        name="{@id}"
+        class="form-cell checkbox"/></td>
+      </xsl:if>
     </xsl:if>
     <xsl:if test="contains(@type, 'puzzle')">
       <td><xsl:value-of select="normalize-space(.)"/>:</td>
@@ -209,7 +216,7 @@
             <li class="nav5"><a href="puzzles.xml">Puzzles</a></li>
           </xsl:if>
           <xsl:if test="@page-type = 'admin'">
-            <li class="nav1"><a href="admin-hunt.xml">Hunt</a></li>
+            <li class="nav1"><a href="edit-hunt.xml">Hunt</a></li>
             <li class="nav2"><a href="admin-waves.xml">Waves</a></li>
             <li class="nav3"><a href="admin-puzzles.xml">Puzzles</a></li>
             <li class="nav4"><a href="admin-teams.xml">Puzzle Stats</a></li>

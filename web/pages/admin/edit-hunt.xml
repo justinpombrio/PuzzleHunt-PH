@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
 
-<page>
+<page page-type="admin">
   <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
   <title>Edit Hunt</title>
   <form>
@@ -18,12 +18,15 @@
       <input type="number" id="initGuesses" value="{{hunt.initGuesses}}">
         Initial Guesses
       </input>
-      <input type="number" id="closed" value="{{hunt.closed}}">
+      <!-- TODO: once mustache isn't broken, use it for booleans -->
+      <!--
+      <input type="boolean" id="closed" value="true">
         Closed
       </input>
-      <input type="number" id="visible" value="{{hunt.visible}}">
+      <input type="boolean" id="visible" value="false">
         Visible
       </input>
+        -->
     </section>
     <submit-button>
       Update

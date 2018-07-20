@@ -1,11 +1,13 @@
+[ ]: todo
+[x]: done
+[L]: later (putting this off)
+
 
 Basics:
   [ ] Site pages
       [x] PuzzleHunt: PH page
-      [ ] Create-hunt page (w/ gradient)
-      [ ] Update-hunt page
-      [ ] Have both site-wide and hunt-specific passwords
-      [ ] Validate that hunt key is a-zA-Z-
+      [x] Create-hunt page (w/ gradient)
+      [x] Have both site-wide and hunt-specific passwords
       [x] Overview page (redirect from /)
   [ ] Puzzler pages
       [ ] Login/logout
@@ -15,7 +17,7 @@ Basics:
       [ ] Team
           [ ] Register New Team
           [ ] View Your Team
-          [ ] update team
+          [ ] Update team
       [ ] Puzzles
           [ ] Nested waves & puzzles
           [ ] Hints
@@ -30,10 +32,14 @@ Basics:
           [ ] Sign Out
           [ ] signin redirect
       [ ] Hunt
+      [ ] Edit hunt
+          [ ] Add booleans, once Mustache is less broken
+          [L] Validate that hunt key is a-zA-Z-
       [ ] Waves
       [ ] Puzzles (w/ upload)
       [ ] Teams
       [ ] Email List
+  [ ] Error handling
 
 Testing:
   [ ] Timezones

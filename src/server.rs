@@ -10,7 +10,7 @@ use rocket::http::Cookies;
 use util::*;
 use data::{AddToData, build_data};
 use database::Database;
-use forms::{CreateHuntForm, SignInForm, RegisterForm, UpdateTeamForm};
+use forms::*;
 use cookies::{Puzzler};
 
 
@@ -41,30 +41,34 @@ fn get_js() -> Option<File> {
 }
 
 
-// Site //
+// Global //
 
 #[get("/", rank=0)]
 fn get_index() -> Xml<String> {
     let db = Database::new();
     let site = db.get_site();
     let hunts = db.get_hunts();
-    render_xml("admin-pages/index.xml", vec!(&hunts, &site))
+    render_xml("pages/global/index.xml", vec!(&hunts, &site))
 }
 
 #[get("/create-hunt.xml")]
 fn get_create_hunt() -> Xml<String> {
-    render_xml("admin-pages/create-hunt.xml", vec!())
+    render_xml("pages/global/create-hunt.xml", vec!())
 }
 
 #[post("/create-hunt.xml", data="<form>")]
-fn post_create_hunt(form: Form<CreateHuntForm>) -> Redirect {
+fn post_create_hunt(mut cookies: Cookies, form: Form<CreateHuntForm>) -> Redirect {
     let db = Database::new();
     let form = form.into_inner();
-    let hunt = match db.create_hunt(&form) {
-        Ok(team) => team,
+    match db.create_hunt(&form) {
+        Ok(_) => (),
         Err(msg) => panic!("{}", msg) // TODO: error handling
     };
-    Redirect::to("/admin/edit-hunt.xml")
+    if db.signin_admin(&mut cookies, &form.key, &form.password, &form.secret) {
+        Redirect::to("/admin/edit-hunt.xml")
+    } else {
+        panic!("Failed to sign in.") // TODO: error handling
+    }
 }
 
 
@@ -77,8 +81,25 @@ fn get_edit_hunt(mut cookies: Cookies) -> Xml<String> {
         Some(hunt) => hunt,
         None => panic!("Hunt not found.") // TODO: error handling
     };
-    render_xml("admin-pages/edit-hunt.xml", vec!(&hunt))
+    println!("Hunt: {:?}", hunt);
+    render_xml("pages/admin/edit-hunt.xml", vec!(&hunt))
 }
+
+#[post("/admin/edit-hunt.xml", data="<form>")]
+fn post_edit_hunt(mut cookies: Cookies, form: Form<EditHuntForm>) -> Xml<String> {
+    let db = Database::new();
+    let hunt = match db.signedin_admin(&mut cookies) {
+        Some(hunt) => hunt,
+        None => panic!("Hunt not found.") // TODO: error handling
+    };
+    let form = form.into_inner();
+    let hunt = match db.edit_hunt(&hunt.key, &form) {
+        Ok(hunt) => hunt,
+        Err(msg) => panic!("{}", msg) // TODO: error handling
+    };
+    render_xml("pages/admin/edit-hunt.xml", vec!(&hunt))
+}
+
 
 
 // Hunt //
@@ -116,7 +137,7 @@ fn get_team_signedin(hunt_key: String, puzzler: Puzzler) -> Redirect {
 fn get_team(hunt_key: String) -> Xml<String> {
     let db = Database::new();
     let hunt = db.get_hunt(&hunt_key);
-    render_xml("pages/team.xml", vec!(&hunt))
+    render_xml("pages/puzzler/team.xml", vec!(&hunt))
 }
 
 
@@ -126,7 +147,7 @@ fn get_team(hunt_key: String) -> Xml<String> {
 fn get_signin(hunt_key: String) -> Xml<String> {
     let db = Database::new();
     let hunt = db.get_hunt(&hunt_key);
-    render_xml("pages/signin.xml", vec!(&hunt))
+    render_xml("pages/puzzler/signin.xml", vec!(&hunt))
 }
 
 #[post("/<hunt_key>/signin.xml", rank=1, data="<form>")]
@@ -145,7 +166,7 @@ fn post_signin(hunt_key: String, mut cookies: Cookies, form: Form<SignInForm>) -
 fn get_register(hunt_key: String) -> Xml<String> {
     let db = Database::new();
     let hunt = db.get_hunt(&hunt_key);
-    render_xml("pages/register.xml", vec!(&hunt))
+    render_xml("pages/puzzler/register.xml", vec!(&hunt))
 }
 
 #[post("/<hunt_key>/register.xml", data="<form>")]
@@ -168,7 +189,7 @@ fn post_register(hunt_key: String, mut cookies: Cookies, form: Form<RegisterForm
 fn get_signout(hunt_key: String) -> Xml<String> {
     let db = Database::new();
     let hunt = db.get_hunt(&hunt_key);
-    render_xml("pages/signout.xml", vec!(&hunt))
+    render_xml("pages/puzzler/signout.xml", vec!(&hunt))
 }
 
 #[post("/<hunt_key>/signout.xml")]
@@ -187,7 +208,7 @@ fn get_your_team(hunt_key: String, mut cookies: Cookies) -> Xml<String> {
         Some(team) => team,
         None => panic!("Team not found.") // TODO: error handling
     };
-    render_xml("pages/your-team.xml", vec!(&hunt, &team))
+    render_xml("pages/puzzler/your-team.xml", vec!(&hunt, &team))
 }
 
 #[post("/<hunt_key>/your-team.xml", data="<form>")]
@@ -199,7 +220,7 @@ fn post_your_team(hunt_key: String, form: Form<UpdateTeamForm>) -> Xml<String> {
         Ok(team) => team,
         Err(msg) => panic!("{}", msg) // TODO: error handling
     };
-    render_xml("pages/your-team.xml", vec!(&hunt, &team))
+    render_xml("pages/puzzler/your-team.xml", vec!(&hunt, &team))
 }
 
 
@@ -212,6 +233,7 @@ pub fn start() {
         // Site
         get_index,
         get_create_hunt, post_create_hunt,
+        get_edit_hunt, post_edit_hunt,
         // Signin
         get_signin, post_signin, get_signout, post_signout,
         // Hunt
