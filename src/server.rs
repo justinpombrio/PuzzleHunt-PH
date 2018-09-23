@@ -13,6 +13,8 @@ use database::Database;
 use forms::*;
 use cookies::{Puzzler};
 
+// TODO: Every `panic` here should have proper error handling.
+
 
 fn serve_file<P : AsRef<Path>>(path: P) -> Option<File> {
     File::open(path).ok()
@@ -62,12 +64,12 @@ fn post_create_hunt(mut cookies: Cookies, form: Form<CreateHuntForm>) -> Redirec
     let form = form.into_inner();
     match db.create_hunt(&form) {
         Ok(_) => (),
-        Err(msg) => panic!("{}", msg) // TODO: error handling
+        Err(msg) => panic!("{}", msg)
     };
     if db.signin_admin(&mut cookies, &form.key, &form.password, &form.secret) {
         Redirect::to("/admin/edit-hunt.xml")
     } else {
-        panic!("Failed to sign in.") // TODO: error handling
+        panic!("Failed to sign in.")
     }
 }
 
@@ -79,7 +81,7 @@ fn get_edit_hunt(mut cookies: Cookies) -> Xml<String> {
     let db = Database::new();
     let hunt = match db.signedin_admin(&mut cookies) {
         Some(hunt) => hunt,
-        None => panic!("Hunt not found.") // TODO: error handling
+        None => panic!("Hunt not found.")
     };
     println!("Hunt: {:?}", hunt);
     render_xml("pages/admin/edit-hunt.xml", vec!(&hunt))
@@ -90,12 +92,12 @@ fn post_edit_hunt(mut cookies: Cookies, form: Form<EditHuntForm>) -> Xml<String>
     let db = Database::new();
     let hunt = match db.signedin_admin(&mut cookies) {
         Some(hunt) => hunt,
-        None => panic!("Hunt not found.") // TODO: error handling
+        None => panic!("Hunt not found.")
     };
     let form = form.into_inner();
     let hunt = match db.edit_hunt(&hunt.key, &form) {
         Ok(hunt) => hunt,
-        Err(msg) => panic!("{}", msg) // TODO: error handling
+        Err(msg) => panic!("{}", msg)
     };
     render_xml("pages/admin/edit-hunt.xml", vec!(&hunt))
 }
@@ -158,7 +160,7 @@ fn post_signin(hunt_key: String, mut cookies: Cookies, form: Form<SignInForm>) -
     if db.signin_team(&mut cookies, hunt.id, &form.name, &form.password) {
         Redirect::to("your-team.xml")
     } else {
-        panic!("Failed to sign in.") // TODO: error handling
+        panic!("Failed to sign in.")
     }
 }
 
@@ -176,7 +178,7 @@ fn post_register(hunt_key: String, mut cookies: Cookies, form: Form<RegisterForm
     let form = form.into_inner();
     let team = match db.register(hunt.id, &form) {
         Ok(team) => team,
-        Err(msg) => panic!("{}", msg) // TODO: error handling
+        Err(msg) => panic!("{}", msg)
     };
     db.signin_team(&mut cookies, hunt.id, &team.name, &team.password);
     Redirect::to("your-team.xml")
@@ -206,7 +208,7 @@ fn get_your_team(hunt_key: String, mut cookies: Cookies) -> Xml<String> {
     let hunt = db.get_hunt(&hunt_key);
     let team = match db.signedin_team(&mut cookies) {
         Some(team) => team,
-        None => panic!("Team not found.") // TODO: error handling
+        None => panic!("Team not found.")
     };
     render_xml("pages/puzzler/your-team.xml", vec!(&hunt, &team))
 }
@@ -218,7 +220,7 @@ fn post_your_team(hunt_key: String, form: Form<UpdateTeamForm>) -> Xml<String> {
     let form = form.into_inner();
     let team = match db.update_team(hunt.id, &form) {
         Ok(team) => team,
-        Err(msg) => panic!("{}", msg) // TODO: error handling
+        Err(msg) => panic!("{}", msg)
     };
     render_xml("pages/puzzler/your-team.xml", vec!(&hunt, &team))
 }
