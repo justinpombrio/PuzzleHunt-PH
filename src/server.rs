@@ -42,6 +42,11 @@ fn get_js() -> Option<File> {
     serve_file("ph.js")
 }
 
+#[get("/favicon.ico")]
+fn get_favicon() -> Option<File> {
+    serve_file("favicon.ico")
+}
+
 
 // Global //
 
@@ -90,6 +95,26 @@ fn post_admin_signin(mut cookies: Cookies, form: Form<AdminSignInForm>) -> Redir
     } else {
         panic!("Failed to sign in.")
     }
+}
+
+
+// Admin: Sign Out //
+
+#[get("/admin/signout.xml")]
+fn get_admin_signout(mut cookies: Cookies) -> Xml<String> {
+    let db = Database::new();
+    let hunt = match db.signedin_admin(&mut cookies) {
+        None => panic!("Already signed out."),
+        Some(hunt) => hunt
+    };
+    render_xml("pages/puzzler/signout.xml", vec!(&hunt))
+}
+
+#[post("/admin/signout.xml")]
+fn post_admin_signout(mut cookies: Cookies) -> Redirect {
+    let db = Database::new();
+    db.signout_admin(&mut cookies);
+    Redirect::to("/")
 }
 
 
@@ -250,13 +275,14 @@ fn post_your_team(hunt_key: String, form: Form<UpdateTeamForm>) -> Xml<String> {
 pub fn start() {
     rocket::ignite().mount("/", routes![
         // Resources
-        get_css, get_ph, get_js,
+        get_css, get_ph, get_js, get_favicon,
         // Site
         get_index,
         get_create_hunt, post_create_hunt,
         get_edit_hunt, post_edit_hunt,
         // Signin
-        get_signin, post_signin, get_signout, post_signout,
+        get_signin, post_signin,
+        get_signout, post_signout,
         // Hunt
         get_hunt_base, get_hunt,
         // Team
@@ -266,6 +292,7 @@ pub fn start() {
         get_puzzles,
         // Admin Signin
         get_admin_signin, post_admin_signin,
+        get_admin_signout, post_admin_signout,
         // Admin
         get_team, get_team_signedin
     ]).launch();

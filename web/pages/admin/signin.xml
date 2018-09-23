@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
+
+<page page-type="global">
+  <title>Sign In</title>
+  <form>
+    <section>
+      <input type="text" id="hunt_key">
+        Hunt key
+      </input>
+      <input type="password" id="password">
+        Password
+      </input>
+    </section>
+    <submit-button>
+      Sign In
+    </submit-button>
+  </form>
+</page>

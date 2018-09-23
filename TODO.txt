@@ -9,15 +9,16 @@ Basics:
       [x] Create-hunt page (w/ gradient)
       [x] Have both site-wide and hunt-specific passwords
       [x] Overview page (redirect from /)
+      [x] Favicon
   [ ] Puzzler pages
       [ ] Login/logout
           [x] Sign In
           [x] Sign Out
           [ ] signin redirect
-      [ ] Team
-          [ ] Register New Team
-          [ ] View Your Team
-          [ ] Update team
+      [x] Team
+          [x] Register New Team
+          [x] View Your Team
+          [x] Update team
       [ ] Puzzles
           [ ] Nested waves & puzzles
           [ ] Hints
@@ -29,7 +30,7 @@ Basics:
   [ ] Admin pages
       [ ] Login/logout
           [x] Sign In
-          [ ] Sign Out
+          [x] Sign Out
           [ ] signin redirect
       [ ] Hunt
       [ ] Edit hunt
