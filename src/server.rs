@@ -66,8 +66,27 @@ fn post_create_hunt(mut cookies: Cookies, form: Form<CreateHuntForm>) -> Redirec
         Ok(_) => (),
         Err(msg) => panic!("{}", msg)
     };
-    if db.signin_admin(&mut cookies, &form.key, &form.password, &form.secret) {
+    if db.signin_admin(&mut cookies, &form.key, &form.password) {
         Redirect::to("/admin/edit-hunt.xml")
+    } else {
+        panic!("Failed to sign in.")
+    }
+}
+
+
+// Admin (not signed in) //
+
+#[get("/admin/signin.xml")]
+fn get_admin_signin() -> Xml<String> {
+    render_xml("pages/admin/signin.xml", vec!())
+}
+
+#[post("/admin/signin.xml", data="<form>")]
+fn post_admin_signin(mut cookies: Cookies, form: Form<AdminSignInForm>) -> Redirect {
+    let db = Database::new();
+    let form = form.into_inner();
+    if db.signin_admin(&mut cookies, &form.hunt_key, &form.password) {
+        Redirect::to("edit-hunt.xml")
     } else {
         panic!("Failed to sign in.")
     }
@@ -245,6 +264,8 @@ pub fn start() {
         get_register, post_register,
         // Puzzles
         get_puzzles,
+        // Admin Signin
+        get_admin_signin, post_admin_signin,
         // Admin
         get_team, get_team_signedin
     ]).launch();

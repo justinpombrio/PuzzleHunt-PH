@@ -96,6 +96,14 @@ impl<'f> FromForm<'f> for EditHuntForm {
 }
 
 
+// Admin Signin //
+
+#[derive(FromForm, Debug)]
+pub struct AdminSignInForm {
+    pub hunt_key: String,
+    pub password: String
+}
+
 
 // Register //
     

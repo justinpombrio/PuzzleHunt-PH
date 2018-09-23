@@ -21,7 +21,11 @@
     </table>
     <p>
       And here's the link to make a new hunt:
-      <a href="create-hunt.xml">Create a New Hunt</a>
+      <a href="create-hunt.xml">Create a New Hunt</a>.
+    </p>
+    <p>
+      If you have already created a hunt, and want to edit it:
+      <a href="/admin/signin.xml">Login Here</a>.
     </p>
   </prose>
 </page>

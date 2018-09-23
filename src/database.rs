@@ -118,10 +118,7 @@ impl Database {
     
     //// Hunts ////
 
-    pub fn get_admin(&self, hunt_key: &str, password: &str, secret: &str) -> Option<Hunt> {
-        if secret != "secret" {
-            return None
-        }
+    pub fn get_admin(&self, hunt_key: &str, password: &str) -> Option<Hunt> {
         let rows = self.query(
             "select * from Hunt where key = $1 and password = $2",
             &[&hunt_key, &password]);

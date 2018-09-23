@@ -28,11 +28,12 @@ Basics:
           [ ] Puzzle Leaderboard
   [ ] Admin pages
       [ ] Login/logout
-          [ ] Sign In
+          [x] Sign In
           [ ] Sign Out
           [ ] signin redirect
       [ ] Hunt
       [ ] Edit hunt
+          [x] Edit hunt page
           [ ] Add booleans, once Mustache is less broken
           [L] Validate that hunt key is a-zA-Z-
       [ ] Waves

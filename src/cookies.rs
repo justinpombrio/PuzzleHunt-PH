@@ -38,8 +38,8 @@ impl Database {
     }
 
     pub fn signin_admin(&self, cookies: &mut Cookies,
-                        hunt_key: &str, password: &str, secret: &str) -> bool {
-        let hunt = match self.get_admin(hunt_key, password, secret) {
+                        hunt_key: &str, password: &str) -> bool {
+        let hunt = match self.get_admin(hunt_key, password) {
             None => return false,
             Some(hunt) => hunt
         };
