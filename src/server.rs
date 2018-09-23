@@ -107,7 +107,7 @@ fn get_admin_signout(mut cookies: Cookies) -> Xml<String> {
         None => panic!("Already signed out."),
         Some(hunt) => hunt
     };
-    render_xml("pages/puzzler/signout.xml", vec!(&hunt))
+    render_xml("pages/admin/signout.xml", vec!(&hunt))
 }
 
 #[post("/admin/signout.xml")]
@@ -144,6 +144,31 @@ fn post_edit_hunt(mut cookies: Cookies, form: Form<EditHuntForm>) -> Xml<String>
         Err(msg) => panic!("{}", msg)
     };
     render_xml("pages/admin/edit-hunt.xml", vec!(&hunt))
+}
+
+
+// Admin: View Teams //
+
+#[get("/admin/view-teams.xml")]
+fn get_view_teams(mut cookies: Cookies) -> Xml<String> {
+    let db = Database::new();
+    let hunt = match db.signedin_admin(&mut cookies) {
+        Some(hunt) => hunt,
+        None => panic!("Hunt not found.")
+    };
+    let teams = db.get_all_teams(hunt.id);
+    render_xml("pages/admin/view-teams.xml", vec!(&hunt, &teams))
+}
+
+#[get("/admin/view-team-email-list.xml")]
+fn get_view_team_email_list(mut cookies: Cookies) -> Xml<String> {
+    let db = Database::new();
+    let hunt = match db.signedin_admin(&mut cookies) {
+        Some(hunt) => hunt,
+        None => panic!("Hunt not found.")
+    };
+    let teams = db.get_all_teams(hunt.id);
+    render_xml("pages/admin/view-team-email-list.xml", vec!(&hunt, &teams))
 }
 
 
@@ -288,12 +313,13 @@ pub fn start() {
         // Team
         get_your_team, post_your_team,
         get_register, post_register,
+        get_team, get_team_signedin,
         // Puzzles
         get_puzzles,
         // Admin Signin
         get_admin_signin, post_admin_signin,
         get_admin_signout, post_admin_signout,
         // Admin
-        get_team, get_team_signedin
+        get_view_teams, get_view_team_email_list
     ]).launch();
 }

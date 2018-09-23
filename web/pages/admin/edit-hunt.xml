@@ -32,11 +32,4 @@
       Update
     </submit-button>
   </form>
-  <prose>
-    <p>
-      <a href="signout.xml">
-        Sign Out
-      </a>
-    </p>
-  </prose>
 </page>

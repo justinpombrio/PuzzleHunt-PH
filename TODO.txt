@@ -39,8 +39,10 @@ Basics:
           [L] Validate that hunt key is a-zA-Z-
       [ ] Waves
       [ ] Puzzles (w/ upload)
-      [ ] Teams
-      [ ] Email List
+      [x] Teams
+          [x] View all teams
+          [x] Plaintext email list
+      [ ] View Hunt normally
   [ ] Error handling
 
 Testing:

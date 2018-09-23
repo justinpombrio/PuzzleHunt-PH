@@ -216,11 +216,13 @@
             <li class="nav5"><a href="puzzles.xml">Puzzles</a></li>
           </xsl:if>
           <xsl:if test="@page-type = 'admin'">
-            <li class="nav1"><a href="edit-hunt.xml">Hunt</a></li>
-            <li class="nav2"><a href="admin-waves.xml">Waves</a></li>
-            <li class="nav3"><a href="admin-puzzles.xml">Puzzles</a></li>
-            <li class="nav4"><a href="admin-teams.xml">Puzzle Stats</a></li>
-            <li class="nav5"><a href="admin-logout.xml">Puzzles</a></li>
+            <li class="nav1">
+              <a href="edit-hunt.xml"><xsl:value-of select="hunt"/></a>
+            </li>
+            <li class="nav2"><a href="waves.xml">Waves</a></li>
+            <li class="nav3"><a href="puzzles.xml">Puzzles</a></li>
+            <li class="nav4"><a href="view-teams.xml">Teams</a></li>
+            <li class="nav5"><a href="signout.xml">Sign Out</a></li>
           </xsl:if>
           <xsl:if test="@page-type = 'global'">
             <li class="nav-global"><a href="/">PuzzleHunt: PH</a></li>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
+
+<page page-type="admin">
+  <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
+  <title>Email List</title>
+  <prose>
+    <p>
+      {{#teams}}
+        {{#members}}
+          {{email}}<br/>
+        {{/members}}
+      {{/teams}}
+    </p>
+  </prose>
+</page>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
+
+<page page-type="admin">
+  <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
+  <title>All Registered Teams</title>
+  <prose>
+    <p>
+      <a href="view-team-email-list.xml">Get the emails as a list.</a>
+    </p>
+    <p>
+      {{#teams}}
+      <h3>{{name}}</h3>
+      <table>
+        {{#members}}
+        <tr>
+          <td>{{name}}</td>
+          <td>{{email}}</td>
+        </tr>
+        {{/members}}
+      </table>
+      {{/teams}}
+    </p>
+  </prose>
+</page>

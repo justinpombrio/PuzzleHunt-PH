@@ -113,6 +113,17 @@ impl Database {
         // Return updated hunt
         Ok(self.get_hunt(&hunt_key))
     }
+    
+    pub fn get_all_teams(&self, hunt_id: i32) -> Vec<Team> {
+        let rows = self.query(
+            "select * from Team where Hunt = $1",
+            &[&hunt_id]);
+        rows.into_iter().map(|row| {
+            let mut team = Team::from_row(row);
+            self.fill_team_members(&mut team);
+            team
+        }).collect()
+    }
 
 
     
