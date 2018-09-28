@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
+
+<page page-type="admin">
+  <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
+  <title>Puzzle Waves</title>
+  <form>
+    <expandable-section item="Wave">
+      <input type="text" id="name" name="Wave Name"/>
+      <input type="datetime" id="time" name="Release Time"/>
+      <input type="number" id="guesses" name="+Guesses"/>
+      <input type="fixed" id="released" name="Released?"/>
+      {{#waves}}
+      <row>
+        <value>{{name}}</value>
+        <value>{{time}}</value>
+        <value>{{guesses}}</value>
+        <value>{{#released}}true{{/released}}{{^released}}false{{/released}}</value>
+      </row>
+      {{/waves}}
+<!--      <expandable-section item="PuzzleId">
+        <input type="text" id="id" name="Id"/>
+      </expandable-section> -->
+    </expandable-section>
+    <submit-button>
+      Update
+    </submit-button>
+  </form>
+</page>

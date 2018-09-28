@@ -177,6 +177,18 @@
              class="multi-form-cell datetime"
              step="1"/>
     </xsl:if>
+    <xsl:if test="contains(@type, 'boolean')">
+      <xsl:if test="@value='true'">
+        <input type="checkbox"
+               name="{@id}" checked=""
+               class="multi-form-cell checkbox"/>
+      </xsl:if>
+      <xsl:if test="not(@value='true')">
+        <input type="checkbox"
+               name="{@id}"
+               class="multi-form-cell checkbox"/>
+      </xsl:if>
+    </xsl:if>
     <xsl:if test="contains(@type, 'puzzle')">
       <xsl:call-template name="PuzzleInput"/>
     </xsl:if>
@@ -219,7 +231,7 @@
             <li class="nav1">
               <a href="edit-hunt.xml"><xsl:value-of select="hunt"/></a>
             </li>
-            <li class="nav2"><a href="waves.xml">Waves</a></li>
+            <li class="nav2"><a href="edit-waves.xml">Waves</a></li>
             <li class="nav3"><a href="puzzles.xml">Puzzles</a></li>
             <li class="nav4"><a href="view-teams.xml">Teams</a></li>
             <li class="nav5"><a href="signout.xml">Sign Out</a></li>

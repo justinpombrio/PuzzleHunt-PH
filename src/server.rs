@@ -118,7 +118,7 @@ fn post_admin_signout(mut cookies: Cookies) -> Redirect {
 }
 
 
-// Admin: Update Hunt //
+// Admin: Edit Hunt //
 
 #[get("/admin/edit-hunt.xml", rank=1)]
 fn get_edit_hunt(mut cookies: Cookies) -> Xml<String> {
@@ -170,6 +170,21 @@ fn get_view_team_email_list(mut cookies: Cookies) -> Xml<String> {
     let teams = db.get_all_teams(hunt.id);
     render_xml("pages/admin/view-team-email-list.xml", vec!(&hunt, &teams))
 }
+
+
+// Admin: Edit Waves //
+
+#[get("/admin/edit-waves.xml")]
+fn get_edit_waves(mut cookies: Cookies) -> Xml<String> {
+    let db = Database::new();
+    let hunt = match db.signedin_admin(&mut cookies) {
+        Some(hunt) => hunt,
+        None => panic!("Hunt not found.")
+    };
+    let waves = db.get_waves(hunt.id);
+    render_xml("pages/admin/edit-waves.xml", vec!(&hunt, &waves))
+}
+
 
 
 
@@ -320,6 +335,7 @@ pub fn start() {
         get_admin_signin, post_admin_signin,
         get_admin_signout, post_admin_signout,
         // Admin
-        get_view_teams, get_view_team_email_list
+        get_view_teams, get_view_team_email_list,
+        get_edit_waves
     ]).launch();
 }

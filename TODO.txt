@@ -11,10 +11,10 @@ Basics:
       [x] Overview page (redirect from /)
       [x] Favicon
   [ ] Puzzler pages
-      [ ] Login/logout
+      [L] Login/logout
           [x] Sign In
           [x] Sign Out
-          [ ] signin redirect
+          [L] signin redirect
       [x] Team
           [x] Register New Team
           [x] View Your Team
@@ -28,14 +28,13 @@ Basics:
           [ ] Team Leaderboard
           [ ] Puzzle Leaderboard
   [ ] Admin pages
-      [ ] Login/logout
+      [L] Login/logout
           [x] Sign In
           [x] Sign Out
-          [ ] signin redirect
-      [ ] Hunt
-      [ ] Edit hunt
+          [L] signin redirect
+      [L] Edit hunt
           [x] Edit hunt page
-          [ ] Add booleans, once Mustache is less broken
+          [L] Add booleans, once Mustache is less broken
           [L] Validate that hunt key is a-zA-Z-
       [ ] Waves
       [ ] Puzzles (w/ upload)
@@ -44,6 +43,8 @@ Basics:
           [x] Plaintext email list
       [ ] View Hunt normally
   [ ] Error handling
+      [ ] Serve puzzler/error.xml
+      [ ] Serve admin/error.xml
 
 Testing:
   [ ] Timezones

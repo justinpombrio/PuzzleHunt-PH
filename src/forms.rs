@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use rocket::request::{FromForm, FormItems};
 
 
@@ -178,6 +179,78 @@ pub struct UpdateTeamForm {
     pub name: String,
     pub members: Vec<TeamMember>
 }
+
+trait FromExpandableForm {
+    type Child;
+    fn empty() -> Self;
+    fn parts(&mut self) -> HashMap<&str, &mut String>;
+    fn empty_child() -> Self::Child;
+    fn child_parts(&mut Self::Child) -> HashMap<&str, &mut String>;
+}
+
+impl FromExpandableForm for UpdateTeamForm {
+    type Child = TeamMember;
+    
+    fn empty() -> UpdateTeamForm {
+        UpdateTeamForm{
+            name: "".to_string(),
+            members: vec!()
+        }
+    }
+
+    fn parts(&mut self) -> HashMap<&str, &mut String> {
+        let mut map = HashMap::new();
+        map.insert("name", &mut self.name);
+        map
+    }
+
+    fn empty_child() -> TeamMember {
+        TeamMember {
+            name: "".to_string(),
+            email: "".to_string()
+        }
+    }
+
+    fn child_parts(member: &mut TeamMember) -> HashMap<&str, &mut String> {
+        let mut map = HashMap::new();
+        map.insert("name", &mut member.name);
+        map.insert("email", &mut member.email);
+        map
+    }
+}
+
+impl<'f> FromForm<'f> for F where F: FromExpandableForm {
+    type Error = String;
+    fn from_form(iter: &mut FormItems<'f>, strict: bool) -> Result<F, String> {
+        if !strict { return Err("Not strict".to_string()); }
+        let mut form = F::empty();
+        let parts = form.parts();
+        
+        let mut first = true;
+        let mut child = F::empty_child();
+        let child_parts = F::child_parts(child);
+        for (key, value) in iter {
+            match parts.get(key.as_str()) {
+                None => match child_parts.get(key
+            }
+            match key.as_str() {
+                "name"            => form.name = value.to_string(),
+                "member_name"     => member_name = value,
+                "member_email"    => {
+                    let member = TeamMember{
+                        name: member_name.to_string(),
+                        email: value.to_string()
+                    };
+                    // The first member is fake (b.c. expandable form)
+                    if first { first = false; } else { form.members.push(member); }
+                },
+                key => return Err(format!("Unrecognized key: {}", key))
+            }
+        }
+        Ok(form)
+    }
+}
+
 
 impl UpdateTeamForm {
     fn empty() -> UpdateTeamForm {
