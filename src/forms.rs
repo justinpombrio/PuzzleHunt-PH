@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use rocket::request::{FromForm, FormItems};
+use crate::expandable_form::*;
 
 
 // Create Hunt //
@@ -31,7 +32,7 @@ impl<'f> FromForm<'f> for CreateHuntForm {
         if !strict { return Err("Not strict".to_string()); }
         let mut form = CreateHuntForm::empty();
         
-        for (key, value) in iter {
+        for (key, value) in iter.map(|f| (f.key, f.value)) {
             match key.as_str() {
                 "key"             => form.key = value.to_string(),
                 "name"            => form.name = value.to_string(),
@@ -75,7 +76,7 @@ impl<'f> FromForm<'f> for EditHuntForm {
         if !strict { return Err("Not Strict".to_string()); }
         let mut form = EditHuntForm::empty();
         
-        for (key, value) in iter {
+        for (key, value) in iter.map(|f| (f.key, f.value)) {
             let value = value.url_decode()
                 .expect(&format!("Failed to decode value: {:?}", value))
                 .to_string();
@@ -107,9 +108,11 @@ pub struct AdminSignInForm {
 
 
 // Register //
+
+pub type RegisterForm = ExpandableFormToForm<RegisterFormRaw>;
     
 #[derive(Debug)]
-pub struct RegisterForm {
+pub struct RegisterFormRaw {
     pub name: String,
     pub password: String,
     pub password_verify: String,
@@ -122,45 +125,34 @@ pub struct TeamMember {
     pub email: String
 }
 
-impl RegisterForm {
-    fn empty() -> RegisterForm {
-        RegisterForm{
-            name: "".to_string(),
-            password: "".to_string(),
-            password_verify: "".to_string(),
-            members: vec!()
+impl FromExpandableForm for RegisterFormRaw {
+    type Member = TeamMember;
+
+    fn parts() -> Vec<&'static str> {
+        vec!("name", "password", "password_verify")
+    }
+
+    fn member_parts() -> Vec<&'static str> {
+        vec!("member_name", "member_email")
+    }
+
+    fn new_member(map: &HashMap<&str, &str>) -> TeamMember {
+        TeamMember {
+            name: map["member_name"].to_string(),
+            email: map["member_email"].to_string()
+        }
+    }
+
+    fn new(map: &HashMap<&str, &str>, members: Vec<TeamMember>) -> RegisterFormRaw {
+        RegisterFormRaw {
+            name: map["name"].to_string(),
+            password: map["password"].to_string(),
+            password_verify: map["password"].to_string(),
+            members: members
         }
     }
 }
 
-impl<'f> FromForm<'f> for RegisterForm {
-    type Error = String;
-    fn from_form(iter: &mut FormItems<'f>, strict: bool) -> Result<RegisterForm, String> {
-        if !strict { return Err("Not strict".to_string()); }
-        let mut form = RegisterForm::empty();
-        
-        let mut member_name = "";
-        let mut first = true;
-        for (key, value) in iter {
-            match key.as_str() {
-                "name"            => form.name = value.to_string(),
-                "password"        => form.password = value.to_string(),
-                "password_verify" => form.password_verify = value.to_string(),
-                "member_name"     => member_name = value,
-                "member_email"    => {
-                    let member = TeamMember{
-                        name: member_name.to_string(),
-                        email: value.to_string()
-                    };
-                    // The first element is fake. Would be better to remove this on the frontend.
-                    if first { first = false; } else { form.members.push(member); }
-                },
-                key => return Err(format!("Unrecognized key: {}", key))
-            }
-        }
-        Ok(form)
-    }
-}
 
 
 // Sign in //
@@ -174,116 +166,37 @@ pub struct SignInForm {
 
 // Update Team //
 
+pub type UpdateTeamForm = ExpandableFormToForm<UpdateTeamFormRaw>;
+
 #[derive(Debug)]
-pub struct UpdateTeamForm {
+pub struct UpdateTeamFormRaw {
     pub name: String,
     pub members: Vec<TeamMember>
 }
 
-trait FromExpandableForm {
-    type Child;
-    fn empty() -> Self;
-    fn parts(&mut self) -> HashMap<&str, &mut String>;
-    fn empty_child() -> Self::Child;
-    fn child_parts(&mut Self::Child) -> HashMap<&str, &mut String>;
-}
 
-impl FromExpandableForm for UpdateTeamForm {
-    type Child = TeamMember;
-    
-    fn empty() -> UpdateTeamForm {
-        UpdateTeamForm{
-            name: "".to_string(),
-            members: vec!()
-        }
+impl FromExpandableForm for UpdateTeamFormRaw {
+    type Member = TeamMember;
+
+    fn parts() -> Vec<&'static str> {
+        vec!("name")
     }
 
-    fn parts(&mut self) -> HashMap<&str, &mut String> {
-        let mut map = HashMap::new();
-        map.insert("name", &mut self.name);
-        map
+    fn member_parts() -> Vec<&'static str> {
+        vec!("member_name", "member_email")
     }
 
-    fn empty_child() -> TeamMember {
+    fn new_member(map: &HashMap<&str, &str>) -> TeamMember {
         TeamMember {
-            name: "".to_string(),
-            email: "".to_string()
+            name: map["member_name"].to_string(),
+            email: map["member_email"].to_string()
         }
     }
 
-    fn child_parts(member: &mut TeamMember) -> HashMap<&str, &mut String> {
-        let mut map = HashMap::new();
-        map.insert("name", &mut member.name);
-        map.insert("email", &mut member.email);
-        map
-    }
-}
-
-impl<'f> FromForm<'f> for F where F: FromExpandableForm {
-    type Error = String;
-    fn from_form(iter: &mut FormItems<'f>, strict: bool) -> Result<F, String> {
-        if !strict { return Err("Not strict".to_string()); }
-        let mut form = F::empty();
-        let parts = form.parts();
-        
-        let mut first = true;
-        let mut child = F::empty_child();
-        let child_parts = F::child_parts(child);
-        for (key, value) in iter {
-            match parts.get(key.as_str()) {
-                None => match child_parts.get(key
-            }
-            match key.as_str() {
-                "name"            => form.name = value.to_string(),
-                "member_name"     => member_name = value,
-                "member_email"    => {
-                    let member = TeamMember{
-                        name: member_name.to_string(),
-                        email: value.to_string()
-                    };
-                    // The first member is fake (b.c. expandable form)
-                    if first { first = false; } else { form.members.push(member); }
-                },
-                key => return Err(format!("Unrecognized key: {}", key))
-            }
+    fn new(map: &HashMap<&str, &str>, members: Vec<TeamMember>) -> UpdateTeamFormRaw {
+        UpdateTeamFormRaw {
+            name: map["name"].to_string(),
+            members: members
         }
-        Ok(form)
-    }
-}
-
-
-impl UpdateTeamForm {
-    fn empty() -> UpdateTeamForm {
-        UpdateTeamForm{
-            name: "".to_string(),
-            members: vec!()
-        }
-    }
-}
-
-impl<'f> FromForm<'f> for UpdateTeamForm {
-    type Error = String;
-    fn from_form(iter: &mut FormItems<'f>, strict: bool) -> Result<UpdateTeamForm, String> {
-        if !strict { return Err("Not strict".to_string()); }
-        let mut form = UpdateTeamForm::empty();
-        
-        let mut member_name = "";
-        let mut first = true;
-        for (key, value) in iter {
-            match key.as_str() {
-                "name"            => form.name = value.to_string(),
-                "member_name"     => member_name = value,
-                "member_email"    => {
-                    let member = TeamMember{
-                        name: member_name.to_string(),
-                        email: value.to_string()
-                    };
-                    // The first member is fake (b.c. expandable form)
-                    if first { first = false; } else { form.members.push(member); }
-                },
-                key => return Err(format!("Unrecognized key: {}", key))
-            }
-        }
-        Ok(form)
     }
 }

@@ -18,15 +18,12 @@
       <input type="number" id="initGuesses" value="{{hunt.initGuesses}}">
         Initial Guesses
       </input>
-      <!-- TODO: once mustache isn't broken, use it for booleans -->
-      <!--
       <input type="boolean" id="closed" value="true">
         Closed
       </input>
       <input type="boolean" id="visible" value="false">
         Visible
       </input>
-        -->
     </section>
     <submit-button>
       Update

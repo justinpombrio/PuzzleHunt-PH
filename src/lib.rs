@@ -1,9 +1,7 @@
-#![feature(custom_derive)]
+#![feature(proc_macro_hygiene, decl_macro)]
 #![feature(type_ascription)]
-#![feature(plugin)]
-#![plugin(rocket_codegen)]
 
-extern crate rocket;
+#[macro_use] extern crate rocket;
 extern crate mustache;
 extern crate chrono;
 extern crate postgres;
@@ -14,4 +12,5 @@ mod server;
 mod data;
 pub mod database;
 mod forms;
+mod expandable_form;
 pub use server::start;

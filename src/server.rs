@@ -192,7 +192,7 @@ fn get_edit_waves(mut cookies: Cookies) -> Xml<String> {
 
 #[get("/<hunt_key>", rank=1)]
 fn get_hunt_base(hunt_key: String) -> Redirect {
-    Redirect::to(&format!("/{}/index.xml", hunt_key))
+    Redirect::to(format!("/{}/index.xml", hunt_key))
 }
 
 #[get("/<hunt_key>/index.xml", rank=1)]
