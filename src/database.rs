@@ -87,7 +87,7 @@ impl Database {
         Site::from_row(rows.get(0))
     }
     
-    pub fn create_hunt(&self, form: &CreateHuntForm) -> Result<Hunt, String> {
+    pub fn create_hunt(&self, form: &CreateHunt) -> Result<Hunt, String> {
         // Validate
         if form.password != form.password_verify {
             return Err("Passwords do not match".to_string())
@@ -108,7 +108,7 @@ impl Database {
 
     //// Admin ////
 
-    pub fn edit_hunt(&self, hunt_key: &str, form: &EditHuntForm) -> Result<Hunt, String> {
+    pub fn edit_hunt(&self, hunt_key: &str, form: &EditHunt) -> Result<Hunt, String> {
         // Update
         self.execute(
             "update Hunt set name = $2, teamSize = $3, initGuesses = $4, closed = $5, visible = $6 where key = $1",
@@ -277,8 +277,7 @@ impl Database {
         }
     }
 
-    pub fn register(&self, hunt_id: i32, form: &RegisterForm) -> Result<Team, String> {
-        let form = &form.0;
+    pub fn register(&self, hunt_id: i32, form: &Register) -> Result<Team, String> {
         // Validate
         if form.password != form.password_verify {
             return Err("Passwords do not match".to_string())
@@ -312,8 +311,7 @@ impl Database {
         }
     }
 
-    pub fn update_team(&self, hunt_id: i32, form: &UpdateTeamForm) -> Result<Team, String> {
-        let form = &form.0;
+    pub fn update_team(&self, hunt_id: i32, form: &UpdateTeam) -> Result<Team, String> {
         // Validate
         let team = match self.get_team(hunt_id, &form.name) {
             None => return Err("Team does not exist, or password does not match.".to_string()),

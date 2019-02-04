@@ -1,48 +1,33 @@
 use std::collections::HashMap;
-use rocket::request::{FromForm, FormItems};
-use crate::expandable_form::*;
+use rocket::request::Form;
+use crate::expandable_form::{RegularForm, ExpandableForm, RegularFormToForm, ExpandableFormToForm};
 
 
 // Create Hunt //
 
 #[derive(Debug)]
-pub struct CreateHuntForm {
+pub struct CreateHunt {
     pub key: String,
     pub name: String,
     pub password: String,
     pub password_verify: String,
     pub secret: String
 }
+pub type CreateHuntForm = Form<RegularFormToForm<CreateHunt>>;
 
-impl CreateHuntForm {
-    fn empty() -> CreateHuntForm {
-        CreateHuntForm{
-            key: "".to_string(),
-            name: "".to_string(),
-            password: "".to_string(),
-            password_verify: "".to_string(),
-            secret: "".to_string()
-        }
+impl RegularForm for CreateHunt {
+    fn parts() -> Vec<&'static str> {
+        vec!("key", "name", "password", "passwordVerify", "secret")
     }
-}
 
-impl<'f> FromForm<'f> for CreateHuntForm {
-    type Error = String;
-    fn from_form(iter: &mut FormItems<'f>, strict: bool) -> Result<CreateHuntForm, String> {
-        if !strict { return Err("Not strict".to_string()); }
-        let mut form = CreateHuntForm::empty();
-        
-        for (key, value) in iter.map(|f| (f.key, f.value)) {
-            match key.as_str() {
-                "key"             => form.key = value.to_string(),
-                "name"            => form.name = value.to_string(),
-                "password"        => form.password = value.to_string(),
-                "password_verify" => form.password_verify = value.to_string(),
-                "secret"          => form.secret = value.to_string(),
-                key => return Err(format!("Unrecognized key: {}", key))
-            }
+    fn new(map: &HashMap<&str, &str>) -> CreateHunt {
+        CreateHunt {
+            key:             map["key"].to_string(),
+            name:            map["name"].to_string(),
+            password:        map["password"].to_string(),
+            password_verify: map["passwordVerify"].to_string(),
+            secret:          map["secret"].to_string()
         }
-        Ok(form)
     }
 }
 
@@ -50,50 +35,28 @@ impl<'f> FromForm<'f> for CreateHuntForm {
 // Edit Hunt //
 
 #[derive(Debug)]
-pub struct EditHuntForm {
+pub struct EditHunt {
     pub name: String,
     pub team_size: i32,
     pub init_guesses: i32,
     pub closed: bool,
     pub visible: bool
 }
+pub type EditHuntForm = Form<RegularFormToForm<EditHunt>>;
 
-impl EditHuntForm {
-    fn empty() -> EditHuntForm {
-        EditHuntForm{
-            name: "".to_string(),
-            team_size: 0,
-            init_guesses: 0,
-            closed: true,
-            visible: false
-        }
+impl RegularForm for EditHunt {
+    fn parts() -> Vec<&'static str> {
+        vec!("name", "teamSize", "initGuesses", "closed", "visible")
     }
-}
 
-impl<'f> FromForm<'f> for EditHuntForm {
-    type Error = String;
-    fn from_form(iter: &mut FormItems<'f>, strict: bool) -> Result<EditHuntForm, String> {
-        if !strict { return Err("Not Strict".to_string()); }
-        let mut form = EditHuntForm::empty();
-        
-        for (key, value) in iter.map(|f| (f.key, f.value)) {
-            let value = value.url_decode()
-                .expect(&format!("Failed to decode value: {:?}", value))
-                .to_string();
-            match key.as_str() {
-                "name"         => form.name = value,
-                "teamSize"     => form.team_size = value.parse()
-                    .expect("Failed to parse 'teamSize'"),
-                "initGuesses"  => form.init_guesses = value.parse()
-                    .expect("Failed to parse 'initGuesses'"),
-                "closed"       => form.closed = value.parse()
-                    .expect("Failed to parse 'closed'"),
-                "visible"      => form.visible = value.parse()
-                    .expect("Failed to parse 'visible'"),
-                key => return Err(format!("Unrecognized key: {}", key))
-            }
+    fn new(map: &HashMap<&str, &str>) -> EditHunt {
+        EditHunt {
+            name:         map["name"].to_string(),
+            team_size:    map["teamSize"].parse().expect("Failed to parse 'teamSize'"),
+            init_guesses: map["initGuesses"].parse().expect("Failed to parse 'initGuesses'"),
+            closed:       map["closed"].parse().expect("Failed to parse 'closed'"),
+            visible:      map["visible"].parse().expect("Failed to parse 'visible'"),
         }
-        Ok(form)
     }
 }
 
@@ -101,23 +64,23 @@ impl<'f> FromForm<'f> for EditHuntForm {
 // Admin Signin //
 
 #[derive(FromForm, Debug)]
-pub struct AdminSignInForm {
+pub struct AdminSignIn {
     pub hunt_key: String,
     pub password: String
 }
+pub type AdminSignInForm = Form<AdminSignIn>;
 
 
 // Register //
 
-pub type RegisterForm = ExpandableFormToForm<RegisterFormRaw>;
-    
 #[derive(Debug)]
-pub struct RegisterFormRaw {
+pub struct Register {
     pub name: String,
     pub password: String,
     pub password_verify: String,
     pub members: Vec<TeamMember>
 }
+pub type RegisterForm = Form<ExpandableFormToForm<Register>>;
 
 #[derive(Debug)]
 pub struct TeamMember {
@@ -125,7 +88,7 @@ pub struct TeamMember {
     pub email: String
 }
 
-impl FromExpandableForm for RegisterFormRaw {
+impl ExpandableForm for Register {
     type Member = TeamMember;
 
     fn parts() -> Vec<&'static str> {
@@ -143,8 +106,8 @@ impl FromExpandableForm for RegisterFormRaw {
         }
     }
 
-    fn new(map: &HashMap<&str, &str>, members: Vec<TeamMember>) -> RegisterFormRaw {
-        RegisterFormRaw {
+    fn new(map: &HashMap<&str, &str>, members: Vec<TeamMember>) -> Register {
+        Register {
             name: map["name"].to_string(),
             password: map["password"].to_string(),
             password_verify: map["password"].to_string(),
@@ -158,24 +121,23 @@ impl FromExpandableForm for RegisterFormRaw {
 // Sign in //
 
 #[derive(FromForm, Debug)]
-pub struct SignInForm {
+pub struct SignIn {
     pub name: String,
     pub password: String
 }
+pub type SignInForm = Form<SignIn>;
 
 
 // Update Team //
 
-pub type UpdateTeamForm = ExpandableFormToForm<UpdateTeamFormRaw>;
-
 #[derive(Debug)]
-pub struct UpdateTeamFormRaw {
+pub struct UpdateTeam {
     pub name: String,
     pub members: Vec<TeamMember>
 }
+pub type UpdateTeamForm = Form<ExpandableFormToForm<UpdateTeam>>;
 
-
-impl FromExpandableForm for UpdateTeamFormRaw {
+impl ExpandableForm for UpdateTeam {
     type Member = TeamMember;
 
     fn parts() -> Vec<&'static str> {
@@ -193,8 +155,8 @@ impl FromExpandableForm for UpdateTeamFormRaw {
         }
     }
 
-    fn new(map: &HashMap<&str, &str>, members: Vec<TeamMember>) -> UpdateTeamFormRaw {
-        UpdateTeamFormRaw {
+    fn new(map: &HashMap<&str, &str>, members: Vec<TeamMember>) -> UpdateTeam {
+        UpdateTeam {
             name: map["name"].to_string(),
             members: members
         }

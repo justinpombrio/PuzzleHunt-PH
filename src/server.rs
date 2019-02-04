@@ -4,7 +4,6 @@ use std::fs::File;
 use rocket;
 use rocket::response::content::Xml;
 use rocket::response::Redirect;
-use rocket::request::Form;
 use rocket::http::Cookies;
 
 use util::*;
@@ -64,9 +63,9 @@ fn get_create_hunt() -> Xml<String> {
 }
 
 #[post("/create-hunt.xml", data="<form>")]
-fn post_create_hunt(mut cookies: Cookies, form: Form<CreateHuntForm>) -> Redirect {
+fn post_create_hunt(mut cookies: Cookies, form: CreateHuntForm) -> Redirect {
     let db = Database::new();
-    let form = form.into_inner();
+    let form = form.into_inner().0;
     match db.create_hunt(&form) {
         Ok(_) => (),
         Err(msg) => panic!("{}", msg)
@@ -87,7 +86,7 @@ fn get_admin_signin() -> Xml<String> {
 }
 
 #[post("/admin/signin.xml", data="<form>")]
-fn post_admin_signin(mut cookies: Cookies, form: Form<AdminSignInForm>) -> Redirect {
+fn post_admin_signin(mut cookies: Cookies, form: AdminSignInForm) -> Redirect {
     let db = Database::new();
     let form = form.into_inner();
     if db.signin_admin(&mut cookies, &form.hunt_key, &form.password) {
@@ -132,13 +131,13 @@ fn get_edit_hunt(mut cookies: Cookies) -> Xml<String> {
 }
 
 #[post("/admin/edit-hunt.xml", data="<form>")]
-fn post_edit_hunt(mut cookies: Cookies, form: Form<EditHuntForm>) -> Xml<String> {
+fn post_edit_hunt(mut cookies: Cookies, form: EditHuntForm) -> Xml<String> {
     let db = Database::new();
     let hunt = match db.signedin_admin(&mut cookies) {
         Some(hunt) => hunt,
         None => panic!("Hunt not found.")
     };
-    let form = form.into_inner();
+    let form = form.into_inner().0;
     let hunt = match db.edit_hunt(&hunt.key, &form) {
         Ok(hunt) => hunt,
         Err(msg) => panic!("{}", msg)
@@ -237,7 +236,7 @@ fn get_signin(hunt_key: String) -> Xml<String> {
 }
 
 #[post("/<hunt_key>/signin.xml", rank=1, data="<form>")]
-fn post_signin(hunt_key: String, mut cookies: Cookies, form: Form<SignInForm>) -> Redirect {
+fn post_signin(hunt_key: String, mut cookies: Cookies, form: SignInForm) -> Redirect {
     let db = Database::new();
     let hunt = db.get_hunt(&hunt_key);
     let form = form.into_inner();
@@ -256,11 +255,11 @@ fn get_register(hunt_key: String) -> Xml<String> {
 }
 
 #[post("/<hunt_key>/register.xml", data="<form>")]
-fn post_register(hunt_key: String, mut cookies: Cookies, form: Form<RegisterForm>) -> Redirect {
+fn post_register(hunt_key: String, mut cookies: Cookies, form: RegisterForm) -> Redirect {
     let db = Database::new();
     let hunt = db.get_hunt(&hunt_key);
     let form = form.into_inner();
-    let team = match db.register(hunt.id, &form) {
+    let team = match db.register(hunt.id, &form.0) {
         Ok(team) => team,
         Err(msg) => panic!("{}", msg)
     };
@@ -298,11 +297,11 @@ fn get_your_team(hunt_key: String, mut cookies: Cookies) -> Xml<String> {
 }
 
 #[post("/<hunt_key>/your-team.xml", data="<form>")]
-fn post_your_team(hunt_key: String, form: Form<UpdateTeamForm>) -> Xml<String> {
+fn post_your_team(hunt_key: String, form: UpdateTeamForm) -> Xml<String> {
     let db = Database::new();
     let hunt = db.get_hunt(&hunt_key);
     let form = form.into_inner();
-    let team = match db.update_team(hunt.id, &form) {
+    let team = match db.update_team(hunt.id, &form.0) {
         Ok(team) => team,
         Err(msg) => panic!("{}", msg)
     };
