@@ -90,7 +90,7 @@
     <xsl:if test="contains(@type, 'fixed')">
       <td><xsl:value-of select="normalize-space(.)"/>:</td>
       <td><input type="text"
-      disabled="true"
+      readonly="true"
       name="{@id}" value="{@value}"
       class="form-cell text"/></td>
     </xsl:if>
@@ -168,7 +168,7 @@
     <xsl:if test="contains(@type, 'fixed')">
       <input type="text"
              name="{@id}" value="{@value}"
-             disabled="true"
+             readonly="true"
              class="multi-form-cell fixed-text"/>
     </xsl:if>
     <xsl:if test="contains(@type, 'datetime')">

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use rocket::request::Form;
 use crate::expandable_form::{RegularForm, ExpandableForm, RegularFormToForm, ExpandableFormToForm};
+use crate::data::Wave;
 
 
 // Create Hunt //
@@ -20,7 +21,7 @@ impl RegularForm for CreateHunt {
         vec!("key", "name", "password", "passwordVerify", "secret")
     }
 
-    fn new(map: &HashMap<&str, &str>) -> CreateHunt {
+    fn new(map: &HashMap<String, String>) -> CreateHunt {
         CreateHunt {
             key:             map["key"].to_string(),
             name:            map["name"].to_string(),
@@ -49,7 +50,7 @@ impl RegularForm for EditHunt {
         vec!("name", "teamSize", "initGuesses", "closed", "visible")
     }
 
-    fn new(map: &HashMap<&str, &str>) -> EditHunt {
+    fn new(map: &HashMap<String, String>) -> EditHunt {
         EditHunt {
             name:         map["name"].to_string(),
             team_size:    map["teamSize"].parse().expect("Failed to parse 'teamSize'"),
@@ -69,6 +70,40 @@ pub struct AdminSignIn {
     pub password: String
 }
 pub type AdminSignInForm = Form<AdminSignIn>;
+
+pub struct Waves {
+    pub waves: Vec<Wave>
+}
+pub type WavesForm = Form<ExpandableFormToForm<Waves>>;
+
+impl ExpandableForm for Waves {
+    type Member = Wave;
+
+    fn parts() -> Vec<&'static str> {
+        vec!()
+    }
+
+    fn member_parts() -> Vec<&'static str> {
+        vec!("name", "hunt", "time", "guesses", "released")
+    }
+
+    fn new_member(map: &HashMap<String, String>) -> Wave {
+        Wave {
+            name: map["name"].to_string(),
+            hunt: 0,
+            time: map["time"].parse().expect("Could not parse 'datetime'"),
+            guesses: map["guesses"].parse().expect("Could not parse 'guesses'"),
+            released: map["released"].parse().expect("Could not parse 'released'"),
+            puzzles: vec!()
+        }
+    }
+
+    fn new(_: &HashMap<String, String>, waves: Vec<Wave>) -> Waves {
+        Waves {
+            waves: waves
+        }
+    }
+}
 
 
 // Register //
@@ -99,14 +134,14 @@ impl ExpandableForm for Register {
         vec!("member_name", "member_email")
     }
 
-    fn new_member(map: &HashMap<&str, &str>) -> TeamMember {
+    fn new_member(map: &HashMap<String, String>) -> TeamMember {
         TeamMember {
             name: map["member_name"].to_string(),
             email: map["member_email"].to_string()
         }
     }
 
-    fn new(map: &HashMap<&str, &str>, members: Vec<TeamMember>) -> Register {
+    fn new(map: &HashMap<String, String>, members: Vec<TeamMember>) -> Register {
         Register {
             name: map["name"].to_string(),
             password: map["password"].to_string(),
@@ -148,14 +183,14 @@ impl ExpandableForm for UpdateTeam {
         vec!("member_name", "member_email")
     }
 
-    fn new_member(map: &HashMap<&str, &str>) -> TeamMember {
+    fn new_member(map: &HashMap<String, String>) -> TeamMember {
         TeamMember {
             name: map["member_name"].to_string(),
             email: map["member_email"].to_string()
         }
     }
 
-    fn new(map: &HashMap<&str, &str>, members: Vec<TeamMember>) -> UpdateTeam {
+    fn new(map: &HashMap<String, String>, members: Vec<TeamMember>) -> UpdateTeam {
         UpdateTeam {
             name: map["name"].to_string(),
             members: members

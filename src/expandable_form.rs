@@ -1,17 +1,17 @@
 use std::collections::HashMap;
-use rocket::request::{FromForm, FormItems};
+use rocket::request::{FromForm, FormItems, FormItem};
 
 pub trait ExpandableForm : Sized {
     type Member;
     fn parts() -> Vec<&'static str>;
     fn member_parts() -> Vec<&'static str>;
-    fn new_member(map: &HashMap<&str, &str>) -> Self::Member;
-    fn new(map: &HashMap<&str, &str>, members: Vec<Self::Member>) -> Self;
+    fn new_member(map: &HashMap<String, String>) -> Self::Member;
+    fn new(map: &HashMap<String, String>, members: Vec<Self::Member>) -> Self;
 }
 
 pub trait RegularForm : Sized {
     fn parts() -> Vec<&'static str>;
-    fn new(map: &HashMap<&str, &str>) -> Self;
+    fn new(map: &HashMap<String, String>) -> Self;
 }
 
 pub struct RegularFormToForm<F: RegularForm>(pub F);
@@ -28,8 +28,8 @@ impl<'f, F: RegularForm> FromForm<'f> for RegularFormToForm<F> {
         let parts = F::parts();
 
         let mut map = HashMap::new();
-        for (key, value) in iter.map(|f| (f.key.as_str(), f.value.as_str())) {
-            if parts.contains(&key) {
+        for (key, value) in iter.map(key_and_value) {
+            if parts.contains(&key.as_str()) {
                 map.insert(key, value);
             } else {
                 return Err(format!("Unrecognized key: {}", key))
@@ -55,12 +55,13 @@ impl<'f, F: ExpandableForm> FromForm<'f> for ExpandableFormToForm<F> {
         let mut map = HashMap::new();
         let mut members = vec!();
         let mut member_map = HashMap::new();
-        for (key, value) in iter.map(|f| (f.key.as_str(), f.value.as_str())) {
-            if parts.contains(&key) {
+        for (key, value) in iter.map(key_and_value) {
+            if parts.contains(&key.as_str()) {
                 map.insert(key, value);
-            } else if member_parts.contains(&key) {
+            } else if member_parts.contains(&key.as_str()) {
+                let is_last = &key == last_member_part;
                 member_map.insert(key, value);
-                if &key == last_member_part {
+                if is_last {
                     if first {
                         // The first member is fake (b.c. expandable form)
                         first = false;
@@ -75,4 +76,9 @@ impl<'f, F: ExpandableForm> FromForm<'f> for ExpandableFormToForm<F> {
         }
         Ok(ExpandableFormToForm(F::new(&map, members)))
     }
+}
+
+fn key_and_value(f: FormItem) -> (String, String) {
+    (f.key.url_decode().expect("Could not decode form key"),
+     f.value.url_decode().expect("Could not decode form value"))
 }

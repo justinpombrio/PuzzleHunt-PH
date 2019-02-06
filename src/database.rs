@@ -1,3 +1,4 @@
+use chrono::Utc;
 use postgres::{Connection, TlsMode};
 use postgres::types::ToSql;
 use postgres::rows::{Rows};
@@ -19,15 +20,16 @@ impl Database {
     }
 
     fn execute(&self, query: &str, params: &[&ToSql]) {
+        println!("Execute: {}\nwith: {:?}", query, params);
         match self.connection.execute(query, params) {
             Err(err) => panic!(
-                format!("Failed to execute query: {}", err)),
+                format!("Failed to execute query\n`{}`\n{}", query, err)),
             Ok(_) => ()
         }
     }
 
     fn query(&self, query: &str, params: &[&ToSql]) -> Rows {
-        println!("Query: {}", query);
+        println!("Query: {}\nwith: {:?}", query, params);
         match self.connection.query(query, params) {
             Err(err) => panic!(
                 format!("Failed to execute query: {}", err)),
@@ -158,6 +160,16 @@ impl Database {
             waves.push(wave);
         }
         waves
+    }
+
+    pub fn set_waves(&self, hunt_id: i32, waves: &Vec<Wave>) {
+        self.execute("delete from Wave where hunt = $1", &[&hunt_id]);
+        for wave in waves {
+            let utc = wave.time.with_timezone(&Utc);
+            self.execute("insert into Wave values ($1, $2, $3, $4, $5)",
+                         &[&wave.name, &hunt_id, &utc,
+                           &wave.guesses, &wave.released]);
+        }
     }
 
     pub fn get_hunts(&self) -> Vec<Hunt> {

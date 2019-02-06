@@ -36,7 +36,7 @@ Basics:
           [x] Edit hunt page
           [L] Add booleans, once Mustache is less broken
           [L] Validate that hunt key is a-zA-Z-
-      [ ] Waves
+      [x] Waves
       [ ] Puzzles (w/ upload)
       [x] Teams
           [x] View all teams

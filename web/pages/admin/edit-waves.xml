@@ -4,6 +4,22 @@
 <page page-type="admin">
   <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
   <title>Puzzle Waves</title>
+  <prose>
+    <p>
+      Times are, for the moment, written using <a
+      href="https://tools.ietf.org/html/rfc3339">RFC 3339</a>. Thus the time:
+    </p>
+    <blockquote>
+      January 2, 2000 at 1:23 am and 45 seconds, EST
+    </blockquote>
+    <p>
+      is written as follows (spaces optional):
+    </p>
+    <pre><code>2000-01-02 T 01:23:45 -05:00</code></pre>
+    <p>
+      Sorry.
+    </p>
+  </prose>
   <form>
     <expandable-section item="Wave">
       <input type="text" id="name" name="Wave Name"/>
@@ -18,9 +34,6 @@
         <value>{{#released}}true{{/released}}{{^released}}false{{/released}}</value>
       </row>
       {{/waves}}
-<!--      <expandable-section item="PuzzleId">
-        <input type="text" id="id" name="Id"/>
-      </expandable-section> -->
     </expandable-section>
     <submit-button>
       Update

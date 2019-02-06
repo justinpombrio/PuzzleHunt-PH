@@ -1,4 +1,4 @@
-use chrono::{Utc, DateTime};
+use chrono::{Local, Utc, DateTime};
 use mustache::{MapBuilder, VecBuilder, Data};
 use postgres::rows::Row;
 
@@ -50,7 +50,7 @@ fn vec_to_data<C : DBTable>(items: &Vec<C>, builder: VecBuilder) -> VecBuilder {
 
 ////// Site //////
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Site {
     pub owner: String,
     pub secret: String
@@ -94,7 +94,7 @@ values ('me', 'secret');"
 
 ////// Hunts //////
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Hunt {
     pub id: i32,
     pub name: String,
@@ -161,11 +161,11 @@ values ('Best Hunt Ever', 'besthuntever', 4, 100, 'pass', true, true);"
 ////// Waves //////
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Wave {
     pub name: String,
     pub hunt: i32,
-    pub time: DateTime<Utc>,
+    pub time: DateTime<Local>,
     pub guesses: i32,
     pub released: bool,
     pub puzzles: Vec<Puzzle>
@@ -176,10 +176,11 @@ impl DBTable for Wave {
     fn names() -> &'static str { "waves" }
     
     fn from_row(row: Row) -> Wave {
+        let time: DateTime<Utc> = row.get(2);
         Wave{
             name:     row.get(0),
             hunt:     row.get(1),
-            time:     row.get(2),
+            time:     time.with_timezone(&Local),
             guesses:  row.get(3),
             released: row.get(4),
             puzzles:  vec!()
@@ -190,7 +191,7 @@ impl DBTable for Wave {
         builder
             .insert_str("name",      self.name.clone())
             .insert_str("hunt",      format!("{}", self.hunt))
-            .insert_str("time",      format!("{}", self.time))
+            .insert_str("time",      self.time.to_rfc3339())
             .insert_str("guesses",   format!("{}", self.guesses))
             .insert_bool("released", self.released)
             .insert_vec("puzzles",   |b| vec_to_data(&self.puzzles, b))
@@ -220,7 +221,7 @@ values ('Wave One', 1, '2004-10-19 10:23:54', 10, true);"
 
 ////// Puzzles //////
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Puzzle {
     pub name: String,
     pub number: String,
@@ -296,7 +297,7 @@ values ('Puzzle One', '#1', 1, 2, 1, 'answer1', 'Wave One', 'PPP', true),
 
 ////// Hints //////
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Hint {
     pub puzzle: String,
     pub number: i32,
@@ -360,7 +361,7 @@ values ('Puzzle One', 1, 1, 1, 'Wave One', 'HHH', true);"
 
 ////// Teams //////
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Team {
     pub team_id: i32,
     pub hunt: i32,
@@ -419,7 +420,7 @@ values (1, 'pass', 'BestTeamEver', 50);"
 
 ////// Members //////
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Member {
     pub team_id: i32,
     pub hunt: i32,
@@ -471,7 +472,7 @@ values (1, 1, 'BestPersonEver', 'person@email.com');"
 
 ////// Guesses //////
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Guess {
     pub team_id: i32,
     pub hunt: i32,
@@ -527,6 +528,7 @@ values (1, 1, 'Puzzle One', 'answer?', '2004-10-19 10:23:54');"
 
 ////// Solves //////
 
+#[derive(Debug, Clone)]
 pub struct Solve {
     pub team_id: i32,
     pub hunt: i32,
@@ -579,7 +581,7 @@ values (1, 1, 'Puzzle One', '2004-10-19 10:23:54');"
 
 ////// Stats //////
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Stat {
     pub team_id: i32,
     pub hunt: i32,

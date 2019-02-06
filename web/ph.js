@@ -43,7 +43,7 @@ function addRow(id) {
       });
       link.appendChild(box);
       child.appendChild(link);
-    } else if (cell.name === "time") {
+    } else if (cell.name === "datetime") {
       if (data && data.hasOwnProperty(cell.name)) {
         var local_time = new Date(data[cell.name]);
         cell.value = local_time.toLocaleString();
@@ -51,7 +51,7 @@ function addRow(id) {
     } else if (data && data.hasOwnProperty(cell.name)) {
       cell.value = data[cell.name];
     }
-  } */
+  }*/
   var table = get(id + "-table");
   table.appendChild(row);
 }

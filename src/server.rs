@@ -73,12 +73,17 @@ fn post_create_hunt(mut cookies: Cookies, form: CreateHuntForm) -> Redirect {
     if db.signin_admin(&mut cookies, &form.key, &form.password) {
         Redirect::to("/admin/edit-hunt.xml")
     } else {
-        panic!("Failed to sign in.")
+        panic!("Failed to sign in as admin.")
     }
 }
 
 
 // Admin (not signed in) //
+
+#[get("/admin")]
+fn get_admin() -> Redirect {
+    Redirect::to("/admin/signin.xml")
+}
 
 #[get("/admin/signin.xml")]
 fn get_admin_signin() -> Xml<String> {
@@ -92,7 +97,7 @@ fn post_admin_signin(mut cookies: Cookies, form: AdminSignInForm) -> Redirect {
     if db.signin_admin(&mut cookies, &form.hunt_key, &form.password) {
         Redirect::to("edit-hunt.xml")
     } else {
-        panic!("Failed to sign in.")
+        panic!("Failed to sign in as admin.")
     }
 }
 
@@ -184,7 +189,17 @@ fn get_edit_waves(mut cookies: Cookies) -> Xml<String> {
     render_xml("pages/admin/edit-waves.xml", vec!(&hunt, &waves))
 }
 
-
+#[post("/admin/edit-waves.xml", data="<form>")]
+fn post_edit_waves(mut cookies: Cookies, form: WavesForm) -> Xml<String> {
+    let db = Database::new();
+    let hunt = match db.signedin_admin(&mut cookies) {
+        Some(hunt) => hunt,
+        None => panic!("Hunt not found.")
+    };
+    let waves = form.into_inner().0.waves;
+    db.set_waves(hunt.id, &waves);
+    render_xml("pages/admin/edit-waves.xml", vec!(&hunt, &waves))
+}
 
 
 // Hunt //
@@ -258,8 +273,8 @@ fn get_register(hunt_key: String) -> Xml<String> {
 fn post_register(hunt_key: String, mut cookies: Cookies, form: RegisterForm) -> Redirect {
     let db = Database::new();
     let hunt = db.get_hunt(&hunt_key);
-    let form = form.into_inner();
-    let team = match db.register(hunt.id, &form.0) {
+    let form = form.into_inner().0;
+    let team = match db.register(hunt.id, &form) {
         Ok(team) => team,
         Err(msg) => panic!("{}", msg)
     };
@@ -300,8 +315,8 @@ fn get_your_team(hunt_key: String, mut cookies: Cookies) -> Xml<String> {
 fn post_your_team(hunt_key: String, form: UpdateTeamForm) -> Xml<String> {
     let db = Database::new();
     let hunt = db.get_hunt(&hunt_key);
-    let form = form.into_inner();
-    let team = match db.update_team(hunt.id, &form.0) {
+    let form = form.into_inner().0;
+    let team = match db.update_team(hunt.id, &form) {
         Ok(team) => team,
         Err(msg) => panic!("{}", msg)
     };
@@ -331,10 +346,10 @@ pub fn start() {
         // Puzzles
         get_puzzles,
         // Admin Signin
-        get_admin_signin, post_admin_signin,
+        get_admin, get_admin_signin, post_admin_signin,
         get_admin_signout, post_admin_signout,
         // Admin
         get_view_teams, get_view_team_email_list,
-        get_edit_waves
+        get_edit_waves, post_edit_waves
     ]).launch();
 }
