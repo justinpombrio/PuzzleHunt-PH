@@ -4,7 +4,7 @@
 
 
 Basics:
-  [ ] Site pages
+  [x] Site pages
       [x] PuzzleHunt: PH page
       [x] Create-hunt page (w/ gradient)
       [x] Have both site-wide and hunt-specific passwords
@@ -37,7 +37,9 @@ Basics:
           [L] Add booleans, once Mustache is less broken
           [L] Validate that hunt key is a-zA-Z-
       [x] Waves
-      [ ] Puzzles (w/ upload)
+      [ ] Puzzles
+          [x] Edit puzzles
+          [ ] Upload puzzles
       [x] Teams
           [x] View all teams
           [x] Plaintext email list

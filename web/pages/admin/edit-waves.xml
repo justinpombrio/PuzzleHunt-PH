@@ -25,13 +25,11 @@
       <input type="text" id="name" name="Wave Name"/>
       <input type="datetime" id="time" name="Release Time"/>
       <input type="number" id="guesses" name="+Guesses"/>
-      <input type="fixed" id="released" name="Released?"/>
       {{#waves}}
       <row>
         <value>{{name}}</value>
         <value>{{time}}</value>
         <value>{{guesses}}</value>
-        <value>{{#released}}true{{/released}}{{^released}}false{{/released}}</value>
       </row>
       {{/waves}}
     </expandable-section>

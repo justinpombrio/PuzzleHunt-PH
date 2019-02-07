@@ -149,26 +149,31 @@ impl Database {
     
     //// Puzzles ////
 
+    pub fn get_wave_infos(&self, hunt_id: i32) -> Vec<WaveInfo> {
+        self.get_waves(hunt_id).into_iter().map(|wave| {
+            WaveInfo {
+                puzzles: self.get_puzzle_infos(hunt_id, &wave.name),
+                name: wave.name,
+                time: wave.time,
+                guesses: wave.guesses,
+                released: false // TODO: calculate
+            }
+        }).collect()
+    }
+
     pub fn get_waves(&self, hunt_id: i32) -> Vec<Wave> {
-        let mut waves: Vec<Wave> = vec!();
         let rows = self.query(
             "select * from Wave where hunt = $1;",
             &[&hunt_id]);
-        for row in &rows {
-            let mut wave = Wave::from_row(row);
-            wave.puzzles = self.get_puzzles(hunt_id, &wave.name);
-            waves.push(wave);
-        }
-        waves
+        rows.iter().map(Wave::from_row).collect()
     }
 
     pub fn set_waves(&self, hunt_id: i32, waves: &Vec<Wave>) {
         self.execute("delete from Wave where hunt = $1", &[&hunt_id]);
         for wave in waves {
             let utc = wave.time.with_timezone(&Utc);
-            self.execute("insert into Wave values ($1, $2, $3, $4, $5)",
-                         &[&wave.name, &hunt_id, &utc,
-                           &wave.guesses, &wave.released]);
+            self.execute("insert into Wave values ($1, $2, $3, $4)",
+                         &[&wave.name, &hunt_id, &utc, &wave.guesses]);
         }
     }
 
@@ -208,19 +213,49 @@ impl Database {
         }
     }
 
-    pub fn get_puzzles(&self, hunt_id: i32, wave: &str) -> Vec<Puzzle> {
-        let mut puzzles: Vec<Puzzle> = vec!();
+    pub fn get_puzzle_infos(&self, hunt_id: i32, wave: &str) -> Vec<PuzzleInfo> {
         let rows = self.query(
             "select * from Puzzle where hunt = $1 and wave = $2;",
             &[&hunt_id, &wave]);
+        rows.iter()
+            .map(|row| {
+                let puzzle = Puzzle::from_row(row);
+                PuzzleInfo {
+                    name: puzzle.name,
+                    number: puzzle.number,
+                    hunt: hunt_id,
+                    base_points: puzzle.base_points,
+                    current_points: puzzle.base_points, // TODO: calculate
+                    answer: puzzle.answer,
+                    wave: puzzle.wave,
+                    key: puzzle.key,
+                    released: true, // TODO: calculate
+                    hints: vec!() // TODO: fetch
+                }
+            })
+            .filter(|puzzle_info| puzzle_info.released)
+            .collect()
+    }
+
+    pub fn get_all_puzzles(&self, hunt_id: i32) -> Vec<Puzzle> {
+        let mut puzzles: Vec<Puzzle> = vec!();
+        let rows = self.query(
+            "select * from Puzzle where hunt = $1;",
+            &[&hunt_id]);
         for row in &rows {
-            let mut puzzle = Puzzle::from_row(row);
-            if puzzle.released {
-                puzzle.hints = self.get_hints(hunt_id, &puzzle.name);
-                puzzles.push(puzzle);
-            }
+            puzzles.push(Puzzle::from_row(row))
         }
         puzzles
+    }
+
+    pub fn set_puzzles(&self, hunt_id: i32, puzzles: &Vec<Puzzle>) {
+        self.execute("delete from Puzzle where hunt = $1", &[&hunt_id]);
+        for puzzle in puzzles {
+            self.execute("insert into Puzzle values ($1, $2, $3, $4, $5, $6, $7)",
+                         &[&puzzle.name, &puzzle.number, &hunt_id,
+                           &puzzle.base_points, &puzzle.answer,
+                           &puzzle.wave, &puzzle.key]);
+        }
     }
 
     pub fn get_hints(&self, hunt_id: i32, puzzle: &str) -> Vec<Hint> {
@@ -351,4 +386,3 @@ impl Database {
         }
     }
 }
-    

@@ -18,10 +18,10 @@
       <input type="number" id="initGuesses" value="{{hunt.initGuesses}}">
         Initial Guesses
       </input>
-      <input type="boolean" id="closed" value="true">
+      <input type="boolean" id="closed" value="{{#hunt.closed}}true{{/hunt.closed}}{{^hunt.closed}}false{{/hunt.closed}}">
         Closed
       </input>
-      <input type="boolean" id="visible" value="false">
+      <input type="boolean" id="visible" value="{{#hunt.visible}}true{{/hunt.visible}}{{^hunt.visible}}false{{/hunt.visible}}">
         Visible
       </input>
     </section>

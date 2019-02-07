@@ -232,7 +232,7 @@
               <a href="edit-hunt.xml"><xsl:value-of select="hunt"/></a>
             </li>
             <li class="nav2"><a href="edit-waves.xml">Waves</a></li>
-            <li class="nav3"><a href="puzzles.xml">Puzzles</a></li>
+            <li class="nav3"><a href="edit-puzzles.xml">Puzzles</a></li>
             <li class="nav4"><a href="view-teams.xml">Teams</a></li>
             <li class="nav5"><a href="signout.xml">Sign Out</a></li>
           </xsl:if>

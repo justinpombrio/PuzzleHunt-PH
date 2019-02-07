@@ -140,16 +140,16 @@ input.form-cell.checkbox {
     transform: scale(1.5);
 }
 
-input.multi-form-cell.short-text {
-    width: 4rem;
+input.multi-form-cell.mini {
+    width: 6rem;
 }
 
-input.multi-form-cell.long-text {
+input.multi-form-cell.text {
     width: 10rem;
 }
 
 input.multi-form-cell.number {
-    width: 4rem;
+    width: 5rem;
 }
 
 input.multi-form-cell.fixed-text {

@@ -201,6 +201,32 @@ fn post_edit_waves(mut cookies: Cookies, form: WavesForm) -> Xml<String> {
     render_xml("pages/admin/edit-waves.xml", vec!(&hunt, &waves))
 }
 
+// Admin: Edit Puzzles //
+
+#[get("/admin/edit-puzzles.xml")]
+fn get_edit_puzzles(mut cookies: Cookies) -> Xml<String> {
+    let db = Database::new();
+    let hunt = match db.signedin_admin(&mut cookies) {
+        Some(hunt) => hunt,
+        None => panic!("Hunt not found.")
+    };
+    let puzzles = db.get_all_puzzles(hunt.id);
+    render_xml("pages/admin/edit-puzzles.xml", vec!(&hunt, &puzzles))
+}
+
+#[post("/admin/edit-puzzles.xml", data="<form>")]
+fn post_edit_puzzles(mut cookies: Cookies, form: PuzzlesForm) -> Xml<String> {
+    let db = Database::new();
+    let hunt = match db.signedin_admin(&mut cookies) {
+        Some(hunt) => hunt,
+        None => panic!("Hunt not found.")
+    };
+    let puzzles = form.into_inner().0.puzzles;
+    db.set_puzzles(hunt.id, &puzzles);
+    render_xml("pages/admin/edit-puzzles.xml", vec!(&hunt, &puzzles))
+}
+
+
 
 // Hunt //
 
@@ -350,6 +376,7 @@ pub fn start() {
         get_admin_signout, post_admin_signout,
         // Admin
         get_view_teams, get_view_team_email_list,
-        get_edit_waves, post_edit_waves
+        get_edit_waves, post_edit_waves,
+        get_edit_puzzles, post_edit_puzzles
     ]).launch();
 }

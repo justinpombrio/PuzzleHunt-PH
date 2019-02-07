@@ -5,12 +5,15 @@ use postgres::rows::Row;
 
 pub trait DBTable {
     fn from_row(row: Row) -> Self;
-    fn to_data(&self, builder: MapBuilder) -> MapBuilder;
     fn drop_query() -> &'static str;
     fn init_query() -> &'static str;
     fn test_init_query() -> &'static str;
+}
+
+pub trait TemplateData {
     fn name() -> &'static str;
     fn names() -> &'static str;
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder;
 }
 
 
@@ -27,19 +30,19 @@ pub trait AddToData {
     fn add_to_data(&self, builder: MapBuilder) -> MapBuilder;
 }
 
-impl<C : DBTable> AddToData for C {
+impl<C : TemplateData> AddToData for C {
     fn add_to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder.insert_map(Self::name(), |m| self.to_data(m))
     }
 }
 
-impl<C : DBTable> AddToData for Vec<C> {
+impl<C : TemplateData> AddToData for Vec<C> {
     fn add_to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder.insert_vec(C::names(), |b| vec_to_data(self, b))
     }
 }
 
-fn vec_to_data<C : DBTable>(items: &Vec<C>, builder: VecBuilder) -> VecBuilder {
+fn vec_to_data<C : TemplateData>(items: &Vec<C>, builder: VecBuilder) -> VecBuilder {
     let mut builder = builder;
     for item in items {
         builder = builder.push_map(|map| item.to_data(map))
@@ -56,21 +59,23 @@ pub struct Site {
     pub secret: String
 }
 
-impl DBTable for Site {
+impl TemplateData for Site {
     fn name()  -> &'static str { "site" }
     fn names() -> &'static str { "sites" }
-
-    fn from_row(row: Row) -> Site {
-        Site{
-            owner:  row.get(0),
-            secret: row.get(1)
-        }
-    }
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
             .insert_str("owner",  self.owner.clone())
             .insert_str("secret", self.secret.clone())
+    }
+}
+
+impl DBTable for Site {
+    fn from_row(row: Row) -> Site {
+        Site{
+            owner:  row.get(0),
+            secret: row.get(1)
+        }
     }
 
     fn drop_query() -> &'static str {
@@ -106,10 +111,23 @@ pub struct Hunt {
     pub visible: bool
 }
 
-impl DBTable for Hunt {
+impl TemplateData for Hunt {
     fn name()  -> &'static str { "hunt" }
     fn names() -> &'static str { "hunts" }
     
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
+        builder
+            .insert_str("id",          format!("{}", self.id))
+            .insert_str("name",        self.name.clone())
+            .insert_str("key",         self.key.clone())
+            .insert_str("teamSize",    format!("{}", self.team_size))
+            .insert_str("initGuesses", format!("{}", self.init_guesses))
+            .insert_bool("closed",     self.closed)
+            .insert_bool("visible",    self.visible)
+    }
+}
+
+impl DBTable for Hunt {
     fn from_row(row: Row) -> Hunt {
         Hunt{
             id:           row.get(0),
@@ -121,17 +139,6 @@ impl DBTable for Hunt {
             closed:       row.get(6),
             visible:      row.get(7)
         }
-    }
-
-    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
-        builder
-            .insert_str("id",          format!("{}", self.id))
-            .insert_str("name",        self.name.clone())
-            .insert_str("key",         self.key.clone())
-            .insert_str("teamSize",    format!("{}", self.team_size))
-            .insert_str("initGuesses", format!("{}", self.init_guesses))
-            .insert_bool("closed",     self.closed)
-            .insert_bool("visible",    self.visible)
     }
 
     fn drop_query() -> &'static str {
@@ -162,39 +169,55 @@ values ('Best Hunt Ever', 'besthuntever', 4, 100, 'pass', true, true);"
 
 
 #[derive(Debug, Clone)]
-pub struct Wave {
+pub struct WaveInfo {
     pub name: String,
-    pub hunt: i32,
     pub time: DateTime<Local>,
     pub guesses: i32,
     pub released: bool,
-    pub puzzles: Vec<Puzzle>
+    pub puzzles: Vec<PuzzleInfo>
 }
 
-impl DBTable for Wave {
+impl TemplateData for WaveInfo {
     fn name()  -> &'static str { "wave" }
     fn names() -> &'static str { "waves" }
     
-    fn from_row(row: Row) -> Wave {
-        let time: DateTime<Utc> = row.get(2);
-        Wave{
-            name:     row.get(0),
-            hunt:     row.get(1),
-            time:     time.with_timezone(&Local),
-            guesses:  row.get(3),
-            released: row.get(4),
-            puzzles:  vec!()
-        }
-    }
-
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
             .insert_str("name",      self.name.clone())
-            .insert_str("hunt",      format!("{}", self.hunt))
             .insert_str("time",      self.time.to_rfc3339())
             .insert_str("guesses",   format!("{}", self.guesses))
             .insert_bool("released", self.released)
             .insert_vec("puzzles",   |b| vec_to_data(&self.puzzles, b))
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Wave {
+    pub name: String,
+    pub time: DateTime<Local>,
+    pub guesses: i32
+}
+
+impl TemplateData for Wave {
+    fn name()  -> &'static str { "wave" }
+    fn names() -> &'static str { "waves" }
+    
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
+        builder
+            .insert_str("name",      self.name.clone())
+            .insert_str("time",      self.time.to_rfc3339())
+            .insert_str("guesses",   format!("{}", self.guesses))
+    }
+}
+
+impl DBTable for Wave {
+    fn from_row(row: Row) -> Wave {
+        let time: DateTime<Utc> = row.get(2);
+        Wave{
+            name:     row.get(0),
+            time:     time.with_timezone(&Local),
+            guesses:  row.get(3)
+        }
     }
 
     fn drop_query() -> &'static str {
@@ -206,15 +229,14 @@ impl DBTable for Wave {
   name varchar NOT NULL,
   hunt int NOT NULL,
   time timestamp with time zone NOT NULL,
-  guesses int NOT NULL,
-  released boolean NOT NULL
+  guesses int NOT NULL
 );
 "
     }
 
     fn test_init_query() -> &'static str {
-"insert into Wave (name, hunt, time, guesses, released)
-values ('Wave One', 1, '2004-10-19 10:23:54', 10, true);"
+"insert into Wave (name, hunt, time, guesses)
+values ('Wave One', 1, '2004-10-19 10:23:54', 10);"
     }
 }
 
@@ -222,7 +244,7 @@ values ('Wave One', 1, '2004-10-19 10:23:54', 10, true);"
 ////// Puzzles //////
 
 #[derive(Debug, Clone)]
-pub struct Puzzle {
+pub struct PuzzleInfo {
     pub name: String,
     pub number: String,
     pub hunt: i32,
@@ -235,25 +257,10 @@ pub struct Puzzle {
     pub hints: Vec<Hint>
 }
 
-impl DBTable for Puzzle {
+impl TemplateData for PuzzleInfo {
     fn name()  -> &'static str { "puzzle" }
     fn names() -> &'static str { "puzzles" }
     
-    fn from_row(row: Row) -> Puzzle {
-        Puzzle{
-            name:           row.get(0),
-            number:         row.get(1),
-            hunt:           row.get(2),
-            base_points:    row.get(3),
-            current_points: row.get(4),
-            answer:         row.get(5),
-            wave:           row.get(6),
-            key:            row.get(7),
-            released:       row.get(8),
-            hints:          vec!()
-        }
-    }
-
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
             .insert_str("name",          self.name.clone())
@@ -266,6 +273,47 @@ impl DBTable for Puzzle {
             .insert_bool("released",     self.released)
             .insert_vec("hints",         |b| vec_to_data(&self.hints, b))
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct Puzzle {
+    pub name: String,
+    pub number: String,
+    pub hunt: i32,
+    pub base_points: i32,
+    pub answer: String,
+    pub wave: String,
+    pub key: String
+}
+
+impl TemplateData for Puzzle {
+    fn name()  -> &'static str { "puzzle" }
+    fn names() -> &'static str { "puzzles" }
+    
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
+        builder
+            .insert_str("name",          self.name.clone())
+            .insert_str("number",        self.number.clone())
+            .insert_str("hunt",          format!("{}", self.hunt))
+            .insert_str("basePoints",    format!("{}", self.base_points))
+            .insert_str("answer",        self.answer.clone())
+            .insert_str("wave",          self.wave.clone())
+            .insert_str("key",           self.key.clone())
+    }
+}
+
+impl DBTable for Puzzle {
+    fn from_row(row: Row) -> Puzzle {
+        Puzzle{
+            name:           row.get(0),
+            number:         row.get(1),
+            hunt:           row.get(2),
+            base_points:    row.get(3),
+            answer:         row.get(4),
+            wave:           row.get(5),
+            key:            row.get(6)
+        }
+    }
 
     fn drop_query() -> &'static str {
         "drop table if exists Puzzle;"
@@ -277,20 +325,18 @@ impl DBTable for Puzzle {
   number varchar NOT NULL,
   hunt int NOT NULL,
   basePoints int NOT NULL,
-  currentPoints int NOT NULL,
   answer varchar NOT NULL,
   wave varchar NOT NULL,
-  key varchar NOT NULL,
-  released boolean NOT NULL
+  key varchar NOT NULL
 );
 "
     }
 
     fn test_init_query() -> &'static str {
-"insert into Puzzle (name, number, hunt, basePoints, currentPoints, answer, wave, key, released)
-values ('Puzzle One', '#1', 1, 2, 1, 'answer1', 'Wave One', 'PPP', true),
-       ('Puzzle Two', '#2', 1, 3, 2, 'answer2', 'Wave One', 'QQQ', true),
-       ('Puzzle Three', '#3', 1, 3, 2, 'answer3', 'Wave One', 'RRR', false);"
+"insert into Puzzle (name, number, hunt, basePoints, answer, wave, key)
+values ('Puzzle One', '#1', 1, 2, 'answer1', 'Wave One', 'PPP'),
+       ('Puzzle Two', '#2', 1, 3, 'answer2', 'Wave One', 'QQQ'),
+       ('Puzzle Three', '#3', 1, 3, 'answer3', 'Wave One', 'RRR');"
     }
 }
 
@@ -298,7 +344,7 @@ values ('Puzzle One', '#1', 1, 2, 1, 'answer1', 'Wave One', 'PPP', true),
 ////// Hints //////
 
 #[derive(Debug, Clone)]
-pub struct Hint {
+pub struct HintInfo {
     pub puzzle: String,
     pub number: i32,
     pub hunt: i32,
@@ -308,21 +354,9 @@ pub struct Hint {
     pub released: bool
 }
 
-impl DBTable for Hint {
+impl TemplateData for HintInfo {
     fn name()  -> &'static str { "hint" }
     fn names() -> &'static str { "hints" }
-    
-    fn from_row(row: Row) -> Hint {
-        Hint{
-            puzzle:   row.get(0),
-            number:   row.get(1),
-            hunt:     row.get(2),
-            penalty:  row.get(3),
-            wave:     row.get(4),
-            key:      row.get(5),
-            released: row.get(6)
-        }
-    }
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
@@ -333,6 +367,44 @@ impl DBTable for Hint {
             .insert_str("wave",      self.wave.clone())
             .insert_str("key",       self.key.clone())
             .insert_bool("released", self.released)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Hint {
+    pub puzzle: String,
+    pub number: i32,
+    pub hunt: i32,
+    pub penalty: i32,
+    pub wave: String,
+    pub key: String
+}
+
+impl TemplateData for Hint {
+    fn name()  -> &'static str { "hint" }
+    fn names() -> &'static str { "hints" }
+
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
+        builder
+            .insert_str("puzzle",    self.puzzle.clone())
+            .insert_str("number",    format!("{}", self.number))
+            .insert_str("hunt",      format!("{}", self.hunt))
+            .insert_str("penalty",   format!("{}", self.penalty))
+            .insert_str("wave",      self.wave.clone())
+            .insert_str("key",       self.key.clone())
+    }
+}
+
+impl DBTable for Hint {
+    fn from_row(row: Row) -> Hint {
+        Hint{
+            puzzle:   row.get(0),
+            number:   row.get(1),
+            hunt:     row.get(2),
+            penalty:  row.get(3),
+            wave:     row.get(4),
+            key:      row.get(5)
+        }
     }
 
     fn drop_query() -> &'static str {
@@ -346,15 +418,14 @@ impl DBTable for Hint {
   hunt int NOT NULL,
   penalty int NOT NULL,
   wave varchar NOT NULL,
-  key varchar NOT NULL,
-  released boolean NOT NULL
+  key varchar NOT NULL
 );
 "        
     }
 
     fn test_init_query() -> &'static str {
-"insert into Hint (puzzle, number, hunt, penalty, wave, key, released)
-values ('Puzzle One', 1, 1, 1, 'Wave One', 'HHH', true);"
+"insert into Hint (puzzle, number, hunt, penalty, wave, key)
+values ('Puzzle One', 1, 1, 1, 'Wave One', 'HHH');"
     }
 }
 
@@ -371,20 +442,9 @@ pub struct Team {
     pub members: Vec<Member>
 }
 
-impl DBTable for Team {
+impl TemplateData for Team {
     fn name()  -> &'static str { "team" }
     fn names() -> &'static str { "teams" }
-    
-    fn from_row(row: Row) -> Team {
-        Team{
-            team_id:  row.get(0),
-            hunt:     row.get(1),
-            password: row.get(2),
-            name:     row.get(3),
-            guesses:  row.get(4),
-            members:  vec!()
-        }
-    }
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
@@ -394,6 +454,19 @@ impl DBTable for Team {
             .insert_str("name",     self.name.clone())
             .insert_str("guesses",  format!("{}", self.guesses))
             .insert_vec("members",  |b| vec_to_data(&self.members, b))
+    }
+}
+
+impl DBTable for Team {
+    fn from_row(row: Row) -> Team {
+        Team{
+            team_id:  row.get(0),
+            hunt:     row.get(1),
+            password: row.get(2),
+            name:     row.get(3),
+            guesses:  row.get(4),
+            members:  vec!()
+        }
     }
     
     fn drop_query() -> &'static str {
@@ -428,18 +501,9 @@ pub struct Member {
     pub email: String
 }
 
-impl DBTable for Member {
+impl TemplateData for Member {
     fn name()  -> &'static str { "member" }
     fn names() -> &'static str { "members" }
-    
-    fn from_row(row: Row) -> Member {
-        Member{
-            team_id: row.get(0),
-            hunt:    row.get(1),
-            name:    row.get(2),
-            email:   row.get(3)
-        }
-    }
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
@@ -447,6 +511,17 @@ impl DBTable for Member {
             .insert_str("hunt", format!("{}", self.hunt))
             .insert_str("name", self.name.clone())
             .insert_str("email", self.email.clone())
+    }
+}
+
+impl DBTable for Member {
+    fn from_row(row: Row) -> Member {
+        Member{
+            team_id: row.get(0),
+            hunt:    row.get(1),
+            name:    row.get(2),
+            email:   row.get(3)
+        }
     }
 
     fn drop_query() -> &'static str {
@@ -481,19 +556,9 @@ pub struct Guess {
     pub time: DateTime<Utc>
 }
 
-impl DBTable for Guess {
+impl TemplateData for Guess {
     fn name()  -> &'static str { "guess" }
     fn names() -> &'static str { "guesss" }
-    
-    fn from_row(row: Row) -> Guess {
-        Guess{
-            team_id: row.get(0),
-            hunt:    row.get(1),
-            puzzle:  row.get(2),
-            guess:   row.get(3),
-            time:    row.get(4)
-        }
-    }
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
@@ -502,6 +567,18 @@ impl DBTable for Guess {
             .insert_str("puzzle", self.puzzle.clone())
             .insert_str("guess", self.guess.clone())
             .insert_str("time", format!("{}", self.time))
+    }
+}
+
+impl DBTable for Guess {
+    fn from_row(row: Row) -> Guess {
+        Guess{
+            team_id: row.get(0),
+            hunt:    row.get(1),
+            puzzle:  row.get(2),
+            guess:   row.get(3),
+            time:    row.get(4)
+        }
     }
 
     fn drop_query() -> &'static str {
@@ -536,18 +613,9 @@ pub struct Solve {
     pub time: DateTime<Utc>
 }
 
-impl DBTable for Solve {
+impl TemplateData for Solve {
     fn name()  -> &'static str { "solve" }
     fn names() -> &'static str { "solves" }
-    
-    fn from_row(row: Row) -> Solve {
-        Solve{
-            team_id: row.get(0),
-            hunt:    row.get(1),
-            puzzle:  row.get(2),
-            time:    row.get(3)
-        }
-    }
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
@@ -555,6 +623,17 @@ impl DBTable for Solve {
             .insert_str("hunt",   format!("{}", self.hunt))
             .insert_str("puzzle", self.puzzle.clone())
             .insert_str("time",   format!("{}", self.time))
+    }
+}
+
+impl DBTable for Solve {
+    fn from_row(row: Row) -> Solve {
+        Solve{
+            team_id: row.get(0),
+            hunt:    row.get(1),
+            puzzle:  row.get(2),
+            time:    row.get(3)
+        }
     }
     
     fn drop_query() -> &'static str {
@@ -591,20 +670,9 @@ pub struct Stat {
     pub guesses: i32
 }
 
-impl DBTable for Stat {
+impl TemplateData for Stat {
     fn name()  -> &'static str { "stat" }
     fn names() -> &'static str { "stats" }
-    
-    fn from_row(row: Row) -> Stat {
-        Stat{
-            team_id:    row.get(0),
-            hunt:       row.get(1),
-            puzzle:     row.get(2),
-            score:      row.get(3),
-            solve_time: row.get(4),
-            guesses:    row.get(5)
-        }
-    }
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
@@ -614,6 +682,19 @@ impl DBTable for Stat {
             .insert_str("score",     format!("{}", self.score))
             .insert_str("solveTime", format!("{}", self.solve_time))
             .insert_str("guesses",   format!("{}", self.guesses))
+    }
+}
+
+impl DBTable for Stat {
+    fn from_row(row: Row) -> Stat {
+        Stat{
+            team_id:    row.get(0),
+            hunt:       row.get(1),
+            puzzle:     row.get(2),
+            score:      row.get(3),
+            solve_time: row.get(4),
+            guesses:    row.get(5)
+        }
     }
 
     fn drop_query() -> &'static str {

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
+
+<page page-type="admin">
+  <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
+  <title>Puzzles</title>
+  <form>
+    <expandable-section item="Puzzle">
+      <input type="text" id="name" name="Name"/>
+      <input type="mini" id="number" name="Number"/>
+      <input type="number" id="basePoints" name="Points"/>
+      <input type="text" id="answer" name="Answer"/>
+      <input type="text" id="wave" name="Wave"/>
+      <input type="fixed" id="key" name="Key"/>
+      {{#puzzles}}
+      <row>
+        <value>{{name}}</value>
+        <value>{{number}}</value>
+        <value>{{basePoints}}</value>
+        <value>{{answer}}</value>
+        <value>{{wave}}</value>
+        <value>{{key}}</value>
+      </row>
+      {{/puzzles}}
+    </expandable-section>
+    <submit-button>
+      Update
+    </submit-button>
+  </form>
+</page>
