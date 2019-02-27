@@ -27,43 +27,76 @@ function makeRow(id) {
   return row;
 }
 
-function addRow(id) {
+function addRow(hunt, id) {
+  console.log("@addRow", hunt);
   var row = makeRow(id);
-/*  for (var i = 0; i < row.children.length; i++) {
+  for (var i = 0; i < row.children.length; i++) {
     var child = row.children[i];
     if (!child.children || child.children.length === 0) { continue; }
     var cell = child.children[0];
     if (cell.name === "key") {
       var box = child.removeChild(cell);
-      var filename = data ? data["key"] : randomFilename();
-      box.value = filename;
-      var link = make("a", {
-        "href": "/" + item + "/" + filename + ".xml",
-        "value": box.value
-      });
-      link.appendChild(box);
-      child.appendChild(link);
-    } else if (cell.name === "datetime") {
+      child.appendChild(makeKeyLink(hunt, id, box, randomFilename(6)));
+    }/* else if (cell.name === "datetime") {
       if (data && data.hasOwnProperty(cell.name)) {
         var local_time = new Date(data[cell.name]);
         cell.value = local_time.toLocaleString();
       }
     } else if (data && data.hasOwnProperty(cell.name)) {
       cell.value = data[cell.name];
-    }
-  }*/
+    }*/
+  }
   var table = get(id + "-table");
   table.appendChild(row);
 }
 
-function insertRow(id, values) {
+function makeKeyLink(hunt, id, box, filename) {
+  box.value = filename;
+  var link = make("a", {
+    "href": "/" + hunt + "/" + id + "/" + filename,
+    "value": box.value
+  });
+  link.appendChild(box);
+  return link;
+}
+
+function insertRow(hunt, id, values) {
+  console.log("@insertRow", hunt);
   var row = makeRow(id);
   for (var i in values) {
     var value = values[i];
-    row.cells[i].childNodes[0].value = value;
+    var child = row.cells[i];
+    var cell = child.childNodes[0];
+    if (cell.name === "key") {
+      var box = child.removeChild(cell);
+      child.appendChild(makeKeyLink(hunt, id, box, value));
+    } else {
+      cell.value = value;
+    }
   }
   var table = get(id + "-table");
   table.appendChild(row);
+}
+
+function randomFilename(len) {
+  var text = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  for (var i = 0; i < len; i++) {
+    let n = Math.floor(Math.random() * possible.length);
+    text += possible[n];
+  }
+  text += ".pdf";
+  return text;
+}
+
+function make(nodeType, attrs) {
+  var elem = document.createElement(nodeType);
+  if (attrs !== undefined) {
+    for (var attr in attrs) {
+      elem[attr] = attrs[attr];
+    }
+  }
+  return elem;
 }
 
 window.onload = function() {

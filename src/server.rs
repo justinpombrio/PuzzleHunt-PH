@@ -3,8 +3,9 @@ use std::fs::File;
 
 use rocket;
 use rocket::response::content::Xml;
-use rocket::response::Redirect;
+use rocket::response::{NamedFile, Redirect};
 use rocket::http::Cookies;
+use rocket::response::status::NotFound;
 
 use util::*;
 use data::{AddToData, build_data};
@@ -250,6 +251,12 @@ fn get_puzzles(hunt_key: String) -> Xml<String> {
     render_xml(format!("hunts/{}/puzzles.xml", hunt.key), vec!(&hunt, &waves))
 }
 
+#[get("/<hunt_key>/puzzle/<puzzle_name>", rank = 1)]
+fn get_puzzle(hunt_key: String, puzzle_name: String) -> Result<NamedFile, NotFound<String>> {
+    let path = format!("hunts/{}/puzzle/{}", hunt_key, puzzle_name);
+    NamedFile::open(&Path::new(&path)).map_err(|_| NotFound("Puzzle not found.".to_string()))
+}
+
 
 // Team Page //
 
@@ -370,7 +377,7 @@ pub fn start() {
         get_register, post_register,
         get_team, get_team_signedin,
         // Puzzles
-        get_puzzles,
+        get_puzzles, get_puzzle,
         // Admin Signin
         get_admin, get_admin_signin, post_admin_signin,
         get_admin_signout, post_admin_signout,

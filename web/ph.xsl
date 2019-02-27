@@ -116,13 +116,13 @@
   <xsl:template match="expandable-section">
     <p>
       <table>
-        <tbody id="{@item}-table" action="{@action}">
+        <tbody id="{@itemkey}-table" action="{@action}">
           <tr>
             <xsl:for-each select="input">
               <th><xsl:value-of select="normalize-space(@name)"/></th>
             </xsl:for-each>
           </tr>
-          <tr id="{@item}-template" style="display:none">
+          <tr id="{@itemkey}-template" style="display:none">
             <xsl:for-each select="input">
               <td>
                 <xsl:call-template name="expandable-input"/>
@@ -134,16 +134,17 @@
           </tr>
         </tbody>
       </table>
-      <a href="#" onclick="addRow('{@item}')">
+      <a href="#" onclick="addRow('{@hunt}', '{@itemkey}')">
         Add <xsl:value-of select="@item"/>
       </a>
     </p>
     <script type="text/javascript">
       onLoad(function() {
-      var item = '<xsl:value-of select="@item"/>';
+      var item = '<xsl:value-of select="@itemkey"/>';
+      var hunt = '<xsl:value-of select="@hunt"/>';
       <xsl:for-each select="row">
-        row = [<xsl:for-each select="value">'<xsl:value-of select="normalize-space(.)"/>', </xsl:for-each>];
-        insertRow(item, row);
+        var row = [<xsl:for-each select="value">'<xsl:value-of select="normalize-space(.)"/>', </xsl:for-each>];
+        insertRow(hunt, item, row);
       </xsl:for-each>
       });
     </script>

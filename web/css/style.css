@@ -141,7 +141,7 @@ input.form-cell.checkbox {
 }
 
 input.multi-form-cell.mini {
-    width: 6rem;
+    width: 4rem;
 }
 
 input.multi-form-cell.text {
@@ -149,12 +149,13 @@ input.multi-form-cell.text {
 }
 
 input.multi-form-cell.number {
-    width: 5rem;
+    width: 3rem;
 }
 
 input.multi-form-cell.fixed-text {
     width: 10rem;
     font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    text-decoration: underline;
 }
 
 input.multi-form-cell.datetime {

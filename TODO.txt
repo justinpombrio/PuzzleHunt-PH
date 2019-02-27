@@ -1,6 +1,7 @@
 [ ]: todo
 [x]: done
 [L]: later (putting this off)
+[-]: skipping (this is no longer a feature)
 
 
 Basics:
@@ -27,7 +28,7 @@ Basics:
           [ ] Switchboard?
           [ ] Team Leaderboard
           [ ] Puzzle Leaderboard
-  [ ] Admin pages
+  [L] Admin pages
       [L] Login/logout
           [x] Sign In
           [x] Sign Out
@@ -37,13 +38,13 @@ Basics:
           [L] Add booleans, once Mustache is less broken
           [L] Validate that hunt key is a-zA-Z-
       [x] Waves
-      [ ] Puzzles
+      [L] Puzzles
           [x] Edit puzzles
-          [ ] Upload puzzles
+          [L] Upload puzzles (waiting until Rocket has multipart form support)
       [x] Teams
           [x] View all teams
           [x] Plaintext email list
-      [ ] View Hunt normally
+      [-] View Hunt normally
   [ ] Error handling
       [ ] Serve puzzler/error.xml
       [ ] Serve admin/error.xml
