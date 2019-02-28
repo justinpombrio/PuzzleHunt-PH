@@ -148,12 +148,16 @@ input.multi-form-cell.text {
     width: 10rem;
 }
 
+input.multi-form-cell.long {
+  width: 18rem;
+}
+
 input.multi-form-cell.number {
     width: 3rem;
 }
 
 input.multi-form-cell.fixed-text {
-    width: 10rem;
+    width: 7.5rem;
     font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
     text-decoration: underline;
 }
@@ -201,7 +205,7 @@ footer, .note {
 
 input, select {
     font-family: et-book, Palatino, "Palatino Linotype", "Palatino LT STD", "Book Antiqua", Georgia, serif;
-    font-size: 1.4rem;
+    font-size: 1.2rem;
 }
 
 input[type="submit"], input[type="button"], select {

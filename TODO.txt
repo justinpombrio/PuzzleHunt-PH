@@ -26,6 +26,8 @@ Basics:
           [x] Only show released puzzles
           [L] Show puzzle points?
           [x] Hide empty waves
+          [ ] Only show released hints
+      [ ] Submit answers
       [ ] Stats
           [ ] Switchboard?
           [ ] Team Leaderboard

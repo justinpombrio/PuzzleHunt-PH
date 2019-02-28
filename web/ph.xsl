@@ -32,6 +32,7 @@
   
   <xsl:template match="puzzle">
     <li>
+      <xsl:value-of select="@number"/>.
       <a href="puzzle/{@key}"><xsl:value-of select="@name"/><xsl:apply-templates select="*"/></a>
     </li>
   </xsl:template>
@@ -161,6 +162,11 @@
              name="{@id}" value="{@value}"
              class="multi-form-cell number"/>
     </xsl:if>
+    <xsl:if test="contains(@type, 'long')">
+      <input type="text"
+             name="{@id}" value="{@value}"
+             class="multi-form-cell long"/>
+    </xsl:if>
     <xsl:if test="contains(@type, 'text')">
       <input type="text"
              name="{@id}" value="{@value}"
@@ -234,8 +240,9 @@
             </li>
             <li class="nav2"><a href="edit-waves.xml">Waves</a></li>
             <li class="nav3"><a href="edit-puzzles.xml">Puzzles</a></li>
-            <li class="nav4"><a href="view-teams.xml">Teams</a></li>
-            <li class="nav5"><a href="signout.xml">Sign Out</a></li>
+            <li class="nav4"><a href="edit-hints.xml">Hints</a></li>
+            <li class="nav5"><a href="view-teams.xml">Teams</a></li>
+            <li class="nav6"><a href="signout.xml">Sign Out</a></li>
           </xsl:if>
           <xsl:if test="@page-type = 'global'">
             <li class="nav-global"><a href="/">PuzzleHunt: PH</a></li>

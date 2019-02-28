@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use rocket::request::Form;
 use crate::expandable_form::{RegularForm, ExpandableForm, RegularFormToForm, ExpandableFormToForm};
-use crate::data::{Wave, Puzzle};
+use crate::data::{Wave, Puzzle, Hint};
 
 
 // Create Hunt //
@@ -141,6 +141,45 @@ impl ExpandableForm for Puzzles {
         }
     }
 }
+
+// Admin Edit Hints //
+
+pub struct Hints {
+    pub hints: Vec<Hint>
+}
+pub type HintsForm = Form<ExpandableFormToForm<Hints>>;
+
+impl ExpandableForm for Hints {
+    type Member = Hint;
+
+    fn parts() -> Vec<&'static str> {
+        vec!()
+    }
+
+    fn member_parts() -> Vec<&'static str> {
+        vec!("hint", "puzzle", "number", "hunt", "penalty", "wave", "key")
+    }
+    
+    fn new_member(map: &HashMap<String, String>) -> Hint {
+        Hint {
+            hint: map["hint"].to_string(),
+            puzzle: map["puzzle"].to_string(),
+            number: map["number"].parse()
+                .expect("Could not parse `number`"),
+            hunt: 0,
+            penalty: 0, // TODO: just remove
+            wave: map["wave"].to_string(),
+            key: map["key"].to_string()
+        }
+    }
+    
+    fn new(_: &HashMap<String, String>, hints: Vec<Hint>) -> Hints {
+        Hints {
+            hints: hints
+        }
+    }
+}
+
 
 
 // Register //

@@ -36,7 +36,8 @@ function addRow(hunt, id) {
     var cell = child.children[0];
     if (cell.name === "key") {
       var box = child.removeChild(cell);
-      child.appendChild(makeKeyLink(hunt, id, box, randomFilename(6)));
+      let filename = randomFilename(6) + (id === "puzzle" ? ".pdf" : ".xml");
+      child.appendChild(makeKeyLink(hunt, id, box, filename));
     }/* else if (cell.name === "datetime") {
       if (data && data.hasOwnProperty(cell.name)) {
         var local_time = new Date(data[cell.name]);
@@ -85,7 +86,6 @@ function randomFilename(len) {
     let n = Math.floor(Math.random() * possible.length);
     text += possible[n];
   }
-  text += ".pdf";
   return text;
 }
 

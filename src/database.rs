@@ -280,6 +280,26 @@ impl Database {
         hints
     }
 
+    pub fn set_hints(&self, hunt_id: i32, hints: &Vec<Hint>) {
+        self.execute("delete from Hint where hunt = $1", &[&hunt_id]);
+        for hint in hints {
+            self.execute("insert into Hint values ($1, $2, $3, $4, $5, $6, $7)",
+                         &[&hint.hint, &hint.puzzle, &hint.number,
+                           &hunt_id, &hint.penalty, &hint.wave, &hint.key]);
+        }
+    }
+
+    pub fn get_all_hints(&self, hunt_id: i32) -> Vec<Hint> {
+        let mut hints: Vec<Hint> = vec!();
+        let rows = self.query(
+            "select * from Hint where hunt = $1;",
+            &[&hunt_id]);
+        for row in &rows {
+            hints.push(Hint::from_row(row));
+        }
+        hints
+    }
+
     pub fn get_hint(&self, hunt_id: i32, hint_key: &str) -> Option<Hint> {
         let rows = self.query(
             "select * from Hint where hunt = $1 and key = $2;",

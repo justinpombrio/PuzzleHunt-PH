@@ -227,6 +227,29 @@ fn post_edit_puzzles(mut cookies: Cookies, form: PuzzlesForm) -> Xml<String> {
     render_xml("pages/admin/edit-puzzles.xml", vec!(&hunt, &puzzles))
 }
 
+#[get("/admin/edit-hints.xml")]
+fn get_edit_hints(mut cookies: Cookies) -> Xml<String> {
+    let db = Database::new();
+    let hunt = match db.signedin_admin(&mut cookies) {
+        Some(hunt) => hunt,
+        None => panic!("Hunt not found")
+    };
+    let hints = db.get_all_hints(hunt.id);
+    render_xml("pages/admin/edit-hints.xml", vec!(&hunt, &hints))
+}
+
+#[post("/admin/edit-hints.xml", data="<form>")]
+fn post_edit_hints(mut cookies: Cookies, form: HintsForm) -> Xml<String> {
+    let db = Database::new();
+    let hunt = match db.signedin_admin(&mut cookies) {
+        Some(hunt) => hunt,
+        None => panic!("Hunt not found.")
+    };
+    let hints = form.into_inner().0.hints;
+    db.set_hints(hunt.id, &hints);
+    render_xml("pages/admin/edit-hints.xml", vec!(&hunt, &hints))
+}
+
 
 // Hunt //
 
@@ -250,7 +273,7 @@ fn get_puzzles(hunt_key: String) -> Xml<String> {
         .into_iter()
         .filter(|w| w.puzzles.len() > 0)
         .collect();
-    render_xml(format!("hunts/{}/puzzles.xml", hunt.key), vec!(&hunt, &waves))
+    render_xml("pages/puzzler/puzzles.xml", vec!(&hunt, &waves))
 }
 
 #[get("/<hunt_key>/puzzle/<puzzle_name>", rank = 1)]
@@ -400,6 +423,7 @@ pub fn start() {
         // Admin
         get_view_teams, get_view_team_email_list,
         get_edit_waves, post_edit_waves,
-        get_edit_puzzles, post_edit_puzzles
+        get_edit_puzzles, post_edit_puzzles,
+        get_edit_hints, post_edit_hints,
     ]).launch();
 }
