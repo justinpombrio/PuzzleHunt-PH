@@ -198,6 +198,12 @@ pub struct Wave {
     pub guesses: i32
 }
 
+impl Wave {
+    pub fn is_released(&self) -> bool {
+        Local::now() > self.time
+    }
+}
+
 impl TemplateData for Wave {
     fn name()  -> &'static str { "wave" }
     fn names() -> &'static str { "waves" }
@@ -253,7 +259,6 @@ pub struct PuzzleInfo {
     pub answer: String,
     pub wave: String,
     pub key: String,
-    pub released: bool,
     pub hints: Vec<Hint>
 }
 
@@ -270,7 +275,6 @@ impl TemplateData for PuzzleInfo {
             .insert_str("currentPoints", format!("{}", self.current_points))
             .insert_str("wave",          self.wave.clone())
             .insert_str("key",           self.key.clone())
-            .insert_bool("released",     self.released)
             .insert_vec("hints",         |b| vec_to_data(&self.hints, b))
     }
 }
@@ -372,6 +376,7 @@ impl TemplateData for HintInfo {
 
 #[derive(Debug, Clone)]
 pub struct Hint {
+    pub hint: String,
     pub puzzle: String,
     pub number: i32,
     pub hunt: i32,
@@ -386,6 +391,7 @@ impl TemplateData for Hint {
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
+            .insert_str("hint",      self.hint.clone())
             .insert_str("puzzle",    self.puzzle.clone())
             .insert_str("number",    format!("{}", self.number))
             .insert_str("hunt",      format!("{}", self.hunt))
@@ -398,12 +404,13 @@ impl TemplateData for Hint {
 impl DBTable for Hint {
     fn from_row(row: Row) -> Hint {
         Hint{
-            puzzle:   row.get(0),
-            number:   row.get(1),
-            hunt:     row.get(2),
-            penalty:  row.get(3),
-            wave:     row.get(4),
-            key:      row.get(5)
+            hint:     row.get(0),
+            puzzle:   row.get(1),
+            number:   row.get(2),
+            hunt:     row.get(3),
+            penalty:  row.get(4),
+            wave:     row.get(5),
+            key:      row.get(6)
         }
     }
 
@@ -413,6 +420,7 @@ impl DBTable for Hint {
 
     fn init_query() -> &'static str {
 "create table Hint (
+  hint varchar NOT NULL,
   puzzle varchar NOT NULL,
   number int NOT NULL,
   hunt int NOT NULL,
@@ -424,8 +432,8 @@ impl DBTable for Hint {
     }
 
     fn test_init_query() -> &'static str {
-"insert into Hint (puzzle, number, hunt, penalty, wave, key)
-values ('Puzzle One', 1, 1, 1, 'Wave One', 'HHH');"
+"insert into Hint (hint, puzzle, number, hunt, penalty, wave, key)
+values ('The answer is \"answer\".', 'Puzzle One', 1, 1, 1, 'Wave One', 'HHH');"
     }
 }
 

@@ -228,7 +228,6 @@ fn post_edit_puzzles(mut cookies: Cookies, form: PuzzlesForm) -> Xml<String> {
 }
 
 
-
 // Hunt //
 
 #[get("/<hunt_key>", rank=1)]
@@ -247,7 +246,10 @@ fn get_hunt(hunt_key: String) -> Xml<String> {
 fn get_puzzles(hunt_key: String) -> Xml<String> {
     let db = Database::new();
     let hunt = db.get_hunt(&hunt_key);
-    let waves = db.get_waves(hunt.id);
+    let waves: Vec<_> = db.get_wave_infos(hunt.id)
+        .into_iter()
+        .filter(|w| w.puzzles.len() > 0)
+        .collect();
     render_xml(format!("hunts/{}/puzzles.xml", hunt.key), vec!(&hunt, &waves))
 }
 
@@ -255,6 +257,19 @@ fn get_puzzles(hunt_key: String) -> Xml<String> {
 fn get_puzzle(hunt_key: String, puzzle_name: String) -> Result<NamedFile, NotFound<String>> {
     let path = format!("hunts/{}/puzzle/{}", hunt_key, puzzle_name);
     NamedFile::open(&Path::new(&path)).map_err(|_| NotFound("Puzzle not found.".to_string()))
+}
+
+#[get("/<hunt_key>/hint/<hint_key>", rank = 1)]
+fn get_hint(hunt_key: String, hint_key: String) -> Xml<String> {
+    if !hint_key.ends_with(".xml") {
+        panic!("Hint not found!");
+    }
+    let hint_key = &hint_key[0 .. hint_key.len()-4];
+    let db = Database::new();
+    let hunt = db.get_hunt(&hunt_key);
+    let hint = db.get_hint(hunt.id, &hint_key)
+        .expect("Hint not found!");
+    render_xml("pages/puzzler/hint.xml", vec!(&hunt, &hint))
 }
 
 
@@ -378,6 +393,7 @@ pub fn start() {
         get_team, get_team_signedin,
         // Puzzles
         get_puzzles, get_puzzle,
+        get_hint,
         // Admin Signin
         get_admin, get_admin_signin, post_admin_signin,
         get_admin_signout, post_admin_signout,

@@ -32,13 +32,13 @@
   
   <xsl:template match="puzzle">
     <li>
-      <a href="puzzle/{@key}.xml"><xsl:value-of select="@name"/><xsl:apply-templates select="*"/></a>
+      <a href="puzzle/{@key}"><xsl:value-of select="@name"/><xsl:apply-templates select="*"/></a>
     </li>
   </xsl:template>
 
   <xsl:template match="hint">
     <span class="spacing"/>
-    <a href="hints/{@key}.xml">Hint <xsl:value-of select="@number"/></a>
+    <a href="hint/{@key}.xml">Hint <xsl:value-of select="@number"/></a>
   </xsl:template>
   
   <xsl:template match="prose">

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
+
+<page>
+  <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
+  <content>
+    <h2>Hint #{{hint.number}} for {{hint.puzzle}}</h2>
+    <p>{{hint.hint}}</p>
+  </content>
+</page>

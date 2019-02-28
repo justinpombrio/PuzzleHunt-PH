@@ -168,6 +168,16 @@ impl Database {
         rows.iter().map(Wave::from_row).collect()
     }
 
+    fn get_wave(&self, hunt_id: i32, wave_name: &str) -> Wave {
+        let rows = self.query(
+            "select * from Wave where hunt = $1 and name = $2;",
+            &[&hunt_id, &wave_name]);
+        if rows.len() != 1 {
+            panic!("Wave {} not found (or not unique)", wave_name);
+        }
+        Wave::from_row(rows.get(0))
+    }
+
     pub fn set_waves(&self, hunt_id: i32, waves: &Vec<Wave>) {
         self.execute("delete from Wave where hunt = $1", &[&hunt_id]);
         for wave in waves {
@@ -217,10 +227,13 @@ impl Database {
         let rows = self.query(
             "select * from Puzzle where hunt = $1 and wave = $2;",
             &[&hunt_id, &wave]);
-        rows.iter()
-            .map(|row| {
-                let puzzle = Puzzle::from_row(row);
-                PuzzleInfo {
+        let mut puzzles = vec!();
+        for row in &rows {
+            let puzzle = Puzzle::from_row(row);
+            let wave = self.get_wave(hunt_id, &puzzle.wave);
+            if wave.is_released() {
+                puzzles.push(PuzzleInfo {
+                    hints: self.get_hints(hunt_id, &puzzle.name),
                     name: puzzle.name,
                     number: puzzle.number,
                     hunt: hunt_id,
@@ -229,12 +242,10 @@ impl Database {
                     answer: puzzle.answer,
                     wave: puzzle.wave,
                     key: puzzle.key,
-                    released: true, // TODO: calculate
-                    hints: vec!() // TODO: fetch
-                }
-            })
-            .filter(|puzzle_info| puzzle_info.released)
-            .collect()
+                });
+            }
+        }
+        puzzles
     }
 
     pub fn get_all_puzzles(&self, hunt_id: i32) -> Vec<Puzzle> {
@@ -267,6 +278,17 @@ impl Database {
             hints.push(Hint::from_row(row));
         }
         hints
+    }
+
+    pub fn get_hint(&self, hunt_id: i32, hint_key: &str) -> Option<Hint> {
+        let rows = self.query(
+            "select * from Hint where hunt = $1 and key = $2;",
+            &[&hunt_id, &hint_key]);
+        if rows.len() == 1 {
+            Some(Hint::from_row(rows.get(0)))
+        } else {
+            None
+        }
     }
 
     

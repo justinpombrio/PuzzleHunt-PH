@@ -20,10 +20,12 @@ Basics:
           [x] Register New Team
           [x] View Your Team
           [x] Update team
-      [ ] Puzzles
-          [ ] Nested waves & puzzles
-          [ ] Hints
-          [ ] Release times
+      [x] Puzzles
+          [x] View puzzle page (waves/puzzles/hints)
+          [x] View hints
+          [x] Only show released puzzles
+          [L] Show puzzle points?
+          [x] Hide empty waves
       [ ] Stats
           [ ] Switchboard?
           [ ] Team Leaderboard
@@ -38,9 +40,10 @@ Basics:
           [L] Add booleans, once Mustache is less broken
           [L] Validate that hunt key is a-zA-Z-
       [x] Waves
-      [L] Puzzles
+      [ ] Puzzles
           [x] Edit puzzles
           [L] Upload puzzles (waiting until Rocket has multipart form support)
+          [ ] Edit hints
       [x] Teams
           [x] View all teams
           [x] Plaintext email list
