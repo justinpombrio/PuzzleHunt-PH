@@ -8,16 +8,16 @@
     <table>
       <tr>
         <th>Team</th>
-        <th>Guesses</th>
-        <th>Solve Time</th>
         <th>Score</th>
+        <th>Solve Time</th>
+        <th>Guesses</th>
       </tr>
       {{#stats}}
         <tr>
           <td>{{team}}</td>
-          <td>{{guesses}}</td>
-          <td>{{solveTime}}</td>
           <td>{{score}}</td>
+          <td>{{solveTime}}</td>
+          <td>{{guesses}}</td>
         </tr>
       {{/stats}}
     </table>

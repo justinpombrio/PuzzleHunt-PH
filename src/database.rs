@@ -327,7 +327,7 @@ impl Database {
             from Stats
             join Team on Stats.teamID = Team.teamID
             where Stats.hunt = $1 and Stats.puzzle = $2
-            order by Stats.solveTime desc",
+            order by Stats.score desc, Stats.solveTime asc",
                               &[&hunt_id, &puzzle_key]);
         rows.iter().map(|row| {
             StatInfo {

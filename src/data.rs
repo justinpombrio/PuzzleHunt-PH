@@ -495,7 +495,8 @@ impl DBTable for Team {
 
     fn test_init_query() -> &'static str {
 "insert into Team (hunt, password, name, guesses)
-values (1, 'pass', 'BestTeamEver', 50);"
+values (1, 'pass', 'BestTeamEver', 50),
+(2, 'pass', 'SecondBestTeam', 99);"
     }
 }
 
@@ -618,7 +619,7 @@ values (1, 1, 'Puzzle One', 'answer?', '2004-10-19 10:23:54');"
 pub struct StatInfo {
     pub team_name: String,
     pub guesses: i32,
-    pub solve_time: Option<i32>,
+    pub solve_time: Option<i32>, // in seconds
     pub score: i32
 }
 
@@ -629,7 +630,7 @@ impl TemplateData for StatInfo {
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         let solve_time = match self.solve_time {
             None => "None".to_string(),
-            Some(time) => format!("{}", time)
+            Some(time) => format!("{} mins", time / 60)
         };
         builder
             .insert_str("team",      self.team_name.clone())
@@ -646,7 +647,7 @@ pub struct Stat {
     pub puzzle: String,
     pub guesses: i32,
     pub solved_at: DateTime<Utc>,
-    pub solve_time: Option<i32>,
+    pub solve_time: Option<i32>, // in seconds
     pub score: i32
 }
 
@@ -683,6 +684,7 @@ impl DBTable for Stat {
 
     fn test_init_query() -> &'static str {
 "insert into Stats (teamId, hunt, puzzle, guesses, solvedAt, solveTime, score)
-values (1, 1, 'PPP', 50, '2004-10-19 10:23:54', 385, 10);"
+values (1, 1, 'PPP', 50, '2004-10-19 10:23:54', 385, 10),
+       (2, 1, 'PPP', 1, '2004-10-19 10:23:55', 386, 10);"
     }
 }
