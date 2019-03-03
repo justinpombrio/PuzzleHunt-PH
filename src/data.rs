@@ -279,6 +279,7 @@ impl TemplateData for PuzzleInfo {
     }
 }
 
+// TODO: Let's just make name the primary key
 #[derive(Debug, Clone)]
 pub struct Puzzle {
     pub name: String,
@@ -614,34 +615,44 @@ values (1, 1, 'Puzzle One', 'answer?', '2004-10-19 10:23:54');"
 ////// Stats //////
 
 #[derive(Debug, Clone)]
+pub struct StatInfo {
+    pub team_name: String,
+    pub guesses: i32,
+    pub solve_time: Option<i32>,
+    pub score: i32
+}
+
+impl TemplateData for StatInfo {
+    fn name()  -> &'static str { "stat" }
+    fn names() -> &'static str { "stats" }
+
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
+        let solve_time = match self.solve_time {
+            None => "None".to_string(),
+            Some(time) => format!("{}", time)
+        };
+        builder
+            .insert_str("team",      self.team_name.clone())
+            .insert_str("guesses",   format!("{}", self.guesses))
+            .insert_str("solveTime", solve_time)
+            .insert_str("score",     format!("{}", self.score))
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Stat {
     pub team_id: i32,
     pub hunt: i32,
     pub puzzle: String,
     pub guesses: i32,
     pub solved_at: DateTime<Utc>,
-    pub solve_time: i32,
+    pub solve_time: Option<i32>,
     pub score: i32
-}
-
-impl TemplateData for Stat {
-    fn name()  -> &'static str { "stat" }
-    fn names() -> &'static str { "stats" }
-
-    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
-        builder
-            .insert_str("teamID",    format!("{}", self.team_id))
-            .insert_str("hunt",      format!("{}", self.hunt))
-            .insert_str("puzzle",    format!("{}", self.puzzle))
-            .insert_str("guesses",   format!("{}", self.guesses))
-            .insert_str("solveTime", format!("{}", self.solve_time))
-            .insert_str("score",     format!("{}", self.score))
-    }
 }
 
 impl DBTable for Stat {
     fn from_row(row: Row) -> Stat {
-        Stat{
+        Stat {
             team_id:    row.get(0),
             hunt:       row.get(1),
             puzzle:     row.get(2),
@@ -671,7 +682,7 @@ impl DBTable for Stat {
     }
 
     fn test_init_query() -> &'static str {
-"insert into State (teamId, hunt, puzzle, guesses, solvedAt, solveTime, score)
-values (1, 1, 'Puzzle One', 50, '2004-10-19 10:23:54', 385, 10);"
+"insert into Stats (teamId, hunt, puzzle, guesses, solvedAt, solveTime, score)
+values (1, 1, 'PPP', 50, '2004-10-19 10:23:54', 385, 10);"
     }
 }

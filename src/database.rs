@@ -34,7 +34,6 @@ impl Database {
             Err(err) => panic!(
                 format!("Failed to execute query: {}", err)),
             Ok(rows) => {
-                println!("Query ok.");
                 rows
             }
         }
@@ -230,7 +229,7 @@ impl Database {
             let wave = self.get_wave(hunt_id, &puzzle.wave);
             if wave.is_released() {
                 puzzles.push(PuzzleInfo {
-                    hints: self.get_hints(hunt_id, &puzzle.name),
+                    hints: self.get_hints(hunt_id, &puzzle.key),
                     name: puzzle.name,
                     number: puzzle.number,
                     hunt: hunt_id,
@@ -243,6 +242,17 @@ impl Database {
             }
         }
         puzzles
+    }
+
+    pub fn get_puzzle(&self, hunt_id: i32, puzzle_key: &str) -> Option<Puzzle> {
+        let rows = self.query(
+            "select * from Puzzle where hunt = $1 and key = $2;",
+            &[&hunt_id, &puzzle_key]);
+        if rows.len() == 1 {
+            Some(Puzzle::from_row(rows.get(0)))
+        } else {
+            None
+        }
     }
 
     pub fn get_all_puzzles(&self, hunt_id: i32) -> Vec<Puzzle> {
@@ -306,6 +316,27 @@ impl Database {
         } else {
             None
         }
+    }
+
+
+    //// Puzzle Stats ////
+
+    pub fn get_puzzle_stats(&self, hunt_id: i32, puzzle_key: &str) -> Vec<StatInfo> {
+        let rows = self.query("
+            select Team.name, Stats.guesses, Stats.solveTime, Stats.score
+            from Stats
+            join Team on Stats.teamID = Team.teamID
+            where Stats.hunt = $1 and Stats.puzzle = $2
+            order by Stats.solveTime desc",
+                              &[&hunt_id, &puzzle_key]);
+        rows.iter().map(|row| {
+            StatInfo {
+                team_name: row.get(0),
+                guesses: row.get(1),
+                solve_time: row.get(2),
+                score: row.get(3)
+            }
+        }).collect()
     }
 
     

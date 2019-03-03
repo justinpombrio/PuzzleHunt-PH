@@ -36,6 +36,13 @@
     </li>
   </xsl:template>
 
+  <xsl:template match="puzzle-stats">
+    <li>
+      <xsl:value-of select="@number"/>.
+      <a href="?puzzle={@key}"><xsl:value-of select="@name"/></a>
+    </li>
+  </xsl:template>
+
   <xsl:template match="hint">
     <span class="spacing"/>
     <a href="hint/{@key}.xml">Hint <xsl:value-of select="@number"/></a>
@@ -229,8 +236,8 @@
               <a href="index.xml"><xsl:value-of select="hunt"/></a>
             </li>
             <li class="nav2"><a href="team.xml">Team</a></li>
-            <li class="nav3"><a href="team-leaderboard.xml">Leaderboard</a></li>
-            <li class="nav4"><a href="puzzle-leaderboard.xml">Puzzle Stats</a></li>
+            <li class="nav3"><a href="leaderboard.xml">Leaderboard</a></li>
+            <li class="nav4"><a href="puzzle-stats.xml">Puzzle Stats</a></li>
             <li class="nav5"><a href="puzzles.xml">Puzzles</a></li>
           </xsl:if>
           <xsl:if test="@page-type = 'admin'">

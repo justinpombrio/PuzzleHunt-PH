@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
+
+<page>
+  <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
+  <title>{{puzzle.name}}</title>
+  <prose>
+    <table>
+      <tr>
+        <th>Team</th>
+        <th>Guesses</th>
+        <th>Solve Time</th>
+        <th>Score</th>
+      </tr>
+      {{#stats}}
+        <tr>
+          <td>{{team}}</td>
+          <td>{{guesses}}</td>
+          <td>{{solveTime}}</td>
+          <td>{{score}}</td>
+        </tr>
+      {{/stats}}
+    </table>
+  </prose>
+</page>

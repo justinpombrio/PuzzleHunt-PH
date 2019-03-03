@@ -31,7 +31,7 @@ Basics:
       [ ] Stats
           [ ] Switchboard?
           [ ] Team Leaderboard
-          [ ] Puzzle Leaderboard
+          [x] Puzzle Leaderboard
   [L] Admin pages
       [L] Login/logout
           [x] Sign In
@@ -42,10 +42,10 @@ Basics:
           [L] Add booleans, once Mustache is less broken
           [L] Validate that hunt key is a-zA-Z-
       [x] Waves
-      [ ] Puzzles
+      [x] Puzzles
           [x] Edit puzzles
           [L] Upload puzzles (waiting until Rocket has multipart form support)
-          [ ] Edit hints
+          [x] Edit hints
       [x] Teams
           [x] View all teams
           [x] Plaintext email list

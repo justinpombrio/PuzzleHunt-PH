@@ -83,9 +83,10 @@ p.subtitle { font-style: italic;
 
 p, ol, ul, th, td { font-size: 1.4rem; }
 
-th {
+th, td {
     padding-left: 0.3em;
     padding-right: 0.3em;
+    text-align: left;
 }
 
 table.grid, table.grid th, table.grid td {

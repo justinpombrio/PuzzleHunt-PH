@@ -265,6 +265,9 @@ fn get_hunt(hunt_key: String) -> Xml<String> {
     render_xml(format!("hunts/{}/index.xml", hunt.key), vec!(&hunt))
 }
 
+
+// Puzzles //
+
 #[get("/<hunt_key>/puzzles.xml", rank=1)]
 fn get_puzzles(hunt_key: String) -> Xml<String> {
     let db = Database::new();
@@ -394,6 +397,29 @@ fn post_your_team(hunt_key: String, form: UpdateTeamForm) -> Xml<String> {
     render_xml("pages/puzzler/your-team.xml", vec!(&hunt, &team))
 }
 
+// Puzzle Stats
+
+#[get("/<hunt_key>/puzzle-stats.xml", rank=1)]
+fn get_puzzle_stats_overview(hunt_key: String) -> Xml<String> {
+    let db = Database::new();
+    let hunt = db.get_hunt(&hunt_key);
+    let waves: Vec<_> = db.get_wave_infos(hunt.id)
+        .into_iter()
+        .filter(|w| w.puzzles.len() > 0)
+        .collect();
+    render_xml("pages/puzzler/puzzle-stats-overview.xml", vec!(&hunt, &waves))
+}
+
+#[get("/<hunt_key>/puzzle-stats.xml?<puzzle>")]
+fn get_puzzle_stats(hunt_key: String, puzzle: String) -> Xml<String> {
+    let puzzle_key: &str = &puzzle;
+    let db = Database::new();
+    let hunt = db.get_hunt(&hunt_key);
+    let puzzle = db.get_puzzle(hunt.id, &puzzle_key).expect("Puzzle not found");
+    let stats = db.get_puzzle_stats(hunt.id, &puzzle_key);
+    render_xml("pages/puzzler/puzzle-stats.xml", vec!(&hunt, &puzzle, &stats))
+}
+
 
 // Rocket //
 
@@ -417,6 +443,8 @@ pub fn start() {
         // Puzzles
         get_puzzles, get_puzzle,
         get_hint,
+        // Puzzle Stats
+        get_puzzle_stats_overview, get_puzzle_stats,
         // Admin Signin
         get_admin, get_admin_signin, post_admin_signin,
         get_admin_signout, post_admin_signout,
