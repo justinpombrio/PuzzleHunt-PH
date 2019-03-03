@@ -4,11 +4,6 @@
 <page>
   <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
   <title>Puzzles</title>
-  <content>
-    <p>
-      Without further ado, here are... the... puzzles!
-    </p>
-  </content>
   <waves>
     {{#waves}}
     <wave name="{{name}}">

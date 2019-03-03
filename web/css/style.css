@@ -170,6 +170,11 @@ ul.puzzle-list {
     margin: 0;
 }
 
+.delete-mark {
+    color: #ff4444;
+    text-decoration: none;
+}
+
 span.spacing {
     padding-left: 0.7em;
     padding-right: 0.7em;

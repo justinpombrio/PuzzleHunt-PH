@@ -19,13 +19,12 @@
   <!-- Puzzle List -->
   
   <xsl:template match="waves">
-    <h2>Puzzles</h2>
     <xsl:apply-templates select="*"/>
   </xsl:template>
   
   <xsl:template match="wave">
     <p>
-      <xsl:value-of select="@name"/>:
+      <h3><xsl:value-of select="@name"/>:</h3>
       <ul class="puzzle-list"><xsl:apply-templates select="*"/></ul>
     </p>
   </xsl:template>
@@ -130,7 +129,7 @@
               </td>
             </xsl:for-each>
             <td>
-              <a href="#" onclick="deleteRow(this)">Delete</a>
+              <a href="#" onclick="deleteRow(this)" class="delete-mark">✘</a>
             </td>
           </tr>
         </tbody>
