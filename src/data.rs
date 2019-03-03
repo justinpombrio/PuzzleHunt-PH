@@ -611,61 +611,6 @@ values (1, 1, 'Puzzle One', 'answer?', '2004-10-19 10:23:54');"
 }
 
 
-////// Solves //////
-
-#[derive(Debug, Clone)]
-pub struct Solve {
-    pub team_id: i32,
-    pub hunt: i32,
-    pub puzzle: String,
-    pub time: DateTime<Utc>
-}
-
-impl TemplateData for Solve {
-    fn name()  -> &'static str { "solve" }
-    fn names() -> &'static str { "solves" }
-
-    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
-        builder
-            .insert_str("teamID", format!("{}", self.team_id))
-            .insert_str("hunt",   format!("{}", self.hunt))
-            .insert_str("puzzle", self.puzzle.clone())
-            .insert_str("time",   format!("{}", self.time))
-    }
-}
-
-impl DBTable for Solve {
-    fn from_row(row: Row) -> Solve {
-        Solve{
-            team_id: row.get(0),
-            hunt:    row.get(1),
-            puzzle:  row.get(2),
-            time:    row.get(3)
-        }
-    }
-    
-    fn drop_query() -> &'static str {
-        "drop table if exists Solve;"
-    }
-
-    fn init_query() -> &'static str {
-"create table Solve (
-  teamID int NOT NULL,
-  hunt int NOT NULL,
-  puzzle varchar NOT NULL,
-  time timestamp with time zone NOT NULL,
-  primary key (teamID, puzzle)
-);
-"
-    }
-
-    fn test_init_query() -> &'static str {
-"insert into Solve (teamID, hunt, puzzle, time)
-values (1, 1, 'Puzzle One', '2004-10-19 10:23:54');"
-    }
-}
-
-
 ////// Stats //////
 
 #[derive(Debug, Clone)]
@@ -673,9 +618,10 @@ pub struct Stat {
     pub team_id: i32,
     pub hunt: i32,
     pub puzzle: String,
-    pub score: i32,
+    pub guesses: i32,
+    pub solved_at: DateTime<Utc>,
     pub solve_time: i32,
-    pub guesses: i32
+    pub score: i32
 }
 
 impl TemplateData for Stat {
@@ -687,9 +633,9 @@ impl TemplateData for Stat {
             .insert_str("teamID",    format!("{}", self.team_id))
             .insert_str("hunt",      format!("{}", self.hunt))
             .insert_str("puzzle",    format!("{}", self.puzzle))
-            .insert_str("score",     format!("{}", self.score))
-            .insert_str("solveTime", format!("{}", self.solve_time))
             .insert_str("guesses",   format!("{}", self.guesses))
+            .insert_str("solveTime", format!("{}", self.solve_time))
+            .insert_str("score",     format!("{}", self.score))
     }
 }
 
@@ -699,9 +645,10 @@ impl DBTable for Stat {
             team_id:    row.get(0),
             hunt:       row.get(1),
             puzzle:     row.get(2),
+            guesses:    row.get(6),
+            solved_at:  row.get(4),
+            solve_time: row.get(5),
             score:      row.get(3),
-            solve_time: row.get(4),
-            guesses:    row.get(5)
         }
     }
 
@@ -714,16 +661,17 @@ impl DBTable for Stat {
   teamID int NOT NULL,
   hunt int NOT NULL,
   puzzle varchar NOT NULL,
-  score int NOT NULL,
-  solveTime int,
   guesses int NOT NULL,
+  solvedAt timestamp with time zone NOT NULL,
+  solveTime int,
+  score int NOT NULL,
   primary key (teamID, puzzle)
 );
 "
     }
 
     fn test_init_query() -> &'static str {
-"insert into Stats (teamId, hunt, puzzle, score, solveTime, guesses)
-values (1, 1, 'Puzzle One', 10, 385, 50);"
+"insert into State (teamId, hunt, puzzle, guesses, solvedAt, solveTime, score)
+values (1, 1, 'Puzzle One', 50, '2004-10-19 10:23:54', 385, 10);"
     }
 }

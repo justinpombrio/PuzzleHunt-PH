@@ -50,7 +50,6 @@ impl Database {
         self.execute(Team::drop_query(), &[]);
         self.execute(Member::drop_query(), &[]);
         self.execute(Guess::drop_query(), &[]);
-        self.execute(Solve::drop_query(), &[]);
         self.execute(Stat::drop_query(), &[]);
         // Initialize tables
         self.execute(Site::init_query(), &[]);
@@ -61,7 +60,6 @@ impl Database {
         self.execute(Team::init_query(), &[]);
         self.execute(Member::init_query(), &[]);
         self.execute(Guess::init_query(), &[]);
-        self.execute(Solve::init_query(), &[]);
         self.execute(Stat::init_query(), &[]);
     }
 
@@ -74,7 +72,6 @@ impl Database {
         self.execute(Team::test_init_query(), &[]);
         self.execute(Member::test_init_query(), &[]);
         self.execute(Guess::test_init_query(), &[]);
-        self.execute(Solve::test_init_query(), &[]);
         self.execute(Stat::test_init_query(), &[]);
     }
 
