@@ -31,7 +31,6 @@
   
   <xsl:template match="puzzle">
     <li>
-      <xsl:value-of select="@number"/>.
       <a href="puzzle/{@key}"><xsl:value-of select="@name"/><xsl:apply-templates select="*"/></a>
     </li>
   </xsl:template>

@@ -119,13 +119,12 @@ impl ExpandableForm for Puzzles {
     }
     
     fn member_parts() -> Vec<&'static str> {
-        vec!("name", "number", "basePoints", "answer", "wave", "key")
+        vec!("name", "basePoints", "answer", "wave", "key")
     }
     
     fn new_member(map: &HashMap<String, String>) -> Puzzle {
         Puzzle {
             name: map["name"].to_string(),
-            number: map["number"].to_string(),
             hunt: 0,
             base_points: map["basePoints"].parse()
                 .expect("Could not parse `basePoints`"),

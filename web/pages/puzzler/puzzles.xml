@@ -9,7 +9,7 @@
     <wave name="{{name}}">
       <puzzles>
         {{#puzzles}}
-        <puzzle name="{{name}}" number="{{number}}" key="{{key}}">
+        <puzzle name="{{name}}" key="{{key}}">
           {{#hints}}
           <hint name="{{name}}" key="{{key}}" number="{{number}}"/>
           {{/hints}}

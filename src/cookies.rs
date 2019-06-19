@@ -33,7 +33,6 @@ impl Database {
         };
         cookies.remove_private(Cookie::named("team_id"));
         cookies.add_private(Cookie::new("team_id", format!("{}", team_id)));
-        println!("Added cookie {}={}", "team_id", format!("{}", team_id));
         true
     }
 

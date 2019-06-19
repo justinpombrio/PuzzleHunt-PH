@@ -252,7 +252,6 @@ values ('Wave One', 1, '2004-10-19 10:23:54', 10);"
 #[derive(Debug, Clone)]
 pub struct PuzzleInfo {
     pub name: String,
-    pub number: String,
     pub hunt: i32,
     pub base_points: i32,
     pub current_points: i32,
@@ -269,7 +268,6 @@ impl TemplateData for PuzzleInfo {
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
             .insert_str("name",          self.name.clone())
-            .insert_str("number",        self.number.clone())
             .insert_str("hunt",          format!("{}", self.hunt))
             .insert_str("basePoints",    format!("{}", self.base_points))
             .insert_str("currentPoints", format!("{}", self.current_points))
@@ -283,7 +281,6 @@ impl TemplateData for PuzzleInfo {
 #[derive(Debug, Clone)]
 pub struct Puzzle {
     pub name: String,
-    pub number: String,
     pub hunt: i32,
     pub base_points: i32,
     pub answer: String,
@@ -298,7 +295,6 @@ impl TemplateData for Puzzle {
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
             .insert_str("name",          self.name.clone())
-            .insert_str("number",        self.number.clone())
             .insert_str("hunt",          format!("{}", self.hunt))
             .insert_str("basePoints",    format!("{}", self.base_points))
             .insert_str("answer",        self.answer.clone())
@@ -311,12 +307,11 @@ impl DBTable for Puzzle {
     fn from_row(row: Row) -> Puzzle {
         Puzzle{
             name:           row.get(0),
-            number:         row.get(1),
-            hunt:           row.get(2),
-            base_points:    row.get(3),
-            answer:         row.get(4),
-            wave:           row.get(5),
-            key:            row.get(6)
+            hunt:           row.get(1),
+            base_points:    row.get(2),
+            answer:         row.get(3),
+            wave:           row.get(4),
+            key:            row.get(5)
         }
     }
 
@@ -327,7 +322,6 @@ impl DBTable for Puzzle {
     fn init_query() -> &'static str {
 "create table Puzzle (
   name varchar primary key NOT NULL,
-  number varchar NOT NULL,
   hunt int NOT NULL,
   basePoints int NOT NULL,
   answer varchar NOT NULL,
@@ -338,10 +332,10 @@ impl DBTable for Puzzle {
     }
 
     fn test_init_query() -> &'static str {
-"insert into Puzzle (name, number, hunt, basePoints, answer, wave, key)
-values ('Puzzle One', '#1', 1, 2, 'answer1', 'Wave One', 'PPP'),
-       ('Puzzle Two', '#2', 1, 3, 'answer2', 'Wave One', 'QQQ'),
-       ('Puzzle Three', '#3', 1, 3, 'answer3', 'Wave One', 'RRR');"
+"insert into Puzzle (name, hunt, basePoints, answer, wave, key)
+values ('Puzzle Two', 1, 3, 'answer2', 'Wave One', 'QQQ'),
+       ('Puzzle One', 1, 2, 'answer1', 'Wave One', 'PPP'),
+       ('Puzzle Three', 1, 3, 'answer3', 'Wave One', 'RRR');"
     }
 }
 
@@ -705,7 +699,6 @@ impl TemplateData for TeamStats {
 pub struct PuzzleStats {
     pub wave_name: String,
     pub puzzle_name: String,
-    pub puzzle_number: String,
     pub puzzle_key: String,
     pub guesses: i32,
     pub solves: i32,
@@ -729,7 +722,6 @@ impl TemplateData for PuzzleStats {
         builder
             .insert_str("wave", self.wave_name.clone())
             .insert_str("name", self.puzzle_name.clone())
-            .insert_str("number", self.puzzle_number.clone())
             .insert_str("key", self.puzzle_key.clone())
             .insert_str("guesses", format!("{}", self.guesses))
             .insert_str("solves", format!("{}", self.solves))

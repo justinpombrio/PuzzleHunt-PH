@@ -231,7 +231,6 @@ impl Database {
                 puzzles.push(PuzzleInfo {
                     hints: self.get_hints(hunt_id, &puzzle.key),
                     name: puzzle.name,
-                    number: puzzle.number,
                     hunt: hunt_id,
                     base_points: puzzle.base_points,
                     current_points: puzzle.base_points, // TODO: calculate
@@ -269,8 +268,8 @@ impl Database {
     pub fn set_puzzles(&self, hunt_id: i32, puzzles: &Vec<Puzzle>) {
         self.execute("delete from Puzzle where hunt = $1", &[&hunt_id]);
         for puzzle in puzzles {
-            self.execute("insert into Puzzle values ($1, $2, $3, $4, $5, $6, $7)",
-                         &[&puzzle.name, &puzzle.number, &hunt_id,
+            self.execute("insert into Puzzle values ($1, $3, $4, $5, $6, $7)",
+                         &[&puzzle.name, &hunt_id,
                            &puzzle.base_points, &puzzle.answer,
                            &puzzle.wave, &puzzle.key]);
         }
@@ -333,12 +332,11 @@ impl Database {
 
     fn get_puzzle_stats_for_wave(&self, hunt_id: i32, wave: &str) -> Vec<PuzzleStats> {
         let rows = self.query(
-            "select key, number, name from Puzzle where hunt = $1 and wave = $2",
+            "select key, name from Puzzle where hunt = $1 and wave = $2",
             &[&hunt_id, &wave]);
         rows.into_iter().map(|row| {
             let puzzle_key = row.get(0);
-            let puzzle_number = row.get(1);
-            let puzzle_name = row.get(2);
+            let puzzle_name = row.get(1);
             let guesses: i64 = self.query(
                 "select count(*) from Guess where hunt = $1 and puzzleKey = $2",
                 &[&hunt_id, &puzzle_key])
@@ -351,7 +349,6 @@ impl Database {
             PuzzleStats {
                 wave_name: wave.to_string(),
                 puzzle_name,
-                puzzle_number,
                 puzzle_key,
                 guesses: guesses as i32,
                 solves: solves as i32,
