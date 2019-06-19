@@ -31,9 +31,10 @@ Basics:
           [ ] Only show released hints
       [ ] Submit answers
       [ ] Stats
-          [ ] Switchboard?
-          [ ] Team Leaderboard
+          [x] Team Leaderboard
           [x] Puzzle Leaderboard
+          [ ] Sort Leaderboard
+          [ ] Sort puzzles
   [L] Admin pages
       [L] Login/logout
           [x] Sign In

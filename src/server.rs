@@ -403,8 +403,8 @@ fn post_your_team(hunt_key: String, form: UpdateTeamForm) -> Xml<String> {
 fn get_puzzle_stats(hunt_key: String) -> Xml<String> {
     let db = Database::new();
     let hunt = db.get_hunt(&hunt_key);
-    let waves: Vec<_> = db.get_wave_stats(hunt.id);
-    render_xml("pages/puzzler/puzzle-stats.xml", vec!(&hunt, &waves))
+    let stats: Vec<_> = db.get_puzzle_stats(hunt.id);
+    render_xml("pages/puzzler/puzzle-stats.xml", vec!(&hunt, &stats))
 }
 
 #[get("/<hunt_key>/leaderboard.xml", rank=1)]

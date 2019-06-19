@@ -321,14 +321,14 @@ impl Database {
 
     //// Wave/Puzzle Stats ////
 
-    pub fn get_wave_stats(&self, hunt_id: i32) -> Vec<WaveStats> {
-        let waves = self.get_waves(hunt_id);
-        waves.into_iter().map(|wave| {
-            WaveStats {
-                puzzles: self.get_puzzle_stats_for_wave(hunt_id, &wave.name),
-                name: wave.name,
-            }
-        }).collect()
+    pub fn get_puzzle_stats(&self, hunt_id: i32) -> Vec<PuzzleStats> {
+        self.get_waves(hunt_id)
+            .into_iter()
+            .filter(|wave| wave.is_released())
+            .flat_map(|wave| {
+                self.get_puzzle_stats_for_wave(hunt_id, &wave.name)
+            })
+            .collect()
     }
 
     fn get_puzzle_stats_for_wave(&self, hunt_id: i32, wave: &str) -> Vec<PuzzleStats> {
@@ -349,6 +349,7 @@ impl Database {
             let solves: i64 = rows.get(0).get(0);
             let total_solve_time: Option<i64> = rows.get(0).get(1);
             PuzzleStats {
+                wave_name: wave.to_string(),
                 puzzle_name,
                 puzzle_number,
                 puzzle_key,

@@ -36,16 +36,6 @@
     </li>
   </xsl:template>
 
-  <xsl:template match="puzzle-stats">
-    <li>
-      <xsl:value-of select="@number"/>.
-      <a href="puzzle={@key}"><xsl:value-of select="@name"/></a>
-      Guesses: <xsl:value-of select="@guesses"/>
-      Solves: <xsl:value-of select="@solves"/>
-      A.S.T.: <xsl:value-of select="@avgSolveTime"/>
-    </li>
-  </xsl:template>
-
   <xsl:template match="hint">
     <span class="spacing"/>
     <a href="hint/{@key}.xml">Hint <xsl:value-of select="@number"/></a>

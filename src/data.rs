@@ -700,30 +700,10 @@ impl TemplateData for TeamStats {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct WaveStats {
-    pub name: String,
-    pub puzzles: Vec<PuzzleStats>
-}
-
-impl TemplateData for WaveStats {
-    fn name() -> &'static str {
-        "wave"
-    }
-    fn names() -> &'static str {
-        "waves"
-    }
-
-    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
-        builder
-            .insert_str("name", self.name.to_string())
-            .insert_vec("puzzles", |b| vec_to_data(&self.puzzles, b))
-    }
-}
-
 
 #[derive(Debug, Clone)]
 pub struct PuzzleStats {
+    pub wave_name: String,
     pub puzzle_name: String,
     pub puzzle_number: String,
     pub puzzle_key: String,
@@ -747,6 +727,7 @@ impl TemplateData for PuzzleStats {
             format!("{} mins", self.total_solve_time / self.solves / 60)
         };
         builder
+            .insert_str("wave", self.wave_name.clone())
             .insert_str("name", self.puzzle_name.clone())
             .insert_str("number", self.puzzle_number.clone())
             .insert_str("key", self.puzzle_key.clone())

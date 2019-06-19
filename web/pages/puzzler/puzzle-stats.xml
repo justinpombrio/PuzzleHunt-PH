@@ -4,16 +4,24 @@
 <page>
   <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
   <title>Puzzle Stats</title>
-  <waves>
-    {{#waves}}
-    <wave name="{{name}}">
-      <puzzles>
-        {{#puzzles}}
-        <puzzle-stats name="{{name}}" number="{{number}}" key="{{key}}"
-                      guesses="{{guesses}}" solves="{{solves}}" avgSolveTime="{{avgSolveTime}}"/>
-        {{/puzzles}}
-      </puzzles>
-    </wave>
-    {{/waves}}
-  </waves>
+  <prose>
+    <table>
+      <tr>
+        <th>Wave</th>
+        <th>Puzzle</th>
+        <th>Guesses</th>
+        <th>Solves</th>
+        <th>Avg. Solve Time</th>
+      </tr>
+      {{#stats}}
+      <tr>
+        <td>{{wave}}</td>
+        <td><a href="puzzle/{{key}}">{{number}}. {{name}}</a></td>
+        <td>{{guesses}}</td>
+        <td>{{solves}}</td>
+        <td>{{avgSolveTime}}</td>
+      </tr>
+      {{/stats}}
+    </table>
+  </prose>
 </page>
