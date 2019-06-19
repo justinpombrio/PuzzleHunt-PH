@@ -344,7 +344,7 @@ values ('Puzzle Two', 1, 3, 'answer2', 'Wave One', 'QQQ'),
 
 #[derive(Debug, Clone)]
 pub struct HintInfo {
-    pub puzzle: String,
+    pub puzzle_key: String,
     pub number: i32,
     pub hunt: i32,
     pub penalty: i32,
@@ -359,7 +359,7 @@ impl TemplateData for HintInfo {
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
-            .insert_str("puzzle",    self.puzzle.clone())
+            .insert_str("puzzleKey", self.puzzle_key.clone())
             .insert_str("number",    format!("{}", self.number))
             .insert_str("hunt",      format!("{}", self.hunt))
             .insert_str("penalty",   format!("{}", self.penalty))
@@ -372,7 +372,7 @@ impl TemplateData for HintInfo {
 #[derive(Debug, Clone)]
 pub struct Hint {
     pub hint: String,
-    pub puzzle: String,
+    pub puzzle_key: String,
     pub number: i32,
     pub hunt: i32,
     pub penalty: i32,
@@ -387,7 +387,7 @@ impl TemplateData for Hint {
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
             .insert_str("hint",      self.hint.clone())
-            .insert_str("puzzle",    self.puzzle.clone())
+            .insert_str("puzzleKey", self.puzzle_key.clone())
             .insert_str("number",    format!("{}", self.number))
             .insert_str("hunt",      format!("{}", self.hunt))
             .insert_str("penalty",   format!("{}", self.penalty))
@@ -399,13 +399,13 @@ impl TemplateData for Hint {
 impl DBTable for Hint {
     fn from_row(row: Row) -> Hint {
         Hint{
-            hint:     row.get(0),
-            puzzle:   row.get(1),
-            number:   row.get(2),
-            hunt:     row.get(3),
-            penalty:  row.get(4),
-            wave:     row.get(5),
-            key:      row.get(6)
+            hint:       row.get(0),
+            puzzle_key: row.get(1),
+            number:     row.get(2),
+            hunt:       row.get(3),
+            penalty:    row.get(4),
+            wave:       row.get(5),
+            key:        row.get(6)
         }
     }
 
@@ -416,20 +416,20 @@ impl DBTable for Hint {
     fn init_query() -> &'static str {
 "create table Hint (
   hint varchar NOT NULL,
-  puzzle varchar NOT NULL,
+  puzzleKey varchar NOT NULL,
   number int NOT NULL,
   hunt int NOT NULL,
   penalty int NOT NULL,
   wave varchar NOT NULL,
   key varchar NOT NULL,
-  primary key (hunt, puzzle)
+  primary key (hunt, puzzleKey)
 );
 "        
     }
 
     fn test_init_query() -> &'static str {
-"insert into Hint (hint, puzzle, number, hunt, penalty, wave, key)
-values ('The answer is \"answer\".', 'Puzzle One', 1, 1, 1, 'Wave One', 'HHH');"
+"insert into Hint (hint, puzzleKey, number, hunt, penalty, wave, key)
+values ('The answer is \"answer\".', 'PPP', 1, 1, 1, 'Wave One', 'HHH');"
     }
 }
 

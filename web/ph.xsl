@@ -37,7 +37,7 @@
 
   <xsl:template match="hint">
     <span class="spacing"/>
-    <a href="hint/{@key}.xml">Hint <xsl:value-of select="@number"/></a>
+    <a href="hint/{@key}.xml">[hint <xsl:value-of select="@number"/>]</a>
   </xsl:template>
   
   <xsl:template match="prose">

@@ -275,11 +275,11 @@ impl Database {
         }
     }
 
-    pub fn get_hints(&self, hunt_id: i32, puzzle: &str) -> Vec<Hint> {
+    pub fn get_hints(&self, hunt_id: i32, puzzle_key: &str) -> Vec<Hint> {
         let mut hints: Vec<Hint> = vec!();
         let rows = self.query(
-            "select * from Hint where hunt = $1 and puzzle = $2;",
-            &[&hunt_id, &puzzle]);
+            "select * from Hint where hunt = $1 and puzzleKey = $2;",
+            &[&hunt_id, &puzzle_key]);
         for row in &rows {
             hints.push(Hint::from_row(row));
         }
@@ -290,7 +290,7 @@ impl Database {
         self.execute("delete from Hint where hunt = $1", &[&hunt_id]);
         for hint in hints {
             self.execute("insert into Hint values ($1, $2, $3, $4, $5, $6, $7)",
-                         &[&hint.hint, &hint.puzzle, &hint.number,
+                         &[&hint.hint, &hint.puzzle_key, &hint.number,
                            &hunt_id, &hint.penalty, &hint.wave, &hint.key]);
         }
     }

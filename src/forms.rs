@@ -162,7 +162,7 @@ impl ExpandableForm for Hints {
     fn new_member(map: &HashMap<String, String>) -> Hint {
         Hint {
             hint: map["hint"].to_string(),
-            puzzle: map["puzzle"].to_string(),
+            puzzle_key: map["puzzleKey"].to_string(),
             number: map["number"].parse()
                 .expect("Could not parse `number`"),
             hunt: 0,
