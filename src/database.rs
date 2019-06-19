@@ -49,7 +49,7 @@ impl Database {
         self.execute(Team::drop_query(), &[]);
         self.execute(Member::drop_query(), &[]);
         self.execute(Guess::drop_query(), &[]);
-        self.execute(Stat::drop_query(), &[]);
+        self.execute(Solve::drop_query(), &[]);
         // Initialize tables
         self.execute(Site::init_query(), &[]);
         self.execute(Hunt::init_query(), &[]);
@@ -59,7 +59,7 @@ impl Database {
         self.execute(Team::init_query(), &[]);
         self.execute(Member::init_query(), &[]);
         self.execute(Guess::init_query(), &[]);
-        self.execute(Stat::init_query(), &[]);
+        self.execute(Solve::init_query(), &[]);
     }
 
     pub fn init_test(&self) {
@@ -71,7 +71,7 @@ impl Database {
         self.execute(Team::test_init_query(), &[]);
         self.execute(Member::test_init_query(), &[]);
         self.execute(Guess::test_init_query(), &[]);
-        self.execute(Stat::test_init_query(), &[]);
+        self.execute(Solve::test_init_query(), &[]);
     }
 
     
@@ -319,24 +319,76 @@ impl Database {
     }
 
 
-    //// Puzzle Stats ////
+    //// Wave/Puzzle Stats ////
 
-    pub fn get_puzzle_stats(&self, hunt_id: i32, puzzle_key: &str) -> Vec<StatInfo> {
-        let rows = self.query("
-            select Team.name, Stats.guesses, Stats.solveTime, Stats.score
-            from Stats
-            join Team on Stats.teamID = Team.teamID
-            where Stats.hunt = $1 and Stats.puzzle = $2
-            order by Stats.score desc, Stats.solveTime asc",
-                              &[&hunt_id, &puzzle_key]);
-        rows.iter().map(|row| {
-            StatInfo {
-                team_name: row.get(0),
-                guesses: row.get(1),
-                solve_time: row.get(2),
-                score: row.get(3)
+    pub fn get_wave_stats(&self, hunt_id: i32) -> Vec<WaveStats> {
+        let waves = self.get_waves(hunt_id);
+        waves.into_iter().map(|wave| {
+            WaveStats {
+                puzzles: self.get_puzzle_stats_for_wave(hunt_id, &wave.name),
+                name: wave.name,
             }
         }).collect()
+    }
+
+    fn get_puzzle_stats_for_wave(&self, hunt_id: i32, wave: &str) -> Vec<PuzzleStats> {
+        let rows = self.query(
+            "select key, number, name from Puzzle where hunt = $1 and wave = $2",
+            &[&hunt_id, &wave]);
+        rows.into_iter().map(|row| {
+            let puzzle_key = row.get(0);
+            let puzzle_number = row.get(1);
+            let puzzle_name = row.get(2);
+            let guesses: i64 = self.query(
+                "select count(*) from Guess where hunt = $1 and puzzleKey = $2",
+                &[&hunt_id, &puzzle_key])
+                .get(0).get(0);
+            let rows = self.query(
+                "select count(*), sum(solveTime) from Solve where hunt = $1 and puzzleKey = $2",
+                &[&hunt_id, &puzzle_key]);
+            let solves: i64 = rows.get(0).get(0);
+            let total_solve_time: Option<i64> = rows.get(0).get(1);
+            PuzzleStats {
+                puzzle_name,
+                puzzle_number,
+                puzzle_key,
+                guesses: guesses as i32,
+                solves: solves as i32,
+                total_solve_time: total_solve_time.unwrap_or(0) as i32
+            }
+        }).collect()
+    }
+
+    
+    //// Team Stats ////
+    
+    pub fn get_all_team_stats(&self, hunt_id: i32) -> Vec<TeamStats> {
+        self.get_all_team_ids_and_names(hunt_id)
+            .into_iter()
+            .map(|(id, name)| self.get_team_stats(hunt_id, id, name))
+            .collect()
+    }
+
+    fn get_team_stats(&self, hunt_id: i32, team_id: i32, team_name: String) -> TeamStats {
+        println!("!!!TEAM {}:{}", team_id, team_name);
+        let rows = self.query(
+            "select count(*) from Guess where hunt = $1 and teamID = $2",
+            &[&hunt_id, &team_id]);
+        let guesses: i64 = rows.get(0).get(0);
+        let rows = self.query(
+            "select count(*), sum(solveTime), sum(score) from Solve where hunt = $1 and teamID = $2",
+            &[&hunt_id, &team_id]);
+        let row = rows.get(0);
+        let solves: i64 = row.get(0);
+        let total_solve_time: Option<i64> = row.get(1);
+        let score: Option<i64> = row.get(2);
+        TeamStats {
+            team_name,
+            guesses: guesses as i32,
+            solves: solves as i32,
+            total_solve_time: total_solve_time.unwrap_or(0) as i32,
+            score: score.unwrap_or(0) as i32
+        }
     }
 
     
@@ -379,6 +431,13 @@ impl Database {
         } else {
             None
         }
+    }
+
+    pub fn get_all_team_ids_and_names(&self, hunt_id: i32) -> Vec<(i32, String)> {
+        let rows = self.query(
+            "select teamID, name from Team where hunt = $1",
+            &[&hunt_id]);
+        rows.into_iter().map(|row| (row.get(0), row.get(1))).collect()
     }
 
     pub fn get_team_by_id(&self, team_id: i32) -> Option<Team> {

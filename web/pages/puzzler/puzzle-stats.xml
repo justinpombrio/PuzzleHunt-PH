@@ -3,23 +3,17 @@
 
 <page>
   <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
-  <title>{{puzzle.name}}</title>
-  <prose>
-    <table>
-      <tr>
-        <th>Team</th>
-        <th>Score</th>
-        <th>Solve Time</th>
-        <th>Guesses</th>
-      </tr>
-      {{#stats}}
-        <tr>
-          <td>{{team}}</td>
-          <td>{{score}}</td>
-          <td>{{solveTime}}</td>
-          <td>{{guesses}}</td>
-        </tr>
-      {{/stats}}
-    </table>
-  </prose>
+  <title>Puzzle Stats</title>
+  <waves>
+    {{#waves}}
+    <wave name="{{name}}">
+      <puzzles>
+        {{#puzzles}}
+        <puzzle-stats name="{{name}}" number="{{number}}" key="{{key}}"
+                      guesses="{{guesses}}" solves="{{solves}}" avgSolveTime="{{avgSolveTime}}"/>
+        {{/puzzles}}
+      </puzzles>
+    </wave>
+    {{/waves}}
+  </waves>
 </page>

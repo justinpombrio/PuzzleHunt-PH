@@ -427,7 +427,8 @@ impl DBTable for Hint {
   hunt int NOT NULL,
   penalty int NOT NULL,
   wave varchar NOT NULL,
-  key varchar NOT NULL
+  key varchar NOT NULL,
+  primary key (hunt, puzzle)
 );
 "        
     }
@@ -496,7 +497,7 @@ impl DBTable for Team {
     fn test_init_query() -> &'static str {
 "insert into Team (hunt, password, name, guesses)
 values (1, 'pass', 'BestTeamEver', 50),
-(2, 'pass', 'SecondBestTeam', 99);"
+(1, 'pass', 'SecondBestTeam', 99);"
     }
 }
 
@@ -561,7 +562,7 @@ values (1, 1, 'BestPersonEver', 'person@email.com');"
 pub struct Guess {
     pub team_id: i32,
     pub hunt: i32,
-    pub puzzle: String,
+    pub puzzle_key: String,
     pub guess: String,
     pub time: DateTime<Utc>
 }
@@ -574,7 +575,7 @@ impl TemplateData for Guess {
         builder
             .insert_str("teamID", format!("{}", self.team_id))
             .insert_str("hunt", format!("{}", self.hunt))
-            .insert_str("puzzle", self.puzzle.clone())
+            .insert_str("puzzleKey", self.puzzle_key.clone())
             .insert_str("guess", self.guess.clone())
             .insert_str("time", format!("{}", self.time))
     }
@@ -583,11 +584,11 @@ impl TemplateData for Guess {
 impl DBTable for Guess {
     fn from_row(row: Row) -> Guess {
         Guess{
-            team_id: row.get(0),
-            hunt:    row.get(1),
-            puzzle:  row.get(2),
-            guess:   row.get(3),
-            time:    row.get(4)
+            team_id:    row.get(0),
+            hunt:       row.get(1),
+            puzzle_key: row.get(2),
+            guess:      row.get(3),
+            time:       row.get(4)
         }
     }
 
@@ -599,64 +600,38 @@ impl DBTable for Guess {
 "create table Guess (
   teamID int NOT NULL,
   hunt int NOT NULL,
-  puzzle varchar NOT NULL,
+  puzzleKey varchar NOT NULL,
   guess varchar NOT NULL,
-  time timestamp with time zone NOT NULL
+  time timestamp with time zone NOT NULL,
+  primary key (hunt, teamID, puzzleKey)
 );
 "
     }
 
     fn test_init_query() -> &'static str {
-"insert into Guess (teamID, hunt, puzzle, guess, time)
-values (1, 1, 'Puzzle One', 'answer?', '2004-10-19 10:23:54');"
+"insert into Guess (teamID, hunt, puzzleKey, guess, time)
+values (1, 1, 'PPP', 'answer?', '2004-10-19 10:23:54');"
     }
 }
 
 
-////// Stats //////
-
 #[derive(Debug, Clone)]
-pub struct StatInfo {
-    pub team_name: String,
-    pub guesses: i32,
-    pub solve_time: Option<i32>, // in seconds
-    pub score: i32
-}
-
-impl TemplateData for StatInfo {
-    fn name()  -> &'static str { "stat" }
-    fn names() -> &'static str { "stats" }
-
-    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
-        let solve_time = match self.solve_time {
-            None => "None".to_string(),
-            Some(time) => format!("{} mins", time / 60)
-        };
-        builder
-            .insert_str("team",      self.team_name.clone())
-            .insert_str("guesses",   format!("{}", self.guesses))
-            .insert_str("solveTime", solve_time)
-            .insert_str("score",     format!("{}", self.score))
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Stat {
+pub struct Solve {
     pub team_id: i32,
     pub hunt: i32,
-    pub puzzle: String,
+    pub puzzle_key: String,
     pub guesses: i32,
     pub solved_at: DateTime<Utc>,
-    pub solve_time: Option<i32>, // in seconds
+    pub solve_time: i32, // in seconds
     pub score: i32
 }
 
-impl DBTable for Stat {
-    fn from_row(row: Row) -> Stat {
-        Stat {
+impl DBTable for Solve {
+    fn from_row(row: Row) -> Solve {
+        Solve {
             team_id:    row.get(0),
             hunt:       row.get(1),
-            puzzle:     row.get(2),
+            puzzle_key: row.get(2),
             guesses:    row.get(6),
             solved_at:  row.get(4),
             solve_time: row.get(5),
@@ -665,26 +640,118 @@ impl DBTable for Stat {
     }
 
     fn drop_query() -> &'static str {
-        "drop table if exists Stats;"
+        "drop table if exists Solve;"
     }
 
     fn init_query() -> &'static str {
-"create table Stats (
+"create table Solve (
   teamID int NOT NULL,
   hunt int NOT NULL,
-  puzzle varchar NOT NULL,
+  puzzleKey varchar NOT NULL,
   guesses int NOT NULL,
   solvedAt timestamp with time zone NOT NULL,
-  solveTime int,
+  solveTime int NOT NULL,
   score int NOT NULL,
-  primary key (teamID, puzzle)
+  primary key (hunt, teamID, puzzleKey)
 );
 "
     }
 
     fn test_init_query() -> &'static str {
-"insert into Stats (teamId, hunt, puzzle, guesses, solvedAt, solveTime, score)
+"insert into Solve (teamId, hunt, puzzleKey, guesses, solvedAt, solveTime, score)
 values (1, 1, 'PPP', 50, '2004-10-19 10:23:54', 385, 10),
        (2, 1, 'PPP', 1, '2004-10-19 10:23:55', 386, 10);"
+    }
+}
+
+
+
+////// Stats //////
+
+
+#[derive(Debug, Clone)]
+pub struct TeamStats {
+    pub team_name: String,
+    pub guesses: i32,
+    pub solves: i32,
+    pub total_solve_time: i32, // in seconds
+    pub score: i32,
+}
+
+impl TemplateData for TeamStats {
+    fn name() -> &'static str {
+        "stat"
+    }
+    fn names() -> &'static str {
+        "stats"
+    }
+
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
+        let avg_solve_time = if self.solves == 0 {
+            "-".to_string()
+        } else {
+            format!("{} mins", self.total_solve_time / self.solves / 60)
+        };
+        builder
+            .insert_str("team", self.team_name.clone())
+            .insert_str("guesses", format!("{}", self.guesses))
+            .insert_str("avgSolveTime", avg_solve_time)
+            .insert_str("score", format!("{}", self.score))
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct WaveStats {
+    pub name: String,
+    pub puzzles: Vec<PuzzleStats>
+}
+
+impl TemplateData for WaveStats {
+    fn name() -> &'static str {
+        "wave"
+    }
+    fn names() -> &'static str {
+        "waves"
+    }
+
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
+        builder
+            .insert_str("name", self.name.to_string())
+            .insert_vec("puzzles", |b| vec_to_data(&self.puzzles, b))
+    }
+}
+
+
+#[derive(Debug, Clone)]
+pub struct PuzzleStats {
+    pub puzzle_name: String,
+    pub puzzle_number: String,
+    pub puzzle_key: String,
+    pub guesses: i32,
+    pub solves: i32,
+    pub total_solve_time: i32, // in seconds
+}
+
+impl TemplateData for PuzzleStats {
+    fn name() -> &'static str {
+        "stat"
+    }
+    fn names() -> &'static str {
+        "stats"
+    }
+
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
+        let avg_solve_time = if self.solves == 0 {
+            "-".to_string()
+        } else {
+            format!("{} mins", self.total_solve_time / self.solves / 60)
+        };
+        builder
+            .insert_str("name", self.puzzle_name.clone())
+            .insert_str("number", self.puzzle_number.clone())
+            .insert_str("key", self.puzzle_key.clone())
+            .insert_str("guesses", format!("{}", self.guesses))
+            .insert_str("solves", format!("{}", self.solves))
+            .insert_str("avgSolveTime", avg_solve_time)
     }
 }
