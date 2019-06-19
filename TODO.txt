@@ -5,6 +5,8 @@
 
 
 Basics:
+  [ ] Misc
+      [ ] Switch to SQLLite (Postgres installation is awful)
   [x] Site pages
       [x] PuzzleHunt: PH page
       [x] Create-hunt page (w/ gradient)
