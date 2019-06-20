@@ -156,7 +156,7 @@ impl ExpandableForm for Hints {
     }
 
     fn member_parts() -> Vec<&'static str> {
-        vec!("hint", "puzzle", "number", "hunt", "penalty", "wave", "key")
+        vec!("hint", "puzzleKey", "number", "hunt", "penalty", "wave", "key")
     }
     
     fn new_member(map: &HashMap<String, String>) -> Hint {

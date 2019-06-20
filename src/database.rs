@@ -164,14 +164,15 @@ impl Database {
         rows.iter().map(Wave::from_row).collect()
     }
 
-    fn get_wave(&self, hunt_id: i32, wave_name: &str) -> Wave {
+    fn get_wave(&self, hunt_id: i32, wave_name: &str) -> Option<Wave> {
         let rows = self.query(
             "select * from Wave where hunt = $1 and name = $2;",
             &[&hunt_id, &wave_name]);
         if rows.len() != 1 {
-            panic!("Wave {} not found (or not unique)", wave_name);
+            None
+        } else {
+            Some(Wave::from_row(rows.get(0)))
         }
-        Wave::from_row(rows.get(0))
     }
 
     pub fn set_waves(&self, hunt_id: i32, waves: &Vec<Wave>) {
@@ -227,9 +228,10 @@ impl Database {
         for row in &rows {
             let puzzle = Puzzle::from_row(row);
             let wave = self.get_wave(hunt_id, &puzzle.wave);
-            if wave.is_released() {
+            let released = wave.map_or(false, |w| w.is_released());
+            if released {
                 puzzles.push(PuzzleInfo {
-                    hints: self.get_hints(hunt_id, &puzzle.key),
+                    hints: self.get_released_hints(hunt_id, &puzzle.key),
                     name: puzzle.name,
                     hunt: hunt_id,
                     base_points: puzzle.base_points,
@@ -268,22 +270,23 @@ impl Database {
     pub fn set_puzzles(&self, hunt_id: i32, puzzles: &Vec<Puzzle>) {
         self.execute("delete from Puzzle where hunt = $1", &[&hunt_id]);
         for puzzle in puzzles {
-            self.execute("insert into Puzzle values ($1, $3, $4, $5, $6, $7)",
+            self.execute("insert into Puzzle values ($1, $2, $3, $4, $5, $6)",
                          &[&puzzle.name, &hunt_id,
                            &puzzle.base_points, &puzzle.answer,
                            &puzzle.wave, &puzzle.key]);
         }
     }
 
-    pub fn get_hints(&self, hunt_id: i32, puzzle_key: &str) -> Vec<Hint> {
-        let mut hints: Vec<Hint> = vec!();
-        let rows = self.query(
+    pub fn get_released_hints(&self, hunt_id: i32, puzzle_key: &str) -> Vec<Hint> {
+        self.query(
             "select * from Hint where hunt = $1 and puzzleKey = $2;",
-            &[&hunt_id, &puzzle_key]);
-        for row in &rows {
-            hints.push(Hint::from_row(row));
-        }
-        hints
+            &[&hunt_id, &puzzle_key])
+            .into_iter()
+            .map(|row| Hint::from_row(row))
+            .filter(|hint| {
+                self.get_wave(hunt_id, &hint.wave).map_or(false, |w| w.is_released())
+            })
+            .collect()
     }
 
     pub fn set_hints(&self, hunt_id: i32, hints: &Vec<Hint>) {
