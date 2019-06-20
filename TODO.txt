@@ -35,6 +35,9 @@ Basics:
           [x] Hide empty waves
           [x] Only show released hints
       [ ] Submit answers
+          [ ] On puzzles page, link to submission page
+          [ ] Show submission page: puzzle name, submit button
+          [ ] On submit: right, alreadyTried, wrong
       [ ] Stats
           [x] Team Leaderboard
           [x] Puzzle Leaderboard
@@ -67,8 +70,7 @@ Testing:
   [ ] Scaling (incl. puzzler, admin, meta)
   [ ] Teams with blank names
   [ ] Ordering of elements (e.g. hint1, hint2)
-  [ ] What if hint penalties make a score negative?
-  [ ] Make sure table columns are named consistently
+  [x] Make sure table columns are named consistently
 
 Features:
   [ ] Password hashing

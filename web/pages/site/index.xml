@@ -13,7 +13,7 @@
       {{#hunts}}
         {{#visible}}
         <p>
-          <a href="{{key}}/index.xml">{{name}}</a>
+          <a href="/{{key}}/index.xml">{{name}}</a>
           {{#closed}}(closed){{/closed}}{{^closed}}(open){{/closed}}
         </p>
         {{/visible}}
@@ -21,7 +21,7 @@
     </table>
     <p>
       And here's the link to make a new hunt:
-      <a href="create-hunt.xml">Create a New Hunt</a>.
+      <a href="/create-hunt.xml">Create a New Hunt</a>.
     </p>
     <p>
       If you have already created a hunt, and want to edit it:

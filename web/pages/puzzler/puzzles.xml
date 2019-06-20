@@ -4,19 +4,24 @@
 <page>
   <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
   <title>Puzzles</title>
-  <waves>
+  <prose>
     {{#waves}}
-    <wave name="{{name}}">
-      <puzzles>
-        {{#puzzles}}
-        <puzzle name="{{name}}" key="{{key}}">
-          {{#hints}}
-          <hint name="{{name}}" key="{{key}}" number="{{number}}"/>
-          {{/hints}}
-        </puzzle>
-        {{/puzzles}}
-      </puzzles>
-    </wave>
+      <p>
+        <h3>{{name}}:</h3>
+        <ul class="puzzle-list">
+          {{#puzzles}}
+          <li>
+            <a href="/{{hunt.key}}/puzzle/{{key}}.xml">{{name}}</a>
+            <span class="spacing"/>
+            <a href="/{{hunt.key}}/answer/{{key}}.xml">[answer]</a>
+            {{#hints}}
+              <span class="spacing"/>
+              <a href="/{{hunt.key}}/hint/{{key}}.xml">[hint {{number}}]</a>
+            {{/hints}}
+          </li>
+          {{/puzzles}}
+        </ul>
+      </p>
     {{/waves}}
-  </waves>
+  </prose>
 </page>

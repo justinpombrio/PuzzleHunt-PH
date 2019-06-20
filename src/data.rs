@@ -266,7 +266,6 @@ impl TemplateData for ReleasedPuzzle {
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
             .insert_str("name",   self.name.clone())
-            .insert_str("hunt",   format!("{}", self.hunt))
             .insert_str("wave",   self.wave.clone())
             .insert_str("key",    self.key.clone())
             .insert_vec("hints",  |b| vec_to_data(&self.hints, b))
@@ -353,7 +352,6 @@ impl TemplateData for Hint {
             .insert_str("hint",      self.hint.clone())
             .insert_str("puzzle_name",self.puzzle_name.clone())
             .insert_str("number",    format!("{}", self.number))
-            .insert_str("hunt",      format!("{}", self.hunt))
             .insert_str("wave",      self.wave.clone())
             .insert_str("key",       self.key.clone())
     }

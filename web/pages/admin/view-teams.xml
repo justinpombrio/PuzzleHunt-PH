@@ -6,7 +6,7 @@
   <title>All Registered Teams</title>
   <prose>
     <p>
-      <a href="view-team-email-list.xml">View list of all email addresses.</a>
+      <a href="/admin/view-team-email-list.xml">View list of all email addresses.</a>
     </p>
     <p>
       {{#teams}}

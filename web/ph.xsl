@@ -10,36 +10,7 @@
   <xsl:template match="title">
     <h1><xsl:copy-of select="node()"/></h1>
   </xsl:template>
-  
-  <xsl:template match="content">
-    <xsl:copy-of select="node()"/>
-  </xsl:template>
 
-  
-  <!-- Puzzle List -->
-  
-  <xsl:template match="waves">
-    <xsl:apply-templates select="*"/>
-  </xsl:template>
-  
-  <xsl:template match="wave">
-    <p>
-      <h3><xsl:value-of select="@name"/>:</h3>
-      <ul class="puzzle-list"><xsl:apply-templates select="*"/></ul>
-    </p>
-  </xsl:template>
-  
-  <xsl:template match="puzzle">
-    <li>
-      <a href="puzzle/{@key}"><xsl:value-of select="@name"/><xsl:apply-templates select="*"/></a>
-    </li>
-  </xsl:template>
-
-  <xsl:template match="hint">
-    <span class="spacing"/>
-    <a href="hint/{@key}.xml">[hint <xsl:value-of select="@number"/>]</a>
-  </xsl:template>
-  
   <xsl:template match="prose">
     <xsl:copy-of select="*"/>
   </xsl:template>
@@ -212,9 +183,6 @@
   <!-- Page Template -->
 
   <xsl:template match="page">
-    <xsl:variable name="hunt">
-      <xsl:value-of select="hunt"/>
-    </xsl:variable>
     <html>
       <head>
         <title><xsl:value-of select="hunt"/></title>
@@ -225,22 +193,22 @@
         <ul class="nav">
           <xsl:if test="not(@page-type)">
             <li class="nav1">
-              <a href="index.xml"><xsl:value-of select="hunt"/></a>
+              <a href="/{hunt/@key}/index.xml"><xsl:value-of select="hunt"/></a>
             </li>
-            <li class="nav2"><a href="team.xml">Team</a></li>
-            <li class="nav3"><a href="leaderboard.xml">Leaderboard</a></li>
-            <li class="nav4"><a href="puzzle-stats.xml">Puzzle Stats</a></li>
-            <li class="nav5"><a href="puzzles.xml">Puzzles</a></li>
+            <li class="nav2"><a href="/{hunt/@key}/team.xml">Team</a></li>
+            <li class="nav3"><a href="/{hunt/@key}/leaderboard.xml">Leaderboard</a></li>
+            <li class="nav4"><a href="/{hunt/@key}/puzzle-stats.xml">Puzzle Stats</a></li>
+            <li class="nav5"><a href="/{hunt/@key}/puzzles.xml">Puzzles</a></li>
           </xsl:if>
           <xsl:if test="@page-type = 'admin'">
             <li class="nav1">
-              <a href="edit-hunt.xml"><xsl:value-of select="hunt"/></a>
+              <a href="/admin/edit-hunt.xml"><xsl:value-of select="hunt"/></a>
             </li>
-            <li class="nav2"><a href="edit-waves.xml">Waves</a></li>
-            <li class="nav3"><a href="edit-puzzles.xml">Puzzles</a></li>
-            <li class="nav4"><a href="edit-hints.xml">Hints</a></li>
-            <li class="nav5"><a href="view-teams.xml">Teams</a></li>
-            <li class="nav6"><a href="signout.xml">Sign Out</a></li>
+            <li class="nav2"><a href="/admin/edit-waves.xml">Waves</a></li>
+            <li class="nav3"><a href="/admin/edit-puzzles.xml">Puzzles</a></li>
+            <li class="nav4"><a href="/admin/edit-hints.xml">Hints</a></li>
+            <li class="nav5"><a href="/admin/view-teams.xml">Teams</a></li>
+            <li class="nav6"><a href="/admin/signout.xml">Sign Out</a></li>
           </xsl:if>
           <xsl:if test="@page-type = 'site'">
             <li class="nav-site"><a href="/">PuzzleHunt: PH</a></li>

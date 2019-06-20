@@ -3,8 +3,8 @@
 
 <page>
   <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
-  <content>
+  <prose>
     <h2>Hint #{{hint.number}} for {{hint.puzzle_name}}</h2>
     <p>{{hint.hint}}</p>
-  </content>
+  </prose>
 </page>

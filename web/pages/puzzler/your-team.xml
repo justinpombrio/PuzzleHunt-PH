@@ -29,7 +29,7 @@
   </form>
   <prose>
     <p>
-      <a href="signout.xml">
+      <a href="/{{hunt.key}}/signout.xml">
         Sign Out
       </a>
     </p>
