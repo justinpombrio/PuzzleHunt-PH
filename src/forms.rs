@@ -181,16 +181,16 @@ impl ExpandableForm for Hints {
 
 
 
-// Register //
+// Create Team //
 
 #[derive(Debug)]
-pub struct Register {
+pub struct CreateTeam {
     pub name: String,
     pub password: String,
     pub password_verify: String,
     pub members: Vec<TeamMember>
 }
-pub type RegisterForm = Form<ExpandableFormToForm<Register>>;
+pub type CreateTeamForm = Form<ExpandableFormToForm<CreateTeam>>;
 
 #[derive(Debug)]
 pub struct TeamMember {
@@ -198,7 +198,7 @@ pub struct TeamMember {
     pub email: String
 }
 
-impl ExpandableForm for Register {
+impl ExpandableForm for CreateTeam {
     type Member = TeamMember;
 
     fn parts() -> Vec<&'static str> {
@@ -216,8 +216,8 @@ impl ExpandableForm for Register {
         }
     }
 
-    fn new(map: &HashMap<String, String>, members: Vec<TeamMember>) -> Register {
-        Register {
+    fn new(map: &HashMap<String, String>, members: Vec<TeamMember>) -> CreateTeam {
+        CreateTeam {
             name: map["name"].to_string(),
             password: map["password"].to_string(),
             password_verify: map["password"].to_string(),

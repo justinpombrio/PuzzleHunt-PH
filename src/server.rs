@@ -161,7 +161,7 @@ fn get_view_teams(mut cookies: Cookies) -> Xml<String> {
         Some(hunt) => hunt,
         None => panic!("Hunt not found.")
     };
-    let teams = db.get_all_teams(hunt.id);
+    let teams = db.get_teams(hunt.id);
     render_xml("pages/admin/view-teams.xml", vec!(&hunt, &teams))
 }
 
@@ -172,7 +172,7 @@ fn get_view_team_email_list(mut cookies: Cookies) -> Xml<String> {
         Some(hunt) => hunt,
         None => panic!("Hunt not found.")
     };
-    let teams = db.get_all_teams(hunt.id);
+    let teams = db.get_teams(hunt.id);
     render_xml("pages/admin/view-team-email-list.xml", vec!(&hunt, &teams))
 }
 
@@ -211,7 +211,7 @@ fn get_edit_puzzles(mut cookies: Cookies) -> Xml<String> {
         Some(hunt) => hunt,
         None => panic!("Hunt not found.")
     };
-    let puzzles = db.get_all_puzzles(hunt.id);
+    let puzzles = db.get_puzzles(hunt.id);
     render_xml("pages/admin/edit-puzzles.xml", vec!(&hunt, &puzzles))
 }
 
@@ -234,7 +234,7 @@ fn get_edit_hints(mut cookies: Cookies) -> Xml<String> {
         Some(hunt) => hunt,
         None => panic!("Hunt not found")
     };
-    let hints = db.get_all_hints(hunt.id);
+    let hints = db.get_hints(hunt.id);
     render_xml("pages/admin/edit-hints.xml", vec!(&hunt, &hints))
 }
 
@@ -272,7 +272,7 @@ fn get_hunt(hunt_key: String) -> Xml<String> {
 fn get_puzzles(hunt_key: String) -> Xml<String> {
     let db = Database::new();
     let hunt = db.get_hunt(&hunt_key);
-    let waves: Vec<_> = db.get_wave_infos(hunt.id)
+    let waves: Vec<_> = db.get_released_waves(hunt.id)
         .into_iter()
         .filter(|w| w.puzzles.len() > 0)
         .collect();
@@ -293,7 +293,7 @@ fn get_hint(hunt_key: String, hint_key: String) -> Xml<String> {
     let hint_key = &hint_key[0 .. hint_key.len()-4];
     let db = Database::new();
     let hunt = db.get_hunt(&hunt_key);
-    let hint = db.get_hint(hunt.id, &hint_key)
+    let hint = db.get_released_hint(hunt.id, &hint_key)
         .expect("Hint not found!");
     render_xml("pages/puzzler/hint.xml", vec!(&hunt, &hint))
 }
@@ -344,11 +344,11 @@ fn get_register(hunt_key: String) -> Xml<String> {
 }
 
 #[post("/<hunt_key>/register.xml", data="<form>")]
-fn post_register(hunt_key: String, mut cookies: Cookies, form: RegisterForm) -> Redirect {
+fn post_register(hunt_key: String, mut cookies: Cookies, form: CreateTeamForm) -> Redirect {
     let db = Database::new();
     let hunt = db.get_hunt(&hunt_key);
     let form = form.into_inner().0;
-    let team = match db.register(hunt.id, &form) {
+    let team = match db.create_team(hunt.id, &form) {
         Ok(team) => team,
         Err(msg) => panic!("{}", msg)
     };
@@ -411,7 +411,7 @@ fn get_puzzle_stats(hunt_key: String) -> Xml<String> {
 fn get_team_stats(hunt_key: String) -> Xml<String> {
     let db = Database::new();
     let hunt = db.get_hunt(&hunt_key);
-    let teams: Vec<_> = db.get_all_team_stats(hunt.id);
+    let teams: Vec<_> = db.get_team_stats(hunt.id);
     render_xml("pages/puzzler/leaderboard.xml", vec!(&hunt, &teams))
 }
 

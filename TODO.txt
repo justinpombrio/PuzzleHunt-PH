@@ -5,8 +5,13 @@
 
 
 Basics:
-  [ ] Misc
+  [ ] Fix
+      [ ] Relative links in `HUNT/hints/`
+  [ ] Server
       [ ] Switch to SQLLite (Postgres installation is awful)
+      [ ] Buy a domain
+      [ ] Get a server
+      [ ] Install PuzzleHunt-PH on the server
   [x] Site pages
       [x] PuzzleHunt: PH page
       [x] Create-hunt page (w/ gradient)

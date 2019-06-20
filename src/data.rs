@@ -169,15 +169,15 @@ values ('Best Hunt Ever', 'besthuntever', 4, 100, 'pass', true, true);"
 
 
 #[derive(Debug, Clone)]
-pub struct WaveInfo {
+pub struct ReleasedWave {
     pub name: String,
     pub time: DateTime<Local>,
     pub guesses: i32,
     pub released: bool,
-    pub puzzles: Vec<PuzzleInfo>
+    pub puzzles: Vec<ReleasedPuzzle>
 }
 
-impl TemplateData for WaveInfo {
+impl TemplateData for ReleasedWave {
     fn name()  -> &'static str { "wave" }
     fn names() -> &'static str { "waves" }
     
@@ -250,7 +250,7 @@ values ('Wave One', 1, '2004-10-19 10:23:54', 10);"
 ////// Puzzles //////
 
 #[derive(Debug, Clone)]
-pub struct PuzzleInfo {
+pub struct ReleasedPuzzle {
     pub name: String,
     pub hunt: i32,
     pub base_points: i32,
@@ -261,7 +261,7 @@ pub struct PuzzleInfo {
     pub hints: Vec<Hint>
 }
 
-impl TemplateData for PuzzleInfo {
+impl TemplateData for ReleasedPuzzle {
     fn name()  -> &'static str { "puzzle" }
     fn names() -> &'static str { "puzzles" }
     
@@ -341,33 +341,6 @@ values ('Puzzle Two', 1, 3, 'answer2', 'Wave One', 'QQQ'),
 
 
 ////// Hints //////
-
-#[derive(Debug, Clone)]
-pub struct HintInfo {
-    pub puzzle_key: String,
-    pub number: i32,
-    pub hunt: i32,
-    pub penalty: i32,
-    pub wave: String,
-    pub key: String,
-    pub released: bool
-}
-
-impl TemplateData for HintInfo {
-    fn name()  -> &'static str { "hint" }
-    fn names() -> &'static str { "hints" }
-
-    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
-        builder
-            .insert_str("puzzleKey", self.puzzle_key.clone())
-            .insert_str("number",    format!("{}", self.number))
-            .insert_str("hunt",      format!("{}", self.hunt))
-            .insert_str("penalty",   format!("{}", self.penalty))
-            .insert_str("wave",      self.wave.clone())
-            .insert_str("key",       self.key.clone())
-            .insert_bool("released", self.released)
-    }
-}
 
 #[derive(Debug, Clone)]
 pub struct Hint {

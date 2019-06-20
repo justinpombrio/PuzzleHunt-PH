@@ -85,6 +85,14 @@ impl Database {
         Site::from_row(rows.get(0))
     }
     
+    pub fn get_hunts(&self) -> Vec<Hunt> {
+        let mut hunts: Vec<Hunt> = vec!();
+        for row in &self.query("select * from Hunt", &[]) {
+            hunts.push(Hunt::from_row(row));
+        }
+        hunts
+    }
+
     pub fn create_hunt(&self, form: &CreateHunt) -> Result<Hunt, String> {
         // Validate
         if form.password != form.password_verify {
@@ -111,6 +119,65 @@ impl Database {
         rows.len() >= 1
     }
 
+    pub fn get_hunt(&self, hunt_key: &str) -> Hunt {
+        let rows = self.query(
+            "select * from Hunt where key = $1",
+            &[&hunt_key]);
+        if rows.len() != 1 {
+            panic!("Did not find hunt {}", hunt_key); // TODO: error handling
+        }
+        Hunt::from_row(rows.get(0))
+    }
+
+    
+    //// Authentication ////
+
+    pub fn authenticate_admin(&self, hunt_key: &str, password: &str) -> Option<Hunt> {
+        let rows = self.query(
+            "select * from Hunt where key = $1 and password = $2",
+            &[&hunt_key, &password]);
+        if rows.len() == 1 {
+            Some(Hunt::from_row(rows.get(0)))
+        } else {
+            None
+        }
+    }
+
+    pub fn authenticate_team(&self, hunt_id: i32, name: &str, password: &str) -> Option<i32> {
+        let rows = self.query(
+            "select teamID from Team where hunt = $1 and name = $2 and password = $3",
+            &[&hunt_id, &name, &password]);
+        if rows.len() == 1 {
+            Some(rows.get(0).get(0))
+        } else {
+            None
+        }
+    }
+
+    pub fn get_hunt_by_id(&self, hunt_id: i32) -> Option<Hunt> {
+        let rows = self.query(
+            "select * from Hunt where huntID = $1",
+            &[&hunt_id]);
+        if rows.len() == 1 {
+            Some(Hunt::from_row(rows.get(0)))
+        } else {
+            None
+        }
+    }
+
+    pub fn get_team_by_id(&self, team_id: i32) -> Option<Team> {
+        let rows = self.query(
+            "select * from Team where teamID = $1",
+            &[&team_id]);
+        if rows.len() == 1 {
+            let mut team = Team::from_row(rows.get(0));
+            self.fill_team_members(&mut team);
+            Some(team)
+        } else {
+            None
+        }
+    }
+
 
 
     //// Admin ////
@@ -125,7 +192,7 @@ impl Database {
         Ok(self.get_hunt(&hunt_key))
     }
     
-    pub fn get_all_teams(&self, hunt_id: i32) -> Vec<Team> {
+    pub fn get_teams(&self, hunt_id: i32) -> Vec<Team> {
         let rows = self.query(
             "select * from Team where Hunt = $1",
             &[&hunt_id]);
@@ -133,36 +200,6 @@ impl Database {
             let mut team = Team::from_row(row);
             self.fill_team_members(&mut team);
             team
-        }).collect()
-    }
-
-
-    
-    //// Hunts ////
-
-    pub fn get_admin(&self, hunt_key: &str, password: &str) -> Option<Hunt> {
-        let rows = self.query(
-            "select * from Hunt where key = $1 and password = $2",
-            &[&hunt_key, &password]);
-        if rows.len() == 1 {
-            Some(Hunt::from_row(rows.get(0)))
-        } else {
-            None
-        }
-    }
-
-    
-    //// Puzzles ////
-
-    pub fn get_wave_infos(&self, hunt_id: i32) -> Vec<WaveInfo> {
-        self.get_waves(hunt_id).into_iter().map(|wave| {
-            WaveInfo {
-                puzzles: self.get_puzzle_infos(hunt_id, &wave.name),
-                name: wave.name,
-                time: wave.time,
-                guesses: wave.guesses,
-                released: false // TODO: calculate
-            }
         }).collect()
     }
 
@@ -193,61 +230,7 @@ impl Database {
         }
     }
 
-    pub fn get_hunts(&self) -> Vec<Hunt> {
-        let mut hunts: Vec<Hunt> = vec!();
-        for row in &self.query("select * from Hunt", &[]) {
-            hunts.push(Hunt::from_row(row));
-        }
-        hunts
-    }
-
-    pub fn get_hunt(&self, hunt_key: &str) -> Hunt {
-        let rows = self.query(
-            "select * from Hunt where key = $1",
-            &[&hunt_key]);
-        if rows.len() != 1 {
-            panic!("Did not find hunt {}", hunt_key); // TODO: error handling
-        }
-        Hunt::from_row(rows.get(0))
-    }
-
-    pub fn get_hunt_by_id(&self, hunt_id: i32) -> Option<Hunt> {
-        let rows = self.query(
-            "select * from Hunt where huntID = $1",
-            &[&hunt_id]);
-        if rows.len() == 1 {
-            Some(Hunt::from_row(rows.get(0)))
-        } else {
-            None
-        }
-    }
-
-    fn get_puzzle_infos(&self, hunt_id: i32, wave: &str) -> Vec<PuzzleInfo> {
-        let rows = self.query(
-            "select * from Puzzle where hunt = $1 and wave = $2;",
-            &[&hunt_id, &wave]);
-        let mut puzzles = vec!();
-        for row in &rows {
-            let puzzle = Puzzle::from_row(row);
-            let wave = self.get_wave(hunt_id, &puzzle.wave);
-            let released = wave.map_or(false, |w| w.is_released());
-            if released {
-                puzzles.push(PuzzleInfo {
-                    hints: self.get_released_hints(hunt_id, &puzzle.key),
-                    name: puzzle.name,
-                    hunt: hunt_id,
-                    base_points: puzzle.base_points,
-                    current_points: puzzle.base_points, // TODO: calculate
-                    answer: puzzle.answer,
-                    wave: puzzle.wave,
-                    key: puzzle.key,
-                });
-            }
-        }
-        puzzles
-    }
-
-    pub fn get_all_puzzles(&self, hunt_id: i32) -> Vec<Puzzle> {
+    pub fn get_puzzles(&self, hunt_id: i32) -> Vec<Puzzle> {
         let mut puzzles: Vec<Puzzle> = vec!();
         let rows = self.query(
             "select * from Puzzle where hunt = $1;",
@@ -268,6 +251,67 @@ impl Database {
         }
     }
 
+    pub fn get_hints(&self, hunt_id: i32) -> Vec<Hint> {
+        let mut hints: Vec<Hint> = vec!();
+        let rows = self.query(
+            "select * from Hint where hunt = $1;",
+            &[&hunt_id]);
+        for row in &rows {
+            hints.push(Hint::from_row(row));
+        }
+        hints
+    }
+
+    pub fn set_hints(&self, hunt_id: i32, hints: &Vec<Hint>) {
+        self.execute("delete from Hint where hunt = $1", &[&hunt_id]);
+        for hint in hints {
+            self.execute("insert into Hint values ($1, $2, $3, $4, $5, $6, $7)",
+                         &[&hint.hint, &hint.puzzle_key, &hint.number,
+                           &hunt_id, &hint.penalty, &hint.wave, &hint.key]);
+        }
+    }
+
+
+    
+    //// Puzzles ////
+
+    pub fn get_released_waves(&self, hunt_id: i32) -> Vec<ReleasedWave> {
+        self.get_waves(hunt_id).into_iter().map(|wave| {
+            ReleasedWave {
+                puzzles: self.get_released_puzzles(hunt_id, &wave.name),
+                name: wave.name,
+                time: wave.time,
+                guesses: wave.guesses,
+                released: false // TODO: calculate
+            }
+        }).collect()
+    }
+
+    fn get_released_puzzles(&self, hunt_id: i32, wave: &str) -> Vec<ReleasedPuzzle> {
+        let rows = self.query(
+            "select * from Puzzle where hunt = $1 and wave = $2;",
+            &[&hunt_id, &wave]);
+        let mut puzzles = vec!();
+        for row in &rows {
+            let puzzle = Puzzle::from_row(row);
+            let wave = self.get_wave(hunt_id, &puzzle.wave);
+            let released = wave.map_or(false, |w| w.is_released());
+            if released {
+                puzzles.push(ReleasedPuzzle {
+                    hints: self.get_released_hints(hunt_id, &puzzle.key),
+                    name: puzzle.name,
+                    hunt: hunt_id,
+                    base_points: puzzle.base_points,
+                    current_points: puzzle.base_points, // TODO: calculate
+                    answer: puzzle.answer,
+                    wave: puzzle.wave,
+                    key: puzzle.key,
+                });
+            }
+        }
+        puzzles
+    }
+
     fn get_released_hints(&self, hunt_id: i32, puzzle_key: &str) -> Vec<Hint> {
         self.query(
             "select * from Hint where hunt = $1 and puzzleKey = $2;",
@@ -280,27 +324,7 @@ impl Database {
             .collect()
     }
 
-    pub fn set_hints(&self, hunt_id: i32, hints: &Vec<Hint>) {
-        self.execute("delete from Hint where hunt = $1", &[&hunt_id]);
-        for hint in hints {
-            self.execute("insert into Hint values ($1, $2, $3, $4, $5, $6, $7)",
-                         &[&hint.hint, &hint.puzzle_key, &hint.number,
-                           &hunt_id, &hint.penalty, &hint.wave, &hint.key]);
-        }
-    }
-
-    pub fn get_all_hints(&self, hunt_id: i32) -> Vec<Hint> {
-        let mut hints: Vec<Hint> = vec!();
-        let rows = self.query(
-            "select * from Hint where hunt = $1;",
-            &[&hunt_id]);
-        for row in &rows {
-            hints.push(Hint::from_row(row));
-        }
-        hints
-    }
-
-    pub fn get_hint(&self, hunt_id: i32, hint_key: &str) -> Option<Hint> {
+    pub fn get_released_hint(&self, hunt_id: i32, hint_key: &str) -> Option<Hint> {
         let rows = self.query(
             "select * from Hint where hunt = $1 and key = $2;",
             &[&hunt_id, &hint_key]);
@@ -312,7 +336,7 @@ impl Database {
     }
 
 
-    //// Wave/Puzzle Stats ////
+    //// Puzzle/Team Stats ////
 
     pub fn get_puzzle_stats(&self, hunt_id: i32) -> Vec<PuzzleStats> {
         self.get_waves(hunt_id)
@@ -350,71 +374,44 @@ impl Database {
             }
         }).collect()
     }
-
     
-    //// Team Stats ////
-    
-    pub fn get_all_team_stats(&self, hunt_id: i32) -> Vec<TeamStats> {
+    pub fn get_team_stats(&self, hunt_id: i32) -> Vec<TeamStats> {
         let rows = self.query(
             "select teamID, name from Team where hunt = $1",
             &[&hunt_id]);
         rows.into_iter()
-            .map(|row| self.get_team_stats(hunt_id, row.get(0), row.get(1)))
+            .map(|row| {
+                let team_id: i32 = row.get(0);
+                let team_name: String = row.get(1);
+                let rows = self.query(
+                    "select count(*) from Guess where hunt = $1 and teamID = $2",
+                    &[&hunt_id, &team_id]);
+                let guesses: i64 = rows.get(0).get(0);
+                let rows = self.query(
+                    "select count(*), sum(solveTime), sum(score) from Solve where hunt = $1 and teamID = $2",
+                    &[&hunt_id, &team_id]);
+                let row = rows.get(0);
+                let solves: i64 = row.get(0);
+                let total_solve_time: Option<i64> = row.get(1);
+                let score: Option<i64> = row.get(2);
+                TeamStats {
+                    team_name,
+                    guesses: guesses as i32,
+                    solves: solves as i32,
+                    total_solve_time: total_solve_time.unwrap_or(0) as i32,
+                    score: score.unwrap_or(0) as i32
+                }
+            })
             .collect()
-    }
-
-    fn get_team_stats(&self, hunt_id: i32, team_id: i32, team_name: String) -> TeamStats {
-        let rows = self.query(
-            "select count(*) from Guess where hunt = $1 and teamID = $2",
-            &[&hunt_id, &team_id]);
-        let guesses: i64 = rows.get(0).get(0);
-        let rows = self.query(
-            "select count(*), sum(solveTime), sum(score) from Solve where hunt = $1 and teamID = $2",
-            &[&hunt_id, &team_id]);
-        let row = rows.get(0);
-        let solves: i64 = row.get(0);
-        let total_solve_time: Option<i64> = row.get(1);
-        let score: Option<i64> = row.get(2);
-        TeamStats {
-            team_name,
-            guesses: guesses as i32,
-            solves: solves as i32,
-            total_solve_time: total_solve_time.unwrap_or(0) as i32,
-            score: score.unwrap_or(0) as i32
-        }
     }
 
     
     //// Teams ////
 
-    pub fn authenticate_team(&self, hunt_id: i32, name: &str, password: &str) -> Option<i32> {
-        let rows = self.query(
-            "select teamID from Team where hunt = $1 and name = $2 and password = $3",
-            &[&hunt_id, &name, &password]);
-        if rows.len() == 1 {
-            Some(rows.get(0).get(0))
-        } else {
-            None
-        }
-    }
-
     pub fn get_team(&self, hunt_id: i32, name: &str) -> Option<Team> {
         let rows = self.query(
             "select * from Team where hunt = $1 and name = $2",
             &[&hunt_id, &name]);
-        if rows.len() == 1 {
-            let mut team = Team::from_row(rows.get(0));
-            self.fill_team_members(&mut team);
-            Some(team)
-        } else {
-            None
-        }
-    }
-
-    pub fn get_team_by_id(&self, team_id: i32) -> Option<Team> {
-        let rows = self.query(
-            "select * from Team where teamID = $1",
-            &[&team_id]);
         if rows.len() == 1 {
             let mut team = Team::from_row(rows.get(0));
             self.fill_team_members(&mut team);
@@ -432,7 +429,7 @@ impl Database {
         team.members = members;
     }
 
-    pub fn register(&self, hunt_id: i32, form: &Register) -> Result<Team, String> {
+    pub fn create_team(&self, hunt_id: i32, form: &CreateTeam) -> Result<Team, String> {
         // Validate
         if form.password != form.password_verify {
             return Err("Passwords do not match".to_string())
