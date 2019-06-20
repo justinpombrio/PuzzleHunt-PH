@@ -90,6 +90,7 @@ impl Database {
         if form.password != form.password_verify {
             return Err("Passwords do not match".to_string())
         }
+        
         if self.hunt_exists(&form.key) {
             return Err("A hunt of that name already exists.".to_string())
         }
@@ -102,6 +103,14 @@ impl Database {
         // Return newly created hunt
         Ok(self.get_hunt(&form.key))
     }
+
+    fn hunt_exists(&self, hunt_key: &str) -> bool {
+        let rows = self.query(
+            "select * from Hunt where key = $1;",
+            &[&hunt_key]);
+        rows.len() >= 1
+    }
+
 
 
     //// Admin ////
@@ -202,13 +211,6 @@ impl Database {
         Hunt::from_row(rows.get(0))
     }
 
-    pub fn hunt_exists(&self, hunt_key: &str) -> bool {
-        let rows = self.query(
-            "select * from Hunt where key = $1;",
-            &[&hunt_key]);
-        rows.len() >= 1
-    }
-
     pub fn get_hunt_by_id(&self, hunt_id: i32) -> Option<Hunt> {
         let rows = self.query(
             "select * from Hunt where huntID = $1",
@@ -220,7 +222,7 @@ impl Database {
         }
     }
 
-    pub fn get_puzzle_infos(&self, hunt_id: i32, wave: &str) -> Vec<PuzzleInfo> {
+    fn get_puzzle_infos(&self, hunt_id: i32, wave: &str) -> Vec<PuzzleInfo> {
         let rows = self.query(
             "select * from Puzzle where hunt = $1 and wave = $2;",
             &[&hunt_id, &wave]);
@@ -245,17 +247,6 @@ impl Database {
         puzzles
     }
 
-    pub fn get_puzzle(&self, hunt_id: i32, puzzle_key: &str) -> Option<Puzzle> {
-        let rows = self.query(
-            "select * from Puzzle where hunt = $1 and key = $2;",
-            &[&hunt_id, &puzzle_key]);
-        if rows.len() == 1 {
-            Some(Puzzle::from_row(rows.get(0)))
-        } else {
-            None
-        }
-    }
-
     pub fn get_all_puzzles(&self, hunt_id: i32) -> Vec<Puzzle> {
         let mut puzzles: Vec<Puzzle> = vec!();
         let rows = self.query(
@@ -277,7 +268,7 @@ impl Database {
         }
     }
 
-    pub fn get_released_hints(&self, hunt_id: i32, puzzle_key: &str) -> Vec<Hint> {
+    fn get_released_hints(&self, hunt_id: i32, puzzle_key: &str) -> Vec<Hint> {
         self.query(
             "select * from Hint where hunt = $1 and puzzleKey = $2;",
             &[&hunt_id, &puzzle_key])
@@ -364,14 +355,15 @@ impl Database {
     //// Team Stats ////
     
     pub fn get_all_team_stats(&self, hunt_id: i32) -> Vec<TeamStats> {
-        self.get_all_team_ids_and_names(hunt_id)
-            .into_iter()
-            .map(|(id, name)| self.get_team_stats(hunt_id, id, name))
+        let rows = self.query(
+            "select teamID, name from Team where hunt = $1",
+            &[&hunt_id]);
+        rows.into_iter()
+            .map(|row| self.get_team_stats(hunt_id, row.get(0), row.get(1)))
             .collect()
     }
 
     fn get_team_stats(&self, hunt_id: i32, team_id: i32, team_name: String) -> TeamStats {
-        println!("!!!TEAM {}:{}", team_id, team_name);
         let rows = self.query(
             "select count(*) from Guess where hunt = $1 and teamID = $2",
             &[&hunt_id, &team_id]);
@@ -395,21 +387,6 @@ impl Database {
     
     //// Teams ////
 
-    pub fn team_exists(&self, hunt_id: i32, name: &str) -> bool {
-        let rows = self.query(
-            "select * from Team where hunt = $1 and name = $2;",
-            &[&hunt_id, &name]);
-        rows.len() >= 1
-    }
-
-    fn fill_team_members(&self, team: &mut Team) {
-        let rows = self.query(
-            "select * from Member where TeamID = $1",
-            &[&team.team_id]);
-        let members = rows.iter().map(|row| Member::from_row(row)).collect();
-        team.members = members;
-    }
-
     pub fn authenticate_team(&self, hunt_id: i32, name: &str, password: &str) -> Option<i32> {
         let rows = self.query(
             "select teamID from Team where hunt = $1 and name = $2 and password = $3",
@@ -420,7 +397,7 @@ impl Database {
             None
         }
     }
-    
+
     pub fn get_team(&self, hunt_id: i32, name: &str) -> Option<Team> {
         let rows = self.query(
             "select * from Team where hunt = $1 and name = $2",
@@ -434,13 +411,6 @@ impl Database {
         }
     }
 
-    pub fn get_all_team_ids_and_names(&self, hunt_id: i32) -> Vec<(i32, String)> {
-        let rows = self.query(
-            "select teamID, name from Team where hunt = $1",
-            &[&hunt_id]);
-        rows.into_iter().map(|row| (row.get(0), row.get(1))).collect()
-    }
-
     pub fn get_team_by_id(&self, team_id: i32) -> Option<Team> {
         let rows = self.query(
             "select * from Team where teamID = $1",
@@ -452,6 +422,14 @@ impl Database {
         } else {
             None
         }
+    }
+
+    fn fill_team_members(&self, team: &mut Team) {
+        let rows = self.query(
+            "select * from Member where TeamID = $1",
+            &[&team.team_id]);
+        let members = rows.iter().map(|row| Member::from_row(row)).collect();
+        team.members = members;
     }
 
     pub fn register(&self, hunt_id: i32, form: &Register) -> Result<Team, String> {
@@ -472,7 +450,6 @@ impl Database {
             "insert into Team values (default, $1, $2, $3, $4) returning teamID",
             &[&hunt_id, &form.password, &form.name, &hunt.init_guesses]).get(0).get(0);
         for member in &form.members {
-            println!("member: {:?}", member);
             self.execute(
                 "insert into Member values ($1, $2, $3, $4)",
                 &[&team_id, &hunt_id, &member.name, &member.email]);
@@ -481,13 +458,17 @@ impl Database {
         // Return newly registred team
         match self.get_team(hunt_id, &form.name) {
             None => Err("Failed to find team.".to_string()),
-            Some(team) => {
-                println!("team: {:?}", team);
-                Ok(team)
-            }
+            Some(team) => Ok(team)
         }
     }
 
+    fn team_exists(&self, hunt_id: i32, name: &str) -> bool {
+        let rows = self.query(
+            "select * from Team where hunt = $1 and name = $2;",
+            &[&hunt_id, &name]);
+        rows.len() >= 1
+    }
+    
     pub fn update_team(&self, hunt_id: i32, form: &UpdateTeam) -> Result<Team, String> {
         // Validate
         let team = match self.get_team(hunt_id, &form.name) {
@@ -500,7 +481,6 @@ impl Database {
             "delete from Member where teamID = $1 and hunt = $2",
             &[&team.team_id, &hunt_id]);
         for member in &form.members {
-            println!("member: {:?}", member);
             self.execute(
                 "insert into Member values ($1, $2, $3, $4)",
                 &[&team.team_id, &hunt_id, &member.name, &member.email]);
@@ -509,10 +489,7 @@ impl Database {
         // Return updated team
         match self.get_team(hunt_id, &form.name) {
             None => Err("Failed to find team.".to_string()),
-            Some(team) => {
-                println!("team: {:?}", team);
-                Ok(team)
-            }
+            Some(team) => Ok(team)
         }
     }
 }
