@@ -117,13 +117,13 @@ impl TemplateData for Hunt {
     
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
-            .insert_str("id",          format!("{}", self.id))
-            .insert_str("name",        self.name.clone())
-            .insert_str("key",         self.key.clone())
-            .insert_str("teamSize",    format!("{}", self.team_size))
-            .insert_str("initGuesses", format!("{}", self.init_guesses))
-            .insert_bool("closed",     self.closed)
-            .insert_bool("visible",    self.visible)
+            .insert_str("id",           format!("{}", self.id))
+            .insert_str("name",         self.name.clone())
+            .insert_str("key",          self.key.clone())
+            .insert_str("team_size",    format!("{}", self.team_size))
+            .insert_str("init_guesses", format!("{}", self.init_guesses))
+            .insert_bool("closed",      self.closed)
+            .insert_bool("visible",     self.visible)
     }
 }
 
@@ -147,11 +147,11 @@ impl DBTable for Hunt {
 
     fn init_query() -> &'static str {
 "create table Hunt (
-  huntID serial primary key NOT NULL,
+  id serial primary key NOT NULL,
   name varchar NOT NULL,
   key varchar NOT NULL,
-  teamSize int NOT NULL,
-  initGuesses int NOT NULL,
+  team_size int NOT NULL,
+  init_guesses int NOT NULL,
   password varchar NOT NULL,
   closed boolean NOT NULL,
   visible boolean NOT NULL
@@ -159,7 +159,7 @@ impl DBTable for Hunt {
     }
 
     fn test_init_query() -> &'static str {
-"insert into Hunt (name, key, teamSize, initGuesses, password, closed, visible)
+"insert into Hunt (name, key, team_size, init_guesses, password, closed, visible)
 values ('Best Hunt Ever', 'besthuntever', 4, 100, 'pass', true, true);"
     }
 }
@@ -253,8 +253,6 @@ values ('Wave One', 1, '2004-10-19 10:23:54', 10);"
 pub struct ReleasedPuzzle {
     pub name: String,
     pub hunt: i32,
-    pub base_points: i32,
-    pub current_points: i32,
     pub answer: String,
     pub wave: String,
     pub key: String,
@@ -267,13 +265,11 @@ impl TemplateData for ReleasedPuzzle {
     
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
-            .insert_str("name",          self.name.clone())
-            .insert_str("hunt",          format!("{}", self.hunt))
-            .insert_str("basePoints",    format!("{}", self.base_points))
-            .insert_str("currentPoints", format!("{}", self.current_points))
-            .insert_str("wave",          self.wave.clone())
-            .insert_str("key",           self.key.clone())
-            .insert_vec("hints",         |b| vec_to_data(&self.hints, b))
+            .insert_str("name",   self.name.clone())
+            .insert_str("hunt",   format!("{}", self.hunt))
+            .insert_str("wave",   self.wave.clone())
+            .insert_str("key",    self.key.clone())
+            .insert_vec("hints",  |b| vec_to_data(&self.hints, b))
     }
 }
 
@@ -282,7 +278,6 @@ impl TemplateData for ReleasedPuzzle {
 pub struct Puzzle {
     pub name: String,
     pub hunt: i32,
-    pub base_points: i32,
     pub answer: String,
     pub wave: String,
     pub key: String
@@ -294,12 +289,11 @@ impl TemplateData for Puzzle {
     
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
-            .insert_str("name",          self.name.clone())
-            .insert_str("hunt",          format!("{}", self.hunt))
-            .insert_str("basePoints",    format!("{}", self.base_points))
-            .insert_str("answer",        self.answer.clone())
-            .insert_str("wave",          self.wave.clone())
-            .insert_str("key",           self.key.clone())
+            .insert_str("name",      self.name.clone())
+            .insert_str("hunt",      format!("{}", self.hunt))
+            .insert_str("answer",    self.answer.clone())
+            .insert_str("wave",      self.wave.clone())
+            .insert_str("key",       self.key.clone())
     }
 }
 
@@ -308,10 +302,9 @@ impl DBTable for Puzzle {
         Puzzle{
             name:           row.get(0),
             hunt:           row.get(1),
-            base_points:    row.get(2),
-            answer:         row.get(3),
-            wave:           row.get(4),
-            key:            row.get(5)
+            answer:         row.get(2),
+            wave:           row.get(3),
+            key:            row.get(4)
         }
     }
 
@@ -323,7 +316,6 @@ impl DBTable for Puzzle {
 "create table Puzzle (
   name varchar primary key NOT NULL,
   hunt int NOT NULL,
-  basePoints int NOT NULL,
   answer varchar NOT NULL,
   wave varchar NOT NULL,
   key varchar NOT NULL
@@ -332,10 +324,10 @@ impl DBTable for Puzzle {
     }
 
     fn test_init_query() -> &'static str {
-"insert into Puzzle (name, hunt, basePoints, answer, wave, key)
-values ('Puzzle Two', 1, 3, 'answer2', 'Wave One', 'QQQ'),
-       ('Puzzle One', 1, 2, 'answer1', 'Wave One', 'PPP'),
-       ('Puzzle Three', 1, 3, 'answer3', 'Wave One', 'RRR');"
+"insert into Puzzle (name, hunt, answer, wave, key)
+values ('Puzzle Two', 1, 'answer2', 'Wave One', 'QQQ'),
+       ('Puzzle One', 1, 'answer1', 'Wave One', 'PPP'),
+       ('Puzzle Three', 1, 'answer3', 'Wave One', 'RRR');"
     }
 }
 
@@ -348,7 +340,6 @@ pub struct Hint {
     pub puzzle_key: String,
     pub number: i32,
     pub hunt: i32,
-    pub penalty: i32,
     pub wave: String,
     pub key: String
 }
@@ -360,10 +351,9 @@ impl TemplateData for Hint {
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
             .insert_str("hint",      self.hint.clone())
-            .insert_str("puzzleKey", self.puzzle_key.clone())
+            .insert_str("puzzle_key",self.puzzle_key.clone())
             .insert_str("number",    format!("{}", self.number))
             .insert_str("hunt",      format!("{}", self.hunt))
-            .insert_str("penalty",   format!("{}", self.penalty))
             .insert_str("wave",      self.wave.clone())
             .insert_str("key",       self.key.clone())
     }
@@ -376,9 +366,8 @@ impl DBTable for Hint {
             puzzle_key: row.get(1),
             number:     row.get(2),
             hunt:       row.get(3),
-            penalty:    row.get(4),
-            wave:       row.get(5),
-            key:        row.get(6)
+            wave:       row.get(4),
+            key:        row.get(5)
         }
     }
 
@@ -389,20 +378,19 @@ impl DBTable for Hint {
     fn init_query() -> &'static str {
 "create table Hint (
   hint varchar NOT NULL,
-  puzzleKey varchar NOT NULL,
+  puzzle_key varchar NOT NULL,
   number int NOT NULL,
   hunt int NOT NULL,
-  penalty int NOT NULL,
   wave varchar NOT NULL,
   key varchar NOT NULL,
-  primary key (hunt, puzzleKey)
+  primary key (hunt, puzzle_key)
 );
 "        
     }
 
     fn test_init_query() -> &'static str {
-"insert into Hint (hint, puzzleKey, number, hunt, penalty, wave, key)
-values ('The answer is \"answer\".', 'PPP', 1, 1, 1, 'Wave One', 'HHH');"
+"insert into Hint (hint, puzzle_key, number, hunt, wave, key)
+values ('The answer is \"answer\".', 'PPP', 1, 1, 'Wave One', 'HHH');"
     }
 }
 
@@ -425,7 +413,7 @@ impl TemplateData for Team {
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
-            .insert_str("teamID",   format!("{}", self.team_id))
+            .insert_str("team_id",  format!("{}", self.team_id))
             .insert_str("hunt",     format!("{}", self.hunt))
             .insert_str("password", self.password.clone())
             .insert_str("name",     self.name.clone())
@@ -452,7 +440,7 @@ impl DBTable for Team {
 
     fn init_query() -> &'static str {
 "create table Team (
-  teamID serial primary key NOT NULL,
+  team_id serial primary key NOT NULL,
   hunt int NOT NULL,
   password varchar NOT NULL,
   name varchar NOT NULL,
@@ -485,7 +473,7 @@ impl TemplateData for Member {
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
-            .insert_str("teamID", format!("{}", self.team_id))
+            .insert_str("team_id", format!("{}", self.team_id))
             .insert_str("hunt", format!("{}", self.hunt))
             .insert_str("name", self.name.clone())
             .insert_str("email", self.email.clone())
@@ -508,7 +496,7 @@ impl DBTable for Member {
 
     fn init_query() -> &'static str {
 "create table Member (
-  teamID int NOT NULL,
+  team_id int NOT NULL,
   hunt int NOT NULL,
   name varchar NOT NULL,
   email varchar NOT NULL
@@ -517,7 +505,7 @@ impl DBTable for Member {
     }
 
     fn test_init_query() -> &'static str {
-"insert into Member (teamID, hunt, name, email)
+"insert into Member (team_id, hunt, name, email)
 values (1, 1, 'BestPersonEver', 'person@email.com');"
     }
 }
@@ -540,9 +528,9 @@ impl TemplateData for Guess {
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
-            .insert_str("teamID", format!("{}", self.team_id))
+            .insert_str("team_id", format!("{}", self.team_id))
             .insert_str("hunt", format!("{}", self.hunt))
-            .insert_str("puzzleKey", self.puzzle_key.clone())
+            .insert_str("puzzle_key", self.puzzle_key.clone())
             .insert_str("guess", self.guess.clone())
             .insert_str("time", format!("{}", self.time))
     }
@@ -565,18 +553,18 @@ impl DBTable for Guess {
 
     fn init_query() -> &'static str {
 "create table Guess (
-  teamID int NOT NULL,
+  team_id int NOT NULL,
   hunt int NOT NULL,
-  puzzleKey varchar NOT NULL,
+  puzzle_key varchar NOT NULL,
   guess varchar NOT NULL,
   time timestamp with time zone NOT NULL,
-  primary key (hunt, teamID, puzzleKey)
+  primary key (hunt, team_id, puzzle_key)
 );
 "
     }
 
     fn test_init_query() -> &'static str {
-"insert into Guess (teamID, hunt, puzzleKey, guess, time)
+"insert into Guess (team_id, hunt, puzzle_key, guess, time)
 values (1, 1, 'PPP', 'answer?', '2004-10-19 10:23:54');"
     }
 }
@@ -612,20 +600,20 @@ impl DBTable for Solve {
 
     fn init_query() -> &'static str {
 "create table Solve (
-  teamID int NOT NULL,
+  team_id int NOT NULL,
   hunt int NOT NULL,
-  puzzleKey varchar NOT NULL,
+  puzzle_key varchar NOT NULL,
   guesses int NOT NULL,
-  solvedAt timestamp with time zone NOT NULL,
-  solveTime int NOT NULL,
+  solved_at timestamp with time zone NOT NULL,
+  solve_time int NOT NULL,
   score int NOT NULL,
-  primary key (hunt, teamID, puzzleKey)
+  primary key (hunt, team_id, puzzle_key)
 );
 "
     }
 
     fn test_init_query() -> &'static str {
-"insert into Solve (teamId, hunt, puzzleKey, guesses, solvedAt, solveTime, score)
+"insert into Solve (team_id, hunt, puzzle_key, guesses, solved_at, solve_time, score)
 values (1, 1, 'PPP', 50, '2004-10-19 10:23:54', 385, 10),
        (2, 1, 'PPP', 1, '2004-10-19 10:23:55', 386, 10);"
     }
@@ -662,7 +650,7 @@ impl TemplateData for TeamStats {
         builder
             .insert_str("team", self.team_name.clone())
             .insert_str("guesses", format!("{}", self.guesses))
-            .insert_str("avgSolveTime", avg_solve_time)
+            .insert_str("avg_solve_time", avg_solve_time)
             .insert_str("score", format!("{}", self.score))
     }
 }
@@ -693,11 +681,11 @@ impl TemplateData for PuzzleStats {
             format!("{} mins", self.total_solve_time / self.solves / 60)
         };
         builder
-            .insert_str("wave", self.wave_name.clone())
-            .insert_str("name", self.puzzle_name.clone())
-            .insert_str("key", self.puzzle_key.clone())
+            .insert_str("wave_name", self.wave_name.clone())
+            .insert_str("puzzle_name", self.puzzle_name.clone())
+            .insert_str("puzzle_key", self.puzzle_key.clone())
             .insert_str("guesses", format!("{}", self.guesses))
             .insert_str("solves", format!("{}", self.solves))
-            .insert_str("avgSolveTime", avg_solve_time)
+            .insert_str("avg_solve_time", avg_solve_time)
     }
 }

@@ -7,14 +7,14 @@
   <form>
     <expandable-section item="Hint">
       <input type="long" id="hint" name="Hint To Give"/>
-      <input type="text" id="puzzleKey" name="Puzzle"/>
+      <input type="text" id="puzzle_key" name="Puzzle"/>
       <input type="number" id="number" name="Num"/>
       <input type="text" id="wave" name="Wave"/>
       <input type="fixed" id="key" name="Key"/>
       {{#hints}}
       <row>
         <value>{{hint}}</value>
-        <value>{{puzzleKey}}</value>
+        <value>{{puzzle_key}}</value>
         <value>{{number}}</value>
         <value>{{wave}}</value>
         <value>{{key}}</value>

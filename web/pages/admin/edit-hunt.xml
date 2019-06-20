@@ -12,10 +12,10 @@
       <input type="text" id="name" value="{{hunt.name}}">
         Hunt name
       </input>
-      <input type="number" id="teamSize" value="{{hunt.teamSize}}">
+      <input type="number" id="teamSize" value="{{hunt.team_size}}">
         Maximum team size
       </input>
-      <input type="number" id="initGuesses" value="{{hunt.initGuesses}}">
+      <input type="number" id="initGuesses" value="{{hunt.init_guesses}}">
         Initial Guesses
       </input>
       <input type="boolean" id="closed" value="{{#hunt.closed}}true{{/hunt.closed}}{{^hunt.closed}}false{{/hunt.closed}}">

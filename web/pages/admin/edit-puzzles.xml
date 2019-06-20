@@ -7,14 +7,12 @@
   <form>
     <expandable-section hunt="{{hunt.key}}" itemkey="puzzle" item="Puzzle">
       <input type="text" id="name" name="Name"/>
-      <input type="number" id="basePoints" name="Pts"/>
       <input type="text" id="answer" name="Answer"/>
       <input type="text" id="wave" name="Wave"/>
       <input type="fixed" id="key" name="Key"/>
       {{#puzzles}}
       <row>
         <value>{{name}}</value>
-        <value>{{basePoints}}</value>
         <value>{{answer}}</value>
         <value>{{wave}}</value>
         <value>{{key}}</value>

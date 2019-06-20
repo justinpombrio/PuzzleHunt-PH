@@ -26,7 +26,7 @@ impl RegularForm for CreateHunt {
             key:             map["key"].to_string(),
             name:            map["name"].to_string(),
             password:        map["password"].to_string(),
-            password_verify: map["passwordVerify"].to_string(),
+            password_verify: map["password_verify"].to_string(),
             secret:          map["secret"].to_string()
         }
     }
@@ -47,14 +47,14 @@ pub type EditHuntForm = Form<RegularFormToForm<EditHunt>>;
 
 impl RegularForm for EditHunt {
     fn parts() -> Vec<&'static str> {
-        vec!("key", "name", "teamSize", "initGuesses", "closed", "visible")
+        vec!("key", "name", "team_size", "init_guesses", "closed", "visible")
     }
 
     fn new(map: &HashMap<String, String>) -> EditHunt {
         EditHunt {
             name:         map["name"].to_string(),
-            team_size:    map["teamSize"].parse().expect("Failed to parse 'teamSize'"),
-            init_guesses: map["initGuesses"].parse().expect("Failed to parse 'initGuesses'"),
+            team_size:    map["team_size"].parse().expect("Failed to parse 'teamSize'"),
+            init_guesses: map["init_guesses"].parse().expect("Failed to parse 'initGuesses'"),
             closed:       read_form_boolean(map, "closed"),
             visible:      read_form_boolean(map, "visible")
         }
@@ -119,15 +119,13 @@ impl ExpandableForm for Puzzles {
     }
     
     fn member_parts() -> Vec<&'static str> {
-        vec!("name", "basePoints", "answer", "wave", "key")
+        vec!("name", "answer", "wave", "key")
     }
     
     fn new_member(map: &HashMap<String, String>) -> Puzzle {
         Puzzle {
             name: map["name"].to_string(),
             hunt: 0,
-            base_points: map["basePoints"].parse()
-                .expect("Could not parse `basePoints`"),
             answer: map["answer"].to_string(),
             wave: map["wave"].to_string(),
             key: map["key"].to_string()
@@ -156,17 +154,16 @@ impl ExpandableForm for Hints {
     }
 
     fn member_parts() -> Vec<&'static str> {
-        vec!("hint", "puzzleKey", "number", "hunt", "penalty", "wave", "key")
+        vec!("hint", "puzzle_key", "number", "hunt", "wave", "key")
     }
     
     fn new_member(map: &HashMap<String, String>) -> Hint {
         Hint {
             hint: map["hint"].to_string(),
-            puzzle_key: map["puzzleKey"].to_string(),
+            puzzle_key: map["puzzle_key"].to_string(),
             number: map["number"].parse()
                 .expect("Could not parse `number`"),
             hunt: 0,
-            penalty: 0, // TODO: just remove
             wave: map["wave"].to_string(),
             key: map["key"].to_string()
         }

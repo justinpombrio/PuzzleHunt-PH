@@ -17,7 +17,7 @@
         <td>{{team}}</td>
         <td>{{score}}</td>
         <td>{{guesses}}</td>
-        <td>{{avgSolveTime}}</td>
+        <td>{{avg_solve_time}}</td>
       </tr>
       {{/stats}}
     </table>

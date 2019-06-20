@@ -48,19 +48,19 @@ fn get_favicon() -> Option<File> {
 }
 
 
-// Global //
+// Site //
 
 #[get("/", rank=0)]
 fn get_index() -> Xml<String> {
     let db = Database::new();
     let site = db.get_site();
     let hunts = db.get_hunts();
-    render_xml("pages/global/index.xml", vec!(&hunts, &site))
+    render_xml("pages/site/index.xml", vec!(&hunts, &site))
 }
 
 #[get("/create-hunt.xml")]
 fn get_create_hunt() -> Xml<String> {
-    render_xml("pages/global/create-hunt.xml", vec!())
+    render_xml("pages/site/create-hunt.xml", vec!())
 }
 
 #[post("/create-hunt.xml", data="<form>")]

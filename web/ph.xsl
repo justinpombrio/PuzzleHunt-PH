@@ -242,8 +242,8 @@
             <li class="nav5"><a href="view-teams.xml">Teams</a></li>
             <li class="nav6"><a href="signout.xml">Sign Out</a></li>
           </xsl:if>
-          <xsl:if test="@page-type = 'global'">
-            <li class="nav-global"><a href="/">PuzzleHunt: PH</a></li>
+          <xsl:if test="@page-type = 'site'">
+            <li class="nav-site"><a href="/">PuzzleHunt: PH</a></li>
           </xsl:if>
         </ul>
         <p id="success-message"/>

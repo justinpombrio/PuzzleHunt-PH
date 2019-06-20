@@ -145,7 +145,7 @@ impl Database {
 
     pub fn authenticate_team(&self, hunt_id: i32, name: &str, password: &str) -> Option<i32> {
         let rows = self.query(
-            "select teamID from Team where hunt = $1 and name = $2 and password = $3",
+            "select team_id from Team where hunt = $1 and name = $2 and password = $3",
             &[&hunt_id, &name, &password]);
         if rows.len() == 1 {
             Some(rows.get(0).get(0))
@@ -156,7 +156,7 @@ impl Database {
 
     pub fn get_hunt_by_id(&self, hunt_id: i32) -> Option<Hunt> {
         let rows = self.query(
-            "select * from Hunt where huntID = $1",
+            "select * from Hunt where id = $1",
             &[&hunt_id]);
         if rows.len() == 1 {
             Some(Hunt::from_row(rows.get(0)))
@@ -167,7 +167,7 @@ impl Database {
 
     pub fn get_team_by_id(&self, team_id: i32) -> Option<Team> {
         let rows = self.query(
-            "select * from Team where teamID = $1",
+            "select * from Team where team_id = $1",
             &[&team_id]);
         if rows.len() == 1 {
             let mut team = Team::from_row(rows.get(0));
@@ -244,9 +244,8 @@ impl Database {
     pub fn set_puzzles(&self, hunt_id: i32, puzzles: &Vec<Puzzle>) {
         self.execute("delete from Puzzle where hunt = $1", &[&hunt_id]);
         for puzzle in puzzles {
-            self.execute("insert into Puzzle values ($1, $2, $3, $4, $5, $6)",
-                         &[&puzzle.name, &hunt_id,
-                           &puzzle.base_points, &puzzle.answer,
+            self.execute("insert into Puzzle values ($1, $2, $3, $4, $5)",
+                         &[&puzzle.name, &hunt_id, &puzzle.answer,
                            &puzzle.wave, &puzzle.key]);
         }
     }
@@ -265,9 +264,9 @@ impl Database {
     pub fn set_hints(&self, hunt_id: i32, hints: &Vec<Hint>) {
         self.execute("delete from Hint where hunt = $1", &[&hunt_id]);
         for hint in hints {
-            self.execute("insert into Hint values ($1, $2, $3, $4, $5, $6, $7)",
+            self.execute("insert into Hint values ($1, $2, $3, $4, $5, $6)",
                          &[&hint.hint, &hint.puzzle_key, &hint.number,
-                           &hunt_id, &hint.penalty, &hint.wave, &hint.key]);
+                           &hunt_id, &hint.wave, &hint.key]);
         }
     }
 
@@ -301,8 +300,6 @@ impl Database {
                     hints: self.get_released_hints(hunt_id, &puzzle.key),
                     name: puzzle.name,
                     hunt: hunt_id,
-                    base_points: puzzle.base_points,
-                    current_points: puzzle.base_points, // TODO: calculate
                     answer: puzzle.answer,
                     wave: puzzle.wave,
                     key: puzzle.key,
@@ -314,7 +311,7 @@ impl Database {
 
     fn get_released_hints(&self, hunt_id: i32, puzzle_key: &str) -> Vec<Hint> {
         self.query(
-            "select * from Hint where hunt = $1 and puzzleKey = $2;",
+            "select * from Hint where hunt = $1 and puzzle_key = $2;",
             &[&hunt_id, &puzzle_key])
             .into_iter()
             .map(|row| Hint::from_row(row))
@@ -356,11 +353,11 @@ impl Database {
             let puzzle_key = row.get(0);
             let puzzle_name = row.get(1);
             let guesses: i64 = self.query(
-                "select count(*) from Guess where hunt = $1 and puzzleKey = $2",
+                "select count(*) from Guess where hunt = $1 and puzzle_key = $2",
                 &[&hunt_id, &puzzle_key])
                 .get(0).get(0);
             let rows = self.query(
-                "select count(*), sum(solveTime) from Solve where hunt = $1 and puzzleKey = $2",
+                "select count(*), sum(solve_time) from Solve where hunt = $1 and puzzle_key = $2",
                 &[&hunt_id, &puzzle_key]);
             let solves: i64 = rows.get(0).get(0);
             let total_solve_time: Option<i64> = rows.get(0).get(1);
@@ -377,18 +374,18 @@ impl Database {
     
     pub fn get_team_stats(&self, hunt_id: i32) -> Vec<TeamStats> {
         let rows = self.query(
-            "select teamID, name from Team where hunt = $1",
+            "select team_id, name from Team where hunt = $1",
             &[&hunt_id]);
         rows.into_iter()
             .map(|row| {
                 let team_id: i32 = row.get(0);
                 let team_name: String = row.get(1);
                 let rows = self.query(
-                    "select count(*) from Guess where hunt = $1 and teamID = $2",
+                    "select count(*) from Guess where hunt = $1 and team_id = $2",
                     &[&hunt_id, &team_id]);
                 let guesses: i64 = rows.get(0).get(0);
                 let rows = self.query(
-                    "select count(*), sum(solveTime), sum(score) from Solve where hunt = $1 and teamID = $2",
+                    "select count(*), sum(solve_time), sum(score) from Solve where hunt = $1 and team_id = $2",
                     &[&hunt_id, &team_id]);
                 let row = rows.get(0);
                 let solves: i64 = row.get(0);
@@ -423,7 +420,7 @@ impl Database {
 
     fn fill_team_members(&self, team: &mut Team) {
         let rows = self.query(
-            "select * from Member where TeamID = $1",
+            "select * from Member where team_id = $1",
             &[&team.team_id]);
         let members = rows.iter().map(|row| Member::from_row(row)).collect();
         team.members = members;
@@ -444,7 +441,7 @@ impl Database {
             Some(hunt) => hunt
         };
         let team_id: i32 = self.query(
-            "insert into Team values (default, $1, $2, $3, $4) returning teamID",
+            "insert into Team values (default, $1, $2, $3, $4) returning team_id",
             &[&hunt_id, &form.password, &form.name, &hunt.init_guesses]).get(0).get(0);
         for member in &form.members {
             self.execute(
@@ -475,7 +472,7 @@ impl Database {
         
         // Update
         self.execute(
-            "delete from Member where teamID = $1 and hunt = $2",
+            "delete from Member where team_id = $1 and hunt = $2",
             &[&team.team_id, &hunt_id]);
         for member in &form.members {
             self.execute(
