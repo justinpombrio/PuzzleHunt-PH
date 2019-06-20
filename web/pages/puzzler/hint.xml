@@ -4,7 +4,7 @@
 <page>
   <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
   <content>
-    <h2>Hint #{{hint.number}} for {{hint.puzzle}}</h2>
+    <h2>Hint #{{hint.number}} for {{hint.puzzle_name}}</h2>
     <p>{{hint.hint}}</p>
   </content>
 </page>

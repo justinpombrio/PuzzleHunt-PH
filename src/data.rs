@@ -337,7 +337,7 @@ values ('Puzzle Two', 1, 'answer2', 'Wave One', 'QQQ'),
 #[derive(Debug, Clone)]
 pub struct Hint {
     pub hint: String,
-    pub puzzle_key: String,
+    pub puzzle_name: String,
     pub number: i32,
     pub hunt: i32,
     pub wave: String,
@@ -351,7 +351,7 @@ impl TemplateData for Hint {
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
             .insert_str("hint",      self.hint.clone())
-            .insert_str("puzzle_key",self.puzzle_key.clone())
+            .insert_str("puzzle_name",self.puzzle_name.clone())
             .insert_str("number",    format!("{}", self.number))
             .insert_str("hunt",      format!("{}", self.hunt))
             .insert_str("wave",      self.wave.clone())
@@ -363,7 +363,7 @@ impl DBTable for Hint {
     fn from_row(row: Row) -> Hint {
         Hint{
             hint:       row.get(0),
-            puzzle_key: row.get(1),
+            puzzle_name:row.get(1),
             number:     row.get(2),
             hunt:       row.get(3),
             wave:       row.get(4),
@@ -378,19 +378,19 @@ impl DBTable for Hint {
     fn init_query() -> &'static str {
 "create table Hint (
   hint varchar NOT NULL,
-  puzzle_key varchar NOT NULL,
+  puzzle_name varchar NOT NULL,
   number int NOT NULL,
   hunt int NOT NULL,
   wave varchar NOT NULL,
   key varchar NOT NULL,
-  primary key (hunt, puzzle_key)
+  primary key (hunt, puzzle_name)
 );
 "        
     }
 
     fn test_init_query() -> &'static str {
-"insert into Hint (hint, puzzle_key, number, hunt, wave, key)
-values ('The answer is \"answer\".', 'PPP', 1, 1, 'Wave One', 'HHH');"
+"insert into Hint (hint, puzzle_name, number, hunt, wave, key)
+values ('The answer is \"answer\".', 'Puzzle One', 1, 1, 'Wave One', 'HHH');"
     }
 }
 

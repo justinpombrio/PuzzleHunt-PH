@@ -154,13 +154,13 @@ impl ExpandableForm for Hints {
     }
 
     fn member_parts() -> Vec<&'static str> {
-        vec!("hint", "puzzle_key", "number", "hunt", "wave", "key")
+        vec!("hint", "puzzle_name", "number", "hunt", "wave", "key")
     }
     
     fn new_member(map: &HashMap<String, String>) -> Hint {
         Hint {
             hint: map["hint"].to_string(),
-            puzzle_key: map["puzzle_key"].to_string(),
+            puzzle_name: map["puzzle_name"].to_string(),
             number: map["number"].parse()
                 .expect("Could not parse `number`"),
             hunt: 0,

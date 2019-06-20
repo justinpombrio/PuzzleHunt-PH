@@ -265,7 +265,7 @@ impl Database {
         self.execute("delete from Hint where hunt = $1", &[&hunt_id]);
         for hint in hints {
             self.execute("insert into Hint values ($1, $2, $3, $4, $5, $6)",
-                         &[&hint.hint, &hint.puzzle_key, &hint.number,
+                         &[&hint.hint, &hint.puzzle_name, &hint.number,
                            &hunt_id, &hint.wave, &hint.key]);
         }
     }
@@ -297,7 +297,7 @@ impl Database {
             let released = wave.map_or(false, |w| w.is_released());
             if released {
                 puzzles.push(ReleasedPuzzle {
-                    hints: self.get_released_hints(hunt_id, &puzzle.key),
+                    hints: self.get_released_hints(hunt_id, &puzzle.name),
                     name: puzzle.name,
                     hunt: hunt_id,
                     answer: puzzle.answer,
@@ -309,10 +309,10 @@ impl Database {
         puzzles
     }
 
-    fn get_released_hints(&self, hunt_id: i32, puzzle_key: &str) -> Vec<Hint> {
+    fn get_released_hints(&self, hunt_id: i32, puzzle_name: &str) -> Vec<Hint> {
         self.query(
-            "select * from Hint where hunt = $1 and puzzle_key = $2;",
-            &[&hunt_id, &puzzle_key])
+            "select * from Hint where hunt = $1 and puzzle_name = $2;",
+            &[&hunt_id, &puzzle_name])
             .into_iter()
             .map(|row| Hint::from_row(row))
             .filter(|hint| {
