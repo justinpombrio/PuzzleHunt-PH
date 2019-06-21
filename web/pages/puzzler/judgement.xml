@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
+
+<page>
+  <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
+  <title>Answer Submitted</title>
+  <prose>
+    {{#judgement.is_right}}
+      <p>Your guess "{{judgement.guess}}" for {{judgement.puzzle_name}} was CORRECT!</p>
+    {{/judgement.is_right}}
+    {{#judgement.is_wrong}}
+      <p>Your guess "{{judgement.guess}}" for {{judgement.puzzle_name}} was INCORRECT.</p>
+      <p>You have {{judgement.guesses_remaining}} guesses left.</p>
+    {{/judgement.is_wrong}}
+    {{#judgement.is_already_solved}}
+      <p>Your team has already solved {{judgement.puzzle_name}}. The answer is "{{judgement.guess}}"</p>
+    {{/judgement.is_already_solved}}
+    {{#judgement.is_already_guessed}}
+      <p>You already guessed "{{judgement.guess}}" for {{judgement.puzzle_name}}. That answer is still INCORRECT.</p>
+    {{/judgement.is_already_guessed}}
+    {{#judgement.is_out_of_guesses}}
+      <p>Your team is out of guesses, and cannot submit answers at this time.</p>
+      <p>Talk to the puzzle hunt operators to see if more guesses will be added in the future.</p>
+    {{/judgement.is_out_of_guesses}}
+  </prose>
+</page>

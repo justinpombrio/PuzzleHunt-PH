@@ -279,9 +279,9 @@ fn get_puzzles(hunt_key: String) -> Xml<String> {
     render_xml("pages/puzzler/puzzles.xml", vec!(&hunt, &waves))
 }
 
-#[get("/<hunt_key>/puzzle/<puzzle_name>", rank = 1)]
-fn get_puzzle(hunt_key: String, puzzle_name: String) -> Result<NamedFile, NotFound<String>> {
-    let path = format!("hunts/{}/puzzle/{}", hunt_key, puzzle_name);
+#[get("/<hunt_key>/puzzle/<puzzle_key>", rank = 1)]
+fn get_puzzle(hunt_key: String, puzzle_key: String) -> Result<NamedFile, NotFound<String>> {
+    let path = format!("hunts/{}/puzzle/{}", hunt_key, puzzle_key);
     NamedFile::open(&Path::new(&path)).map_err(|_| NotFound("Puzzle not found.".to_string()))
 }
 
@@ -296,6 +296,44 @@ fn get_hint(hunt_key: String, hint_key: String) -> Xml<String> {
     let hint = db.get_released_hint(hunt.id, &hint_key)
         .expect("Hint not found!");
     render_xml("pages/puzzler/hint.xml", vec!(&hunt, &hint))
+}
+
+
+// Submitting Answers //
+
+#[get("/<hunt_key>/submit-answer/<puzzle_key>", rank=1)]
+fn get_submit_answer(mut cookies: Cookies, hunt_key: String, puzzle_key: String) -> Xml<String> {
+    let db = Database::new();
+    let hunt = db.get_hunt(&hunt_key);
+    let team = match db.signedin_team(&mut cookies) {
+        Some(team) => team,
+        None => panic!("Team not found.")
+    };
+    let puzzle = match db.get_released_puzzle(hunt.id, &puzzle_key) {
+        None => panic!("Puzzle not found (or not yet released) {}", puzzle_key),
+        Some(p) => p
+    };
+    render_xml("pages/puzzler/submit-answer.xml", vec!(&hunt, &team, &puzzle))
+}
+
+#[post("/<hunt_key>/submit-answer/<puzzle_key>", data="<form>", rank=1)]
+fn post_submit_answer(
+    mut cookies: Cookies, hunt_key: String, puzzle_key: String, form: SubmitAnswerForm)
+    -> Xml<String>
+{
+    let db = Database::new();
+    let hunt = db.get_hunt(&hunt_key);
+    let team = match db.signedin_team(&mut cookies) {
+        Some(team) => team,
+        None => panic!("Team not found.")
+    };
+    let puzzle = match db.get_released_puzzle(hunt.id, &puzzle_key) {
+        None => panic!("Puzzle not found (or not yet released) {}", puzzle_key),
+        Some(p) => p
+    };
+    let form = form.into_inner().0;
+    let judgement = db.submit_guess(team, puzzle, &form.guess);
+    render_xml("pages/puzzler/judgement.xml", vec!(&hunt, &judgement))
 }
 
 
@@ -436,8 +474,8 @@ pub fn start() {
         get_register, post_register,
         get_team, get_team_signedin,
         // Puzzles
-        get_puzzles, get_puzzle,
-        get_hint,
+        get_puzzles, get_puzzle, get_hint,
+        get_submit_answer, post_submit_answer,
         // Stats
         get_puzzle_stats, get_team_stats,
         // Admin Signin

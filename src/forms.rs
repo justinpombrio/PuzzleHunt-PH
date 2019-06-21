@@ -276,3 +276,24 @@ fn read_form_boolean(map: &HashMap<String, String>, key: &str) -> bool {
         None => false
     }
 }
+
+
+// Submit Answer //
+
+#[derive(Debug)]
+pub struct SubmitAnswer {
+    pub guess: String
+}
+pub type SubmitAnswerForm = Form<RegularFormToForm<SubmitAnswer>>;
+
+impl RegularForm for SubmitAnswer {
+    fn parts() -> Vec<&'static str> {
+        vec!("guess")
+    }
+
+    fn new(map: &HashMap<String, String>) -> SubmitAnswer {
+        SubmitAnswer {
+            guess: map["guess"].to_string()
+        }
+    }
+}

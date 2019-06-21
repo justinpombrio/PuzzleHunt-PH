@@ -253,8 +253,8 @@ values ('Wave One', 1, '2004-10-19 10:23:54', 10);"
 pub struct ReleasedPuzzle {
     pub name: String,
     pub hunt: i32,
-    pub answer: String,
     pub wave: String,
+    pub time: DateTime<Local>,
     pub key: String,
     pub hints: Vec<Hint>
 }
@@ -449,7 +449,7 @@ impl DBTable for Team {
 
     fn test_init_query() -> &'static str {
 "insert into Team (hunt, password, name, guesses)
-values (1, 'pass', 'BestTeamEver', 50),
+values (1, 'pass', 'BestTeamEver', 5),
 (1, 'pass', 'SecondBestTeam', 99);"
     }
 }
@@ -534,6 +534,12 @@ impl TemplateData for Guess {
     }
 }
 
+impl Guess {
+    pub fn index_query() -> &'static str {
+        "create index guess_index on Guess (hunt, team_id, puzzle_key);"
+    }
+}
+
 impl DBTable for Guess {
     fn from_row(row: Row) -> Guess {
         Guess{
@@ -555,8 +561,7 @@ impl DBTable for Guess {
   hunt int NOT NULL,
   puzzle_key varchar NOT NULL,
   guess varchar NOT NULL,
-  time timestamp with time zone NOT NULL,
-  primary key (hunt, team_id, puzzle_key)
+  time timestamp with time zone NOT NULL
 );
 "
     }
@@ -573,10 +578,8 @@ pub struct Solve {
     pub team_id: i32,
     pub hunt: i32,
     pub puzzle_key: String,
-    pub guesses: i32,
     pub solved_at: DateTime<Utc>,
     pub solve_time: i32, // in seconds
-    pub score: i32
 }
 
 impl DBTable for Solve {
@@ -585,10 +588,8 @@ impl DBTable for Solve {
             team_id:    row.get(0),
             hunt:       row.get(1),
             puzzle_key: row.get(2),
-            guesses:    row.get(6),
-            solved_at:  row.get(4),
-            solve_time: row.get(5),
-            score:      row.get(3),
+            solved_at:  row.get(3),
+            solve_time: row.get(4),
         }
     }
 
@@ -601,21 +602,61 @@ impl DBTable for Solve {
   team_id int NOT NULL,
   hunt int NOT NULL,
   puzzle_key varchar NOT NULL,
-  guesses int NOT NULL,
   solved_at timestamp with time zone NOT NULL,
   solve_time int NOT NULL,
-  score int NOT NULL,
   primary key (hunt, team_id, puzzle_key)
 );
 "
     }
 
     fn test_init_query() -> &'static str {
-"insert into Solve (team_id, hunt, puzzle_key, guesses, solved_at, solve_time, score)
-values (1, 1, 'PPP', 50, '2004-10-19 10:23:54', 385, 10),
-       (2, 1, 'PPP', 1, '2004-10-19 10:23:55', 386, 10);"
+"insert into Solve (team_id, hunt, puzzle_key, solved_at, solve_time)
+values (1, 1, 'PPP', '2004-10-19 10:23:54', 385),
+       (2, 1, 'PPP', '2004-10-19 10:23:55', 386);"
     }
 }
+
+
+////// Answer Submission //////
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Correctness {
+    Right,
+    Wrong,
+    AlreadySolved,
+    AlreadyGuessedThat,
+    OutOfGuesses
+}
+
+#[derive(Debug, Clone)]
+pub struct Judgement {
+    pub puzzle_name: String,
+    pub guess: String,
+    pub correctness: Correctness,
+    pub guesses_remaining: i32
+}
+
+impl TemplateData for Judgement {
+    fn name() -> &'static str {
+        "judgement"
+    }
+    fn names() -> &'static str {
+        "judgements"
+    }
+
+    fn to_data(&self, builder: MapBuilder) -> MapBuilder {
+        builder
+            .insert_str("puzzle_name", self.puzzle_name.clone())
+            .insert_str("guess", self.guess.clone())
+            .insert_bool("is_right", self.correctness == Correctness::Right)
+            .insert_bool("is_wrong", self.correctness == Correctness::Wrong)
+            .insert_bool("is_already_solved", self.correctness == Correctness::AlreadySolved)
+            .insert_bool("is_already_guessed", self.correctness == Correctness::AlreadyGuessedThat)
+            .insert_bool("is_out_of_guesses", self.correctness == Correctness::OutOfGuesses)
+            .insert_str("guesses_remaining", format!("{}", self.guesses_remaining))
+    }
+}
+
 
 
 
@@ -628,7 +669,6 @@ pub struct TeamStats {
     pub guesses: i32,
     pub solves: i32,
     pub total_solve_time: i32, // in seconds
-    pub score: i32,
 }
 
 impl TemplateData for TeamStats {
@@ -649,7 +689,6 @@ impl TemplateData for TeamStats {
             .insert_str("team", self.team_name.clone())
             .insert_str("guesses", format!("{}", self.guesses))
             .insert_str("avg_solve_time", avg_solve_time)
-            .insert_str("score", format!("{}", self.score))
     }
 }
 

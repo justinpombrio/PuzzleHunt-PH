@@ -51,6 +51,12 @@
       name="{@id}" value="{@value}"
       class="form-cell text"/></td>
     </xsl:if>
+    <xsl:if test="contains(@type, 'long')">
+      <td><xsl:value-of select="normalize-space(.)"/>:</td>
+      <td><input type="text"
+      name="{@id}" value="{@value}"
+      class="form-cell long"/></td>
+    </xsl:if>
     <xsl:if test="contains(@type, 'number')">
       <td><xsl:value-of select="normalize-space(.)"/>:</td>
       <td><input type="text"

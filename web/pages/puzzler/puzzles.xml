@@ -11,9 +11,9 @@
         <ul class="puzzle-list">
           {{#puzzles}}
           <li>
-            <a href="/{{hunt.key}}/puzzle/{{key}}.xml">{{name}}</a>
+            <a href="/{{hunt.key}}/puzzle/{{key}}">{{name}}</a>
             <span class="spacing"/>
-            <a href="/{{hunt.key}}/answer/{{key}}.xml">[answer]</a>
+            <a href="/{{hunt.key}}/submit-answer/{{key}}">[answer]</a>
             {{#hints}}
               <span class="spacing"/>
               <a href="/{{hunt.key}}/hint/{{key}}.xml">[hint {{number}}]</a>

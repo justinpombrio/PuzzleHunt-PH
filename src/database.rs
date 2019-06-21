@@ -1,4 +1,4 @@
-use chrono::Utc;
+use chrono::{Utc, Local};
 use postgres::{Connection, TlsMode};
 use postgres::types::ToSql;
 use postgres::rows::{Rows};
@@ -60,6 +60,8 @@ impl Database {
         self.execute(Member::init_query(), &[]);
         self.execute(Guess::init_query(), &[]);
         self.execute(Solve::init_query(), &[]);
+        // A single annoying index
+        self.execute(Guess::index_query(), &[]);
     }
 
     pub fn init_test(&self) {
@@ -104,7 +106,7 @@ impl Database {
         }
 
         // Create hunt
-        self.query(
+        self.execute(
             "insert into Hunt values(default, $1, $2, 4, 100, $3, false, false)",
             &[&form.name, &form.key, &form.password]);
 
@@ -293,17 +295,20 @@ impl Database {
         let mut puzzles = vec!();
         for row in &rows {
             let puzzle = Puzzle::from_row(row);
-            let wave = self.get_wave(hunt_id, &puzzle.wave);
-            let released = wave.map_or(false, |w| w.is_released());
-            if released {
-                puzzles.push(ReleasedPuzzle {
-                    hints: self.get_released_hints(hunt_id, &puzzle.name),
-                    name: puzzle.name,
-                    hunt: hunt_id,
-                    answer: puzzle.answer,
-                    wave: puzzle.wave,
-                    key: puzzle.key,
-                });
+            match self.get_wave(hunt_id, &puzzle.wave) {
+                None => (),
+                Some(wave) => {
+                    if wave.is_released() {
+                        puzzles.push(ReleasedPuzzle {
+                            hints: self.get_released_hints(hunt_id, &puzzle.name),
+                            name: puzzle.name,
+                            hunt: hunt_id,
+                            time: wave.time,
+                            wave: puzzle.wave,
+                            key: puzzle.key,
+                        });
+                    }
+                }
             }
         }
         puzzles
@@ -332,6 +337,125 @@ impl Database {
         }
     }
 
+    //// Answer Submission ////
+    
+    pub fn get_released_puzzle(&self, hunt_id: i32, puzzle_key: &str) -> Option<ReleasedPuzzle> {
+        let rows = self.query(
+            "select * from Puzzle where hunt = $1 and key = $2",
+            &[&hunt_id, &puzzle_key]);
+        if rows.len() != 1 {
+            return None;
+        }
+        let puzzle = Puzzle::from_row(rows.get(0));
+        match self.get_wave(hunt_id, &puzzle.wave) {
+            None => None,
+            Some(wave) => {
+                if wave.is_released() {
+                    Some(ReleasedPuzzle {
+                        hints: self.get_released_hints(hunt_id, &puzzle.name),
+                        name: puzzle.name,
+                        hunt: hunt_id,
+                        time: wave.time,
+                        wave: puzzle.wave,
+                        key: puzzle.key,
+                    })
+                } else {
+                    None
+                }
+            }
+        }
+    }
+
+    pub fn submit_guess(&self, team: Team, puzzle: ReleasedPuzzle, guess: &str) -> Judgement {
+        let mut judgement = Judgement {
+            puzzle_name: puzzle.name.clone(),
+            guess: guess.to_string(),
+            correctness: Correctness::Wrong, // to be filled!
+            guesses_remaining: team.guesses
+        };
+        let answer = self.get_answer(&puzzle);
+        // Already solved?
+        if self.already_solved(&team, &puzzle) {
+            judgement.guess = answer; // reveal answer
+            judgement.correctness = Correctness::AlreadySolved;
+            return judgement;
+        }
+        // Out of guesses?
+        if self.guesses_remaining(&team) <= 0 {
+            judgement.correctness = Correctness::OutOfGuesses;
+            return judgement;
+        }
+        // Correct answer?
+        if guess.eq_ignore_ascii_case(&answer) {
+            self.record_correct_guess(&team, &puzzle);
+            judgement.correctness = Correctness::Right;
+            return judgement;
+        }
+        // Already submitted this answer?
+        if self.already_guessed(&puzzle, guess) {
+            // Don't subtract a guess.
+            judgement.correctness = Correctness::AlreadyGuessedThat;
+            return judgement;
+        }
+        // Wrong!
+        self.record_incorrect_guess(&team, &puzzle, guess);
+        judgement.correctness = Correctness::Wrong;
+        judgement.guesses_remaining = self.guesses_remaining(&team);
+        return judgement;
+    }
+
+    fn get_answer(&self, puzzle: &ReleasedPuzzle) -> String {
+        let rows = self.query(
+            "select answer from Puzzle where hunt = $1 and key = $2",
+            &[&puzzle.hunt, &puzzle.key]);
+        if rows.len() != 1 {
+            panic!("Puzzle not found {}", &puzzle.key);
+        }
+        rows.get(0).get(0)
+    }
+
+    fn already_solved(&self, team: &Team, puzzle: &ReleasedPuzzle) -> bool {
+        let rows = self.query(
+            "select COUNT(*) from Solve where hunt = $1 and puzzle_key = $2 and team_id = $3",
+            &[&puzzle.hunt, &puzzle.key, &team.team_id]);
+        let n: i64 = rows.get(0).get(0);
+        n > 0
+    }
+
+    fn already_guessed(&self, puzzle: &ReleasedPuzzle, guess: &str) -> bool {
+        let rows = self.query(
+            "select COUNT(*) from Guess where hunt = $1 and puzzle_key = $2 and guess = $3",
+            &[&puzzle.hunt, &puzzle.key, &guess]);
+        let n: i64 = rows.get(0).get(0);
+        n > 0
+    }
+
+    fn guesses_remaining(&self, team: &Team) -> i32 {
+        let rows = self.query(
+            "select guesses from Team where hunt = $1 and team_id = $2",
+            &[&team.hunt, &team.team_id]);
+        if rows.len() != 1 {
+            panic!("Team not found {}", team.team_id);
+        }
+        rows.get(0).get(0)
+    }
+
+    fn record_correct_guess(&self, team: &Team, puzzle: &ReleasedPuzzle) {
+        let solve_time: i32 = (Local::now() - puzzle.time).num_seconds() as i32;
+        self.execute(
+            "insert into Solve values($1, $2, $3, $4, $5)",
+            &[&team.team_id, &puzzle.hunt, &puzzle.key, &Utc::now(), &solve_time]);
+    }
+
+    fn record_incorrect_guess(&self, team: &Team, puzzle: &ReleasedPuzzle, guess: &str) {
+        self.execute(
+            "insert into Guess values ($1, $2, $3, $4, $5)",
+            &[&team.team_id, &puzzle.hunt, &puzzle.key, &guess, &Utc::now()]);
+        self.execute(
+            "update Team set guesses = guesses - 1 where hunt = $1 and team_id = $2",
+            &[&team.hunt, &team.team_id]);
+    }
+    
 
     //// Puzzle/Team Stats ////
 
@@ -385,18 +509,16 @@ impl Database {
                     &[&hunt_id, &team_id]);
                 let guesses: i64 = rows.get(0).get(0);
                 let rows = self.query(
-                    "select count(*), sum(solve_time), sum(score) from Solve where hunt = $1 and team_id = $2",
+                    "select count(*), sum(solve_time) from Solve where hunt = $1 and team_id = $2",
                     &[&hunt_id, &team_id]);
                 let row = rows.get(0);
                 let solves: i64 = row.get(0);
                 let total_solve_time: Option<i64> = row.get(1);
-                let score: Option<i64> = row.get(2);
                 TeamStats {
                     team_name,
                     guesses: guesses as i32,
                     solves: solves as i32,
-                    total_solve_time: total_solve_time.unwrap_or(0) as i32,
-                    score: score.unwrap_or(0) as i32
+                    total_solve_time: total_solve_time.unwrap_or(0) as i32
                 }
             })
             .collect()

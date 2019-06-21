@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
+
+<page>
+  <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
+  <title>Submit Answer: {{puzzle.name}}</title>
+  <prose>
+    Your team ({{team.name}}) has {{team.guesses}} guesses left.
+  </prose>
+  <form>
+    <prose>
+      <p>
+        You have {{team.guesses}} guesses left.
+      </p>
+    </prose>
+    <section>
+      <input type="long" id="guess">
+        Answer
+      </input>
+    </section>
+    <submit-button>
+      Submit Answer
+    </submit-button>
+  </form>
+</page>
