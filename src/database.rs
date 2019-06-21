@@ -187,7 +187,7 @@ impl Database {
     pub fn edit_hunt(&self, hunt_key: &str, form: &EditHunt) -> Result<Hunt, String> {
         // Update
         self.execute(
-            "update Hunt set name = $2, teamSize = $3, initGuesses = $4, closed = $5, visible = $6 where key = $1",
+            "update Hunt set name = $2, team_size = $3, init_guesses = $4, closed = $5, visible = $6 where key = $1",
             &[&hunt_key, &form.name, &form.team_size, &form.init_guesses, &form.closed, &form.visible]);
 
         // Return updated hunt

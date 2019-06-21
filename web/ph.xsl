@@ -220,9 +220,10 @@
             <li class="nav-site"><a href="/">PuzzleHunt: PH</a></li>
           </xsl:if>
         </ul>
-        <p id="success-message"/>
-        <p id="failure-message"/>
         <article>
+          <xsl:if test="@error != ''">
+            <p class="error"><xsl:value-of select="@error"/></p>
+          </xsl:if>
           <xsl:apply-templates select="*"/>
           <footer>
             <a style="text-decoration: none"

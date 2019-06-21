@@ -279,6 +279,12 @@ ul.nav li.nav-site {
     background: linear-gradient(to right, #3bc185, #f5943b)
 }
 
+p.error {
+  padding: 0.5rem;
+  background: #ff8888;
+  border: 3px solid #aa4444;
+}
+
 @media screen and (max-width: 900px) {
     ul.nav li.right, ul.nav li {
         float: none;

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use rocket::request::Form;
-use crate::expandable_form::{RegularForm, ExpandableForm, RegularFormToForm, ExpandableFormToForm};
+use crate::expandable_form::{RegularForm, ExpandableForm, RegularFormResult, ExpandableFormToForm};
 use crate::data::{Wave, Puzzle, Hint};
 
 
@@ -14,21 +14,21 @@ pub struct CreateHunt {
     pub password_verify: String,
     pub secret: String
 }
-pub type CreateHuntForm = Form<RegularFormToForm<CreateHunt>>;
+pub type CreateHuntForm = Form<RegularFormResult<CreateHunt>>;
 
 impl RegularForm for CreateHunt {
     fn parts() -> Vec<&'static str> {
         vec!("key", "name", "password", "passwordVerify", "secret")
     }
 
-    fn new(map: &HashMap<String, String>) -> CreateHunt {
-        CreateHunt {
-            key:             map["key"].to_string(),
-            name:            map["name"].to_string(),
-            password:        map["password"].to_string(),
-            password_verify: map["password_verify"].to_string(),
-            secret:          map["secret"].to_string()
-        }
+    fn new(map: &HashMap<String, String>) -> Result<CreateHunt, String> {
+        Ok(CreateHunt {
+            key:             read_string(map, "key")?,
+            name:            read_string(map, "name")?,
+            password:        read_string(map, "password")?,
+            password_verify: read_string(map, "password_verify")?,
+            secret:          read_string(map, "secret")?
+        })
     }
 }
 
@@ -43,21 +43,34 @@ pub struct EditHunt {
     pub closed: bool,
     pub visible: bool
 }
-pub type EditHuntForm = Form<RegularFormToForm<EditHunt>>;
+pub type EditHuntForm = Form<RegularFormResult<EditHunt>>;
 
 impl RegularForm for EditHunt {
     fn parts() -> Vec<&'static str> {
         vec!("key", "name", "team_size", "init_guesses", "closed", "visible")
     }
 
-    fn new(map: &HashMap<String, String>) -> EditHunt {
-        EditHunt {
-            name:         map["name"].to_string(),
-            team_size:    map["team_size"].parse().expect("Failed to parse 'teamSize'"),
-            init_guesses: map["init_guesses"].parse().expect("Failed to parse 'initGuesses'"),
-            closed:       read_form_boolean(map, "closed"),
-            visible:      read_form_boolean(map, "visible")
+    fn new(map: &HashMap<String, String>) -> Result<EditHunt, String> {
+        match Self::foo(map) {
+            Ok(x) => Ok(x),
+            Err(err) => {
+                println!("ERROR");
+                Err(err)
+            }
         }
+    }
+}
+
+impl EditHunt {
+    fn foo(map: &HashMap<String, String>) -> Result<EditHunt, String> {
+        println!("PARSING");
+        Ok(EditHunt {
+            name:         read_string(map, "name")?,
+            team_size:    read_i32(map, "team_size")?,
+            init_guesses: read_i32(map, "init_guesses")?,
+            closed:       read_bool(map, "closed"),
+            visible:      read_bool(map, "visible")
+        })
     }
 }
 
@@ -270,13 +283,6 @@ impl ExpandableForm for UpdateTeam {
     }
 }
 
-fn read_form_boolean(map: &HashMap<String, String>, key: &str) -> bool {
-    match map.get(key) {
-        Some(val) => val == "on",
-        None => false
-    }
-}
-
 
 // Submit Answer //
 
@@ -284,16 +290,43 @@ fn read_form_boolean(map: &HashMap<String, String>, key: &str) -> bool {
 pub struct SubmitAnswer {
     pub guess: String
 }
-pub type SubmitAnswerForm = Form<RegularFormToForm<SubmitAnswer>>;
+pub type SubmitAnswerForm = Form<RegularFormResult<SubmitAnswer>>;
 
 impl RegularForm for SubmitAnswer {
     fn parts() -> Vec<&'static str> {
         vec!("guess")
     }
 
-    fn new(map: &HashMap<String, String>) -> SubmitAnswer {
-        SubmitAnswer {
-            guess: map["guess"].to_string()
-        }
+    fn new(map: &HashMap<String, String>) -> Result<SubmitAnswer, String> {
+        Ok(SubmitAnswer {
+            guess: read_string(map, "guess")?
+        })
+    }
+}
+
+
+// Utility //
+
+fn read_bool(map: &HashMap<String, String>, key: &str) -> bool {
+    match map.get(key) {
+        Some(val) => val == "on",
+        None => false
+    }
+}
+
+fn read_string(map: &HashMap<String, String>, key: &str) -> Result<String, String> {
+    match map.get(key) {
+        Some(val) => Ok(val.to_string()),
+        None => Err(format!("Failed to find form item '{}'.", key))
+    }
+}
+
+fn read_i32(map: &HashMap<String, String>, key: &str) -> Result<i32, String> {
+    match map.get(key) {
+        Some(val) => match val.parse() {
+            Ok(n) => Ok(n),
+            Err(_) => Err(format!("Failed to parse value '{}' as a number.", val))
+        },
+        None => Err(format!("Key '{}' not found.", key))
     }
 }

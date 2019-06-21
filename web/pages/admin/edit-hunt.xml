@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
 
-<page page-type="admin">
+<page page-type="admin" error="{{error_msg}}">
   <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
   <title>Edit Hunt</title>
   <form>
@@ -12,10 +12,10 @@
       <input type="text" id="name" value="{{hunt.name}}">
         Hunt name
       </input>
-      <input type="number" id="teamSize" value="{{hunt.team_size}}">
+      <input type="number" id="team_size" value="{{hunt.team_size}}">
         Maximum team size
       </input>
-      <input type="number" id="initGuesses" value="{{hunt.init_guesses}}">
+      <input type="number" id="init_guesses" value="{{hunt.init_guesses}}">
         Initial Guesses
       </input>
       <input type="boolean" id="closed" value="{{#hunt.closed}}true{{/hunt.closed}}{{^hunt.closed}}false{{/hunt.closed}}">

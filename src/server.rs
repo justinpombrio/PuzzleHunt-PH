@@ -2,27 +2,17 @@ use std::path::{Path, PathBuf};
 use std::fs::File;
 
 use rocket;
+use rocket::request::Request;
 use rocket::response::content::Xml;
 use rocket::response::{NamedFile, Redirect};
 use rocket::http::Cookies;
 use rocket::response::status::NotFound;
 
-use util::*;
-use data::{AddToData, build_data};
+use render_page::*;
 use database::Database;
 use forms::*;
 use cookies::{Puzzler};
-
-// TODO: Every `panic` here should have proper error handling.
-
-
-fn serve_file<P : AsRef<Path>>(path: P) -> Option<File> {
-    File::open(path).ok()
-}
-
-fn render_xml<P : AsRef<Path>>(path: P, data: Vec<&AddToData>) -> Xml<String> {
-    Xml(render_mustache(path, build_data(data)))
-}
+use expandable_form::{RegularFormResult};
 
 
 // Resources //
@@ -48,6 +38,15 @@ fn get_favicon() -> Option<File> {
 }
 
 
+// Error Handling //
+
+#[catch(404)]
+fn catch_404(req: &Request) -> Xml<String> {
+    render_error("404: Page Not Found",
+                 &format!("Page `{}` not found. This is not a puzzle.", req.uri()))
+}
+
+
 // Site //
 
 #[get("/", rank=0)]
@@ -66,7 +65,10 @@ fn get_create_hunt() -> Xml<String> {
 #[post("/create-hunt.xml", data="<form>")]
 fn post_create_hunt(mut cookies: Cookies, form: CreateHuntForm) -> Redirect {
     let db = Database::new();
-    let form = form.into_inner().0;
+    let form = match form.into_inner() {
+        RegularFormResult::Ok(form) => form,
+        RegularFormResult::Err(err) => panic!("{}", err)
+    };
     match db.create_hunt(&form) {
         Ok(_) => (),
         Err(msg) => panic!("{}", msg)
@@ -106,13 +108,13 @@ fn post_admin_signin(mut cookies: Cookies, form: AdminSignInForm) -> Redirect {
 // Admin: Sign Out //
 
 #[get("/admin/signout.xml")]
-fn get_admin_signout(mut cookies: Cookies) -> Xml<String> {
+fn get_admin_signout(mut cookies: Cookies) -> Result<Xml<String>, Redirect> {
     let db = Database::new();
     let hunt = match db.signedin_admin(&mut cookies) {
-        None => panic!("Already signed out."),
+        None => return Err(Redirect::to("/")),
         Some(hunt) => hunt
     };
-    render_xml("pages/admin/signout.xml", vec!(&hunt))
+    Ok(render_xml("pages/admin/signout.xml", vec!(&hunt)))
 }
 
 #[post("/admin/signout.xml")]
@@ -126,29 +128,33 @@ fn post_admin_signout(mut cookies: Cookies) -> Redirect {
 // Admin: Edit Hunt //
 
 #[get("/admin/edit-hunt.xml", rank=1)]
-fn get_edit_hunt(mut cookies: Cookies) -> Xml<String> {
+fn get_edit_hunt(mut cookies: Cookies) -> Result<Xml<String>, Redirect> {
     let db = Database::new();
     let hunt = match db.signedin_admin(&mut cookies) {
         Some(hunt) => hunt,
-        None => panic!("Hunt not found.")
+        None => return Err(Redirect::to("/admin/signin.xml"))
     };
-    println!("Hunt: {:?}", hunt);
-    render_xml("pages/admin/edit-hunt.xml", vec!(&hunt))
+    Ok(render_xml("pages/admin/edit-hunt.xml", vec!(&hunt)))
 }
 
 #[post("/admin/edit-hunt.xml", data="<form>")]
-fn post_edit_hunt(mut cookies: Cookies, form: EditHuntForm) -> Xml<String> {
+fn post_edit_hunt(mut cookies: Cookies, form: EditHuntForm) -> Result<Xml<String>, Redirect> {
     let db = Database::new();
     let hunt = match db.signedin_admin(&mut cookies) {
         Some(hunt) => hunt,
-        None => panic!("Hunt not found.")
+        None => return Err(Redirect::to("/admin/signin.xml"))
     };
-    let form = form.into_inner().0;
-    let hunt = match db.edit_hunt(&hunt.key, &form) {
-        Ok(hunt) => hunt,
-        Err(msg) => panic!("{}", msg)
+    let form = match form.into_inner() {
+        RegularFormResult::Ok(form) => form,
+        RegularFormResult::Err(err) =>
+            return Ok(render_xml("pages/admin/edit-hunt.xml", vec!(&hunt, &error_msg(&err))))
     };
-    render_xml("pages/admin/edit-hunt.xml", vec!(&hunt))
+    match db.edit_hunt(&hunt.key, &form) {
+        Ok(hunt) =>
+            Ok(render_xml("pages/admin/edit-hunt.xml", vec!(&hunt))),
+        Err(msg) =>
+            Ok(render_xml("pages/admin/edit-hunt.xml", vec!(&hunt, &error_msg(&msg))))
+    }
 }
 
 
@@ -201,6 +207,7 @@ fn post_edit_waves(mut cookies: Cookies, form: WavesForm) -> Xml<String> {
     db.set_waves(hunt.id, &waves);
     render_xml("pages/admin/edit-waves.xml", vec!(&hunt, &waves))
 }
+
 
 // Admin: Edit Puzzles //
 
@@ -334,7 +341,10 @@ fn post_submit_answer(
         None => panic!("Puzzle not found (or not yet released) {}", puzzle_key),
         Some(p) => p
     };
-    let form = form.into_inner().0;
+    let form = match form.into_inner() {
+        RegularFormResult::Ok(form) => form,
+        RegularFormResult::Err(err) => panic!("{}", err)
+    };
     let judgement = db.submit_guess(&team, &puzzle, &form.guess);
     // Update team in case the guesses were decremented
     let team = match db.signedin_team(&mut cookies) {
@@ -494,5 +504,7 @@ pub fn start() {
         get_edit_waves, post_edit_waves,
         get_edit_puzzles, post_edit_puzzles,
         get_edit_hints, post_edit_hints,
-    ]).launch();
+    ])
+        .register(catchers![catch_404])
+        .launch();
 }
