@@ -34,10 +34,11 @@ Basics:
           [L] Show puzzle points?
           [x] Hide empty waves
           [x] Only show released hints
-      [ ] Submit answers
+      [x] Submit answers
           [x] On puzzles page, link to submission page
           [x] Show submission page: puzzle name, submit button, guesses remaining
           [x] On submit: right, alreadyTried, wrong
+          [x] Make "submit-answer" and "judgement" one page
       [ ] Stats
           [x] Team Leaderboard
           [x] Puzzle Leaderboard

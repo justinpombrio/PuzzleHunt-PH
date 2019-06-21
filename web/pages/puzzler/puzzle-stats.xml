@@ -15,8 +15,8 @@
       </tr>
       {{#stats}}
       <tr>
-        <td>{{wave}}</td>
-        <td><a href="/{{hunt.key}}/puzzle/{{key}}">{{name}}</a></td>
+        <td>{{wave_name}}</td>
+        <td><a href="/{{hunt.key}}/puzzle/{{puzzle_key}}">{{puzzle_name}}</a></td>
         <td>{{guesses}}</td>
         <td>{{solves}}</td>
         <td>{{avg_solve_time}}</td>

@@ -269,13 +269,11 @@ fn get_hunt(hunt_key: String) -> Xml<String> {
 // Puzzles //
 
 #[get("/<hunt_key>/puzzles.xml", rank=1)]
-fn get_puzzles(hunt_key: String) -> Xml<String> {
+fn get_puzzles(mut cookies: Cookies, hunt_key: String) -> Xml<String> {
     let db = Database::new();
     let hunt = db.get_hunt(&hunt_key);
-    let waves: Vec<_> = db.get_released_waves(hunt.id)
-        .into_iter()
-        .filter(|w| w.puzzles.len() > 0)
-        .collect();
+    let team = db.signedin_team(&mut cookies);
+    let waves: Vec<_> = db.get_released_waves(hunt.id, &team);
     render_xml("pages/puzzler/puzzles.xml", vec!(&hunt, &waves))
 }
 
@@ -313,6 +311,11 @@ fn get_submit_answer(mut cookies: Cookies, hunt_key: String, puzzle_key: String)
         None => panic!("Puzzle not found (or not yet released) {}", puzzle_key),
         Some(p) => p
     };
+    // If they're out of guesses, give them the bad news and don't show the form.
+    if let Some(judgement) = db.out_of_guesses(&team) {
+        return render_xml("pages/puzzler/submit-answer.xml", vec!(&hunt, &team, &puzzle, &judgement));
+    }
+    // Otherwise show the regular form.
     render_xml("pages/puzzler/submit-answer.xml", vec!(&hunt, &team, &puzzle))
 }
 
@@ -332,8 +335,13 @@ fn post_submit_answer(
         Some(p) => p
     };
     let form = form.into_inner().0;
-    let judgement = db.submit_guess(team, puzzle, &form.guess);
-    render_xml("pages/puzzler/judgement.xml", vec!(&hunt, &judgement))
+    let judgement = db.submit_guess(&team, &puzzle, &form.guess);
+    // Update team in case the guesses were decremented
+    let team = match db.signedin_team(&mut cookies) {
+        Some(team) => team,
+        None => panic!("Team not found.")
+    };
+    render_xml("pages/puzzler/submit-answer.xml", vec!(&hunt, &team, &puzzle, &judgement))
 }
 
 

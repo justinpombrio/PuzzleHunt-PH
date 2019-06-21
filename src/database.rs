@@ -247,7 +247,7 @@ impl Database {
         self.execute("delete from Puzzle where hunt = $1", &[&hunt_id]);
         for puzzle in puzzles {
             self.execute("insert into Puzzle values ($1, $2, $3, $4, $5)",
-                         &[&puzzle.name, &hunt_id, &puzzle.answer,
+                         &[&puzzle.name, &hunt_id, &puzzle.answer.to_ascii_uppercase(),
                            &puzzle.wave, &puzzle.key]);
         }
     }
@@ -276,10 +276,10 @@ impl Database {
     
     //// Puzzles ////
 
-    pub fn get_released_waves(&self, hunt_id: i32) -> Vec<ReleasedWave> {
+    pub fn get_released_waves(&self, hunt_id: i32, team: &Option<Team>) -> Vec<ReleasedWave> {
         self.get_waves(hunt_id).into_iter().map(|wave| {
             ReleasedWave {
-                puzzles: self.get_released_puzzles(hunt_id, &wave.name),
+                puzzles: self.get_released_puzzles(hunt_id, &wave.name, team),
                 name: wave.name,
                 time: wave.time,
                 guesses: wave.guesses,
@@ -288,7 +288,7 @@ impl Database {
         }).collect()
     }
 
-    fn get_released_puzzles(&self, hunt_id: i32, wave: &str) -> Vec<ReleasedPuzzle> {
+    fn get_released_puzzles(&self, hunt_id: i32, wave: &str, team: &Option<Team>) -> Vec<ReleasedPuzzle> {
         let rows = self.query(
             "select * from Puzzle where hunt = $1 and wave = $2;",
             &[&hunt_id, &wave]);
@@ -299,6 +299,11 @@ impl Database {
                 None => (),
                 Some(wave) => {
                     if wave.is_released() {
+                        let solved = match team {
+                            None => false,
+                            Some(team) => self.is_solved(hunt_id, team.team_id, &puzzle.key)
+                        };
+                        let answer = if solved { self.get_answer(hunt_id, &puzzle.key) } else { "".to_string() };
                         puzzles.push(ReleasedPuzzle {
                             hints: self.get_released_hints(hunt_id, &puzzle.name),
                             name: puzzle.name,
@@ -306,6 +311,7 @@ impl Database {
                             time: wave.time,
                             wave: puzzle.wave,
                             key: puzzle.key,
+                            answer
                         });
                     }
                 }
@@ -358,6 +364,7 @@ impl Database {
                         time: wave.time,
                         wave: puzzle.wave,
                         key: puzzle.key,
+                        answer: "".to_string() // innocent lie
                     })
                 } else {
                     None
@@ -366,58 +373,67 @@ impl Database {
         }
     }
 
-    pub fn submit_guess(&self, team: Team, puzzle: ReleasedPuzzle, guess: &str) -> Judgement {
-        let mut judgement = Judgement {
-            puzzle_name: puzzle.name.clone(),
-            guess: guess.to_string(),
-            correctness: Correctness::Wrong, // to be filled!
-            guesses_remaining: team.guesses
-        };
-        let answer = self.get_answer(&puzzle);
+    pub fn submit_guess(&self, team: &Team, puzzle: &ReleasedPuzzle, guess: &str) -> Judgement {
+        let guess = guess.to_ascii_uppercase();
         // Already solved?
-        if self.already_solved(&team, &puzzle) {
-            judgement.guess = answer; // reveal answer
-            judgement.correctness = Correctness::AlreadySolved;
+        if let Some(judgement) = self.already_solved(team, puzzle) {
             return judgement;
         }
         // Out of guesses?
-        if self.guesses_remaining(&team) <= 0 {
-            judgement.correctness = Correctness::OutOfGuesses;
+        if let Some(judgement) = self.out_of_guesses(team) {
             return judgement;
         }
         // Correct answer?
+        let answer = self.get_answer(puzzle.hunt, &puzzle.key);
         if guess.eq_ignore_ascii_case(&answer) {
-            self.record_correct_guess(&team, &puzzle);
-            judgement.correctness = Correctness::Right;
-            return judgement;
+            self.record_correct_guess(team, puzzle);
+            return Judgement {
+                guess: guess.to_string(),
+                correctness: Correctness::Right
+            };
         }
         // Already submitted this answer?
-        if self.already_guessed(&puzzle, guess) {
+        if self.already_guessed(puzzle, &guess) {
             // Don't subtract a guess.
-            judgement.correctness = Correctness::AlreadyGuessedThat;
-            return judgement;
+            return Judgement {
+                guess: guess.to_string(),
+                correctness: Correctness::AlreadyGuessedThat
+            };
         }
         // Wrong!
-        self.record_incorrect_guess(&team, &puzzle, guess);
-        judgement.correctness = Correctness::Wrong;
-        judgement.guesses_remaining = self.guesses_remaining(&team);
-        return judgement;
+        self.record_incorrect_guess(team, puzzle, &guess);
+        Judgement {
+            guess: guess.to_string(),
+            correctness: Correctness::Wrong
+        }
     }
 
-    fn get_answer(&self, puzzle: &ReleasedPuzzle) -> String {
+    pub fn get_answer(&self, hunt_id: i32, puzzle_key: &str) -> String {
         let rows = self.query(
             "select answer from Puzzle where hunt = $1 and key = $2",
-            &[&puzzle.hunt, &puzzle.key]);
+            &[&hunt_id, &puzzle_key]);
         if rows.len() != 1 {
-            panic!("Puzzle not found {}", &puzzle.key);
+            panic!("Puzzle not found {}", puzzle_key);
         }
         rows.get(0).get(0)
     }
 
-    fn already_solved(&self, team: &Team, puzzle: &ReleasedPuzzle) -> bool {
+    pub fn already_solved(&self, team: &Team, puzzle: &ReleasedPuzzle) -> Option<Judgement> {
+        if self.is_solved(puzzle.hunt, team.team_id, &puzzle.key) {
+            let answer = self.get_answer(puzzle.hunt, &puzzle.key);
+            Some(Judgement {
+                guess: answer, // reveal answer
+                correctness: Correctness::AlreadySolved
+            })
+        } else {
+            None
+        }
+    }
+
+    fn is_solved(&self, hunt_id: i32, team_id: i32, puzzle_key: &str) -> bool {
         let rows = self.query(
             "select COUNT(*) from Solve where hunt = $1 and puzzle_key = $2 and team_id = $3",
-            &[&puzzle.hunt, &puzzle.key, &team.team_id]);
+            &[&hunt_id, &puzzle_key, &team_id]);
         let n: i64 = rows.get(0).get(0);
         n > 0
     }
@@ -430,14 +446,15 @@ impl Database {
         n > 0
     }
 
-    fn guesses_remaining(&self, team: &Team) -> i32 {
-        let rows = self.query(
-            "select guesses from Team where hunt = $1 and team_id = $2",
-            &[&team.hunt, &team.team_id]);
-        if rows.len() != 1 {
-            panic!("Team not found {}", team.team_id);
+    pub fn out_of_guesses(&self, team: &Team) -> Option<Judgement> {
+        if team.guesses > 0 {
+            None
+        } else {
+            Some(Judgement {
+                guess: "".to_string(), // not used
+                correctness: Correctness::OutOfGuesses
+            })
         }
-        rows.get(0).get(0)
     }
 
     fn record_correct_guess(&self, team: &Team, puzzle: &ReleasedPuzzle) {

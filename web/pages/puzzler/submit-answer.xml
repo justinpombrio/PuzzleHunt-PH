@@ -3,23 +3,69 @@
 
 <page>
   <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
-  <title>Submit Answer: {{puzzle.name}}</title>
-  <prose>
-    Your team ({{team.name}}) has {{team.guesses}} guesses left.
-  </prose>
-  <form>
+  {{^judgement}}
+    <title>Submit Answer: {{puzzle.name}}</title>
+    <form>
+      <prose>
+        <p>You have {{team.guesses}} guesses left.</p>
+      </prose>
+      <section>
+        <input type="long" id="guess">
+          Answer
+        </input>
+      </section>
+      <submit-button>
+        Submit Answer
+      </submit-button>
+    </form>
+  {{/judgement}}
+  {{#judgement.is_right}}
+    <title>Answer Submitted: {{puzzle.name}}</title>
+    <prose><p>The answer <b>{{judgement.guess}}</b> for {{puzzle.name}} is <b>CORRECT!</b></p></prose>
+  {{/judgement.is_right}}
+  {{#judgement.is_wrong}}
+    <title>Answer Submitted: {{puzzle.name}}</title>
+    <form>
+      <prose>
+        <p>The answer <b>{{judgement.guess}}</b> for {{puzzle.name}} is <b>INCORRECT</b>.</p>
+        <p>You have {{team.guesses}} guesses left.</p>
+      </prose>
+      <section>
+        <input type="long" id="guess">
+          Answer
+        </input>
+      </section>
+      <submit-button>
+        Submit Answer
+      </submit-button>
+    </form>
+  {{/judgement.is_wrong}}
+  {{#judgement.is_already_solved}}
+    <title>Solved: {{puzzle.name}}</title>
+    <prose><p>Your team has solved {{puzzle.name}}. The answer is <b>{{judgement.guess}}</b>.</p></prose>
+  {{/judgement.is_already_solved}}
+  {{#judgement.is_already_guessed}}
+    <title>Answer Submitted: {{puzzle.name}}</title>
+    <form>
+      <prose>
+        <p>Your team has already guessed <b>{{judgement.guess}}</b> for {{puzzle.name}}. That answer is still <b>INCORRECT</b>.</p>
+        <p>You have {{team.guesses}} guesses left.</p>
+      </prose>
+      <section>
+        <input type="long" id="guess">
+          Answer
+        </input>
+      </section>
+      <submit-button>
+        Submit Answer
+      </submit-button>
+    </form>
+  {{/judgement.is_already_guessed}}
+  {{#judgement.is_out_of_guesses}}
+    <title>Out of Guesses: {{puzzle.name}}</title>
     <prose>
-      <p>
-        You have {{team.guesses}} guesses left.
-      </p>
+      <p>Your team is out of guesses, and cannot submit answers at this time.</p>
+      <p>Talk to the puzzle hunt operators to see if more guesses will be added in the future.</p>
     </prose>
-    <section>
-      <input type="long" id="guess">
-        Answer
-      </input>
-    </section>
-    <submit-button>
-      Submit Answer
-    </submit-button>
-  </form>
+  {{/judgement.is_out_of_guesses}}
 </page>

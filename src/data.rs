@@ -256,7 +256,8 @@ pub struct ReleasedPuzzle {
     pub wave: String,
     pub time: DateTime<Local>,
     pub key: String,
-    pub hints: Vec<Hint>
+    pub hints: Vec<Hint>,
+    pub answer: String,
 }
 
 impl TemplateData for ReleasedPuzzle {
@@ -269,6 +270,8 @@ impl TemplateData for ReleasedPuzzle {
             .insert_str("wave",   self.wave.clone())
             .insert_str("key",    self.key.clone())
             .insert_vec("hints",  |b| vec_to_data(&self.hints, b))
+            .insert_str("answer", self.answer.clone())
+            .insert_bool("solved", !self.answer.is_empty())
     }
 }
 
@@ -630,10 +633,8 @@ pub enum Correctness {
 
 #[derive(Debug, Clone)]
 pub struct Judgement {
-    pub puzzle_name: String,
     pub guess: String,
-    pub correctness: Correctness,
-    pub guesses_remaining: i32
+    pub correctness: Correctness
 }
 
 impl TemplateData for Judgement {
@@ -646,18 +647,14 @@ impl TemplateData for Judgement {
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
-            .insert_str("puzzle_name", self.puzzle_name.clone())
             .insert_str("guess", self.guess.clone())
             .insert_bool("is_right", self.correctness == Correctness::Right)
             .insert_bool("is_wrong", self.correctness == Correctness::Wrong)
             .insert_bool("is_already_solved", self.correctness == Correctness::AlreadySolved)
             .insert_bool("is_already_guessed", self.correctness == Correctness::AlreadyGuessedThat)
             .insert_bool("is_out_of_guesses", self.correctness == Correctness::OutOfGuesses)
-            .insert_str("guesses_remaining", format!("{}", self.guesses_remaining))
     }
 }
-
-
 
 
 ////// Stats //////

@@ -11,13 +11,14 @@
         <ul class="puzzle-list">
           {{#puzzles}}
           <li>
-            <a href="/{{hunt.key}}/puzzle/{{key}}">{{name}}</a>
-            <span class="spacing"/>
-            <a href="/{{hunt.key}}/submit-answer/{{key}}">[answer]</a>
+            <b><a href="/{{hunt.key}}/puzzle/{{key}}">{{name}}</a></b>
             {{#hints}}
               <span class="spacing"/>
               <a href="/{{hunt.key}}/hint/{{key}}.xml">[hint {{number}}]</a>
             {{/hints}}
+            <br/>
+            {{#solved}}Answer: {{answer}}{{/solved}}
+            {{^solved}}<a href="/{{hunt.key}}/submit-answer/{{key}}">submit-answer</a>{{/solved}}
           </li>
           {{/puzzles}}
         </ul>
