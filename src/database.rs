@@ -295,17 +295,16 @@ impl Database {
         }).collect()
     }
 
-    fn get_released_puzzles(&self, hunt_id: i32, wave: &str, team: &Option<Team>) -> Vec<ReleasedPuzzle> {
-        let rows = self.query(
-            "select * from Puzzle where hunt = $1 and wave = $2;",
-            &[&hunt_id, &wave]);
-        let mut puzzles = vec!();
-        for row in &rows {
-            let puzzle = Puzzle::from_row(row);
-            match self.get_wave(hunt_id, &puzzle.wave) {
-                None => (),
-                Some(wave) => {
-                    if wave.is_released() {
+    fn get_released_puzzles(&self, hunt_id: i32, wave_name: &str, team: &Option<Team>) -> Vec<ReleasedPuzzle> {
+        match self.get_wave(hunt_id, wave_name) {
+            None => vec!(),
+            Some(wave) => {
+                if wave.is_released() {
+                    let rows = self.query(
+                        "select * from Puzzle where hunt = $1 and wave = $2;",
+                        &[&hunt_id, &wave_name]);
+                    rows.iter().map(|row| {
+                        let puzzle = Puzzle::from_row(row);
                         let solved = match team {
                             None => false,
                             Some(team) => self.is_solved(hunt_id, team.team_id, &puzzle.key)
@@ -315,7 +314,7 @@ impl Database {
                         } else {
                             "".to_string()
                         };
-                        puzzles.push(ReleasedPuzzle {
+                        ReleasedPuzzle {
                             hints: self.get_released_hints(hunt_id, &puzzle.name),
                             name: puzzle.name,
                             hunt: hunt_id,
@@ -323,12 +322,13 @@ impl Database {
                             wave: puzzle.wave,
                             key: puzzle.key,
                             answer
-                        });
-                    }
+                        }
+                    }).collect()
+                } else {
+                    vec!()
                 }
             }
         }
-        puzzles
     }
 
     fn get_released_hints(&self, hunt_id: i32, puzzle_name: &str) -> Vec<Hint> {
