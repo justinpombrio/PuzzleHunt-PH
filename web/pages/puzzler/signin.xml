@@ -16,5 +16,8 @@
     <submit-button>
       Sign In
     </submit-button>
+    <prose>
+      <p>Team name and password are case sensitive.</p>
+    </prose>
   </form>
 </page>

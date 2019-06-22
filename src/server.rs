@@ -395,10 +395,10 @@ fn post_signin(hunt_key: String, mut cookies: Cookies, form: SignInForm) -> Resu
     let hunt = lookup_hunt(&hunt_key)?;
     let form = form.into_inner();
     if db.signin_team(&mut cookies, hunt.id, &form.name, &form.password) {
-        Ok(redirect("your-team.xml"))
+        Ok(redirect(format!("/{}/your-team.xml", hunt_key)))
     } else {
-        Err(xml(&format!("/{}/signin.xml", hunt_key),
-                vec!(&error_msg("Failed to sign in."))))
+        Err(xml(&format!("pages/puzzler/signin.xml"),
+                vec!(&hunt, &error_msg("Failed to sign in."))))
     }
 }
 
