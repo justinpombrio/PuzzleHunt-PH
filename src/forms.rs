@@ -133,12 +133,13 @@ impl ExpandableForm for Puzzles {
     }
     
     fn member_parts() -> Vec<&'static str> {
-        vec!("name", "answer", "wave", "key")
+        vec!("name", "number", "answer", "wave", "key")
     }
     
     fn new_member(map: &HashMap<String, String>) -> Result<Puzzle, String> {
         Ok(Puzzle {
             name: read_string(map, "name")?,
+            number: read_i32(map, "number")?,
             hunt: 0,
             answer: read_string(map, "answer")?,
             wave: read_string(map, "wave")?,

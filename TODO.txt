@@ -7,7 +7,7 @@
 Basics:
   [ ] Fix
       [x] Relative links in `HUNT/hints/`
-      [ ] No submit-answer links if you're not logged in
+      [-] No submit-answer links if you're not logged in
   [ ] Server
       [ ] Switch to SQLLite (Postgres installation is awful)
       [ ] Buy a domain
@@ -42,11 +42,11 @@ Basics:
           [x] Make "submit-answer" and "judgement" one page
           [ ] Show guesses on submit-answer page. ReleasedPuzzle.guesses.
           [ ] Clean up submit-answer page.
-      [ ] Stats
+      [x] Stats
           [x] Team Leaderboard
           [x] Puzzle Leaderboard
-          [ ] Sort Leaderboard
-          [ ] Sort puzzles
+          [x] Sort Leaderboard
+          [x] Sort puzzles
   [L] Admin pages
       [L] Login/logout
           [x] Sign In

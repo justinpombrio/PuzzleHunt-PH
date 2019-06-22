@@ -254,6 +254,7 @@ fn post_edit_puzzles(mut cookies: Cookies, form: PuzzlesForm) -> Result<Page, Pa
         }
     };
     db.set_puzzles(hunt.id, &puzzles);
+    let puzzles = db.get_puzzles(hunt.id);
     Ok(xml("pages/admin/edit-puzzles.xml", vec!(&hunt, &puzzles)))
 }
 
@@ -278,6 +279,7 @@ fn post_edit_hints(mut cookies: Cookies, form: HintsForm) -> Result<Page, Page> 
         }
     };
     db.set_hints(hunt.id, &hints);
+    let hints = db.get_hints(hunt.id);
     Ok(xml("pages/admin/edit-hints.xml", vec!(&hunt, &hints)))
 }
 
@@ -317,8 +319,10 @@ fn get_puzzle(hunt_key: String, puzzle_key: String) -> Page {
 fn get_hint(hunt_key: String, hint_key: String) -> Result<Page, Page> {
     let db = Database::new();
     let hunt = lookup_hunt(&hunt_key)?;
-    let hint = db.get_released_hint(hunt.id, &hint_key)
-        .expect("Hint not found!");
+    let hint = match db.get_released_hint(hunt.id, &hint_key) {
+        Some(hint) => hint,
+        None => return Err(not_found(&format!("Hint '{}' not found. This is not a puzzle.", hunt_key)))
+    };
     Ok(xml("pages/puzzler/hint.xml", vec!(&hunt, &hint)))
 }
 
@@ -486,8 +490,8 @@ fn get_puzzle_stats(hunt_key: String) -> Result<Page, Page> {
 fn get_team_stats(hunt_key: String) -> Result<Page, Page> {
     let db = Database::new();
     let hunt = lookup_hunt(&hunt_key)?;
-    let teams: Vec<_> = db.get_team_stats(hunt.id);
-    Ok(xml("pages/puzzler/leaderboard.xml", vec!(&hunt, &teams)))
+    let stats: Vec<_> = db.get_team_stats(hunt.id);
+    Ok(xml("pages/puzzler/leaderboard.xml", vec!(&hunt, &stats)))
 }
 
 

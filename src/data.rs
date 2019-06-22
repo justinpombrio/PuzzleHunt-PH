@@ -252,6 +252,7 @@ values ('Wave One', 1, '2004-10-19 10:23:54', 10);"
 #[derive(Debug, Clone)]
 pub struct ReleasedPuzzle {
     pub name: String,
+    pub number: i32,
     pub hunt: i32,
     pub wave: String,
     pub time: DateTime<Local>,
@@ -267,6 +268,7 @@ impl TemplateData for ReleasedPuzzle {
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
             .insert_str("name",   self.name.clone())
+            .insert_str("number", format!("{}", self.number))
             .insert_str("wave",   self.wave.clone())
             .insert_str("key",    self.key.clone())
             .insert_vec("hints",  |b| vec_to_data(&self.hints, b))
@@ -275,10 +277,10 @@ impl TemplateData for ReleasedPuzzle {
     }
 }
 
-// TODO: Let's just make name the primary key
 #[derive(Debug, Clone)]
 pub struct Puzzle {
     pub name: String,
+    pub number: i32,
     pub hunt: i32,
     pub answer: String,
     pub wave: String,
@@ -292,6 +294,7 @@ impl TemplateData for Puzzle {
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
             .insert_str("name",      self.name.clone())
+            .insert_str("number",    format!("{}", self.number))
             .insert_str("hunt",      format!("{}", self.hunt))
             .insert_str("answer",    self.answer.clone())
             .insert_str("wave",      self.wave.clone())
@@ -303,10 +306,11 @@ impl DBTable for Puzzle {
     fn from_row(row: Row) -> Puzzle {
         Puzzle{
             name:           row.get(0),
-            hunt:           row.get(1),
-            answer:         row.get(2),
-            wave:           row.get(3),
-            key:            row.get(4)
+            number:         row.get(1),
+            hunt:           row.get(2),
+            answer:         row.get(3),
+            wave:           row.get(4),
+            key:            row.get(5)
         }
     }
 
@@ -317,6 +321,7 @@ impl DBTable for Puzzle {
     fn init_query() -> &'static str {
 "create table Puzzle (
   name varchar primary key NOT NULL,
+  number int NOT NULL,
   hunt int NOT NULL,
   answer varchar NOT NULL,
   wave varchar NOT NULL,
@@ -326,10 +331,10 @@ impl DBTable for Puzzle {
     }
 
     fn test_init_query() -> &'static str {
-"insert into Puzzle (name, hunt, answer, wave, key)
-values ('Puzzle Two', 1, 'answer2', 'Wave One', 'QQQ'),
-       ('Puzzle One', 1, 'answer1', 'Wave One', 'PPP'),
-       ('Puzzle Three', 1, 'answer3', 'Wave One', 'RRR');"
+"insert into Puzzle (name, number, hunt, answer, wave, key)
+values ('Puzzle Two', 3, 1, 'answer2', 'Wave One', 'QQQ'),
+       ('Puzzle One', 1, 1, 'answer1', 'Wave One', 'PPP'),
+       ('Puzzle Three', 5, 1, 'answer3', 'Wave One', 'RRR');"
     }
 }
 
@@ -452,8 +457,8 @@ impl DBTable for Team {
 
     fn test_init_query() -> &'static str {
 "insert into Team (hunt, password, name, guesses)
-values (1, 'pass', 'BestTeamEver', 5),
-(1, 'pass', 'SecondBestTeam', 99);"
+values (1, 'pass', 'SecondBestTeam', 99),
+(1, 'pass', 'BestTeamEver', 5);"
     }
 }
 
@@ -614,8 +619,9 @@ impl DBTable for Solve {
 
     fn test_init_query() -> &'static str {
 "insert into Solve (team_id, hunt, puzzle_key, solved_at, solve_time)
-values (1, 1, 'PPP', '2004-10-19 10:23:54', 385),
-       (2, 1, 'PPP', '2004-10-19 10:23:55', 386);"
+values (2, 1, 'PPP', '2004-10-19 10:23:54', 385),
+       (2, 1, 'QQQ', '2004-10-19 10:23:54', 385),
+       (1, 1, 'PPP', '2004-10-19 10:23:55', 386);"
     }
 }
 
@@ -684,6 +690,7 @@ impl TemplateData for TeamStats {
         };
         builder
             .insert_str("team", self.team_name.clone())
+            .insert_str("solves", format!("{}", self.solves))
             .insert_str("guesses", format!("{}", self.guesses))
             .insert_str("avg_solve_time", avg_solve_time)
     }

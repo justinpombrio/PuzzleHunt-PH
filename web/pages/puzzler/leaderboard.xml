@@ -8,12 +8,14 @@
     <table>
       <tr>
         <th>Team</th>
+        <th>Solves</th>
         <th>Guesses</th>
         <th>Avg. Solve Time</th>
       </tr>
       {{#stats}}
       <tr>
         <td>{{team}}</td>
+        <td>{{solves}}</td>
         <td>{{guesses}}</td>
         <td>{{avg_solve_time}}</td>
       </tr>

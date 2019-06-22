@@ -6,12 +6,14 @@
   <title>Puzzles</title>
   <form>
     <expandable-section hunt="{{hunt.key}}" itemkey="puzzle" item="Puzzle">
+      <input type="number" id="number" name="Ord"/>
       <input type="text" id="name" name="Name"/>
       <input type="text" id="answer" name="Answer"/>
       <input type="text" id="wave" name="Wave"/>
       <input type="fixed" id="key" name="Key"/>
       {{#puzzles}}
       <row>
+        <value>{{number}}</value>
         <value>{{name}}</value>
         <value>{{answer}}</value>
         <value>{{wave}}</value>
@@ -22,5 +24,8 @@
     <submit-button>
       Update
     </submit-button>
+    <prose>
+      <p>"Ord" determines the order of the puzzles. It is not directly visible to puzzlers.</p>
+    </prose>
   </form>
 </page>

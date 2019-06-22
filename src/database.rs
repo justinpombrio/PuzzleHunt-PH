@@ -214,7 +214,7 @@ impl Database {
 
     pub fn get_waves(&self, hunt_id: i32) -> Vec<Wave> {
         let rows = self.query(
-            "select * from Wave where hunt = $1;",
+            "select * from Wave where hunt = $1 order by time;",
             &[&hunt_id]);
         rows.iter().map(Wave::from_row).collect()
     }
@@ -242,7 +242,7 @@ impl Database {
     pub fn get_puzzles(&self, hunt_id: i32) -> Vec<Puzzle> {
         let mut puzzles: Vec<Puzzle> = vec!();
         let rows = self.query(
-            "select * from Puzzle where hunt = $1;",
+            "select * from Puzzle where hunt = $1 order by number;",
             &[&hunt_id]);
         for row in &rows {
             puzzles.push(Puzzle::from_row(row))
@@ -253,9 +253,9 @@ impl Database {
     pub fn set_puzzles(&self, hunt_id: i32, puzzles: &Vec<Puzzle>) {
         self.execute("delete from Puzzle where hunt = $1", &[&hunt_id]);
         for puzzle in puzzles {
-            self.execute("insert into Puzzle values ($1, $2, $3, $4, $5)",
-                         &[&puzzle.name, &hunt_id, &puzzle.answer.to_ascii_uppercase(),
-                           &puzzle.wave, &puzzle.key]);
+            self.execute("insert into Puzzle values ($1, $2, $3, $4, $5, $6)",
+                         &[&puzzle.name, &puzzle.number, &hunt_id,
+                           &puzzle.answer.to_ascii_uppercase(), &puzzle.wave, &puzzle.key]);
         }
     }
 
@@ -290,9 +290,11 @@ impl Database {
                 name: wave.name,
                 time: wave.time,
                 guesses: wave.guesses,
-                released: false // TODO: calculate
+                released: Local::now() > wave.time
             }
-        }).collect()
+        })
+            .filter(|wave| !wave.puzzles.is_empty())
+            .collect()
     }
 
     fn get_released_puzzles(&self, hunt_id: i32, wave_name: &str, team: &Option<Team>) -> Vec<ReleasedPuzzle> {
@@ -301,7 +303,7 @@ impl Database {
             Some(wave) => {
                 if wave.is_released() {
                     let rows = self.query(
-                        "select * from Puzzle where hunt = $1 and wave = $2;",
+                        "select * from Puzzle where hunt = $1 and wave = $2 order by number;",
                         &[&hunt_id, &wave_name]);
                     rows.iter().map(|row| {
                         let puzzle = Puzzle::from_row(row);
@@ -317,6 +319,7 @@ impl Database {
                         ReleasedPuzzle {
                             hints: self.get_released_hints(hunt_id, &puzzle.name),
                             name: puzzle.name,
+                            number: puzzle.number,
                             hunt: hunt_id,
                             time: wave.time,
                             wave: puzzle.wave,
@@ -358,7 +361,7 @@ impl Database {
     
     pub fn get_released_puzzle(&self, hunt_id: i32, puzzle_key: &str) -> Option<ReleasedPuzzle> {
         let rows = self.query(
-            "select * from Puzzle where hunt = $1 and key = $2",
+            "select * from Puzzle where hunt = $1 and key = $2 order by number",
             &[&hunt_id, &puzzle_key]);
         if rows.len() != 1 {
             return None;
@@ -371,6 +374,7 @@ impl Database {
                     Some(ReleasedPuzzle {
                         hints: self.get_released_hints(hunt_id, &puzzle.name),
                         name: puzzle.name,
+                        number: puzzle.number,
                         hunt: hunt_id,
                         time: wave.time,
                         wave: puzzle.wave,
@@ -501,7 +505,7 @@ impl Database {
 
     fn get_puzzle_stats_for_wave(&self, hunt_id: i32, wave: &str) -> Vec<PuzzleStats> {
         let rows = self.query(
-            "select key, name from Puzzle where hunt = $1 and wave = $2",
+            "select key, name from Puzzle where hunt = $1 and wave = $2 order by number",
             &[&hunt_id, &wave]);
         rows.into_iter().map(|row| {
             let puzzle_key = row.get(0);
@@ -530,7 +534,7 @@ impl Database {
         let rows = self.query(
             "select team_id, name from Team where hunt = $1",
             &[&hunt_id]);
-        rows.into_iter()
+        let mut stats: Vec<_> = rows.into_iter()
             .map(|row| {
                 let team_id: i32 = row.get(0);
                 let team_name: String = row.get(1);
@@ -551,7 +555,9 @@ impl Database {
                     total_solve_time: total_solve_time.unwrap_or(0) as i32
                 }
             })
-            .collect()
+            .collect();
+        stats.sort_by_key(|stat| -stat.solves);
+        stats
     }
 
     
