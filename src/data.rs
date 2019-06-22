@@ -637,28 +637,19 @@ pub enum Correctness {
     OutOfGuesses
 }
 
-#[derive(Debug, Clone)]
-pub struct Judgement {
-    pub guess: String,
-    pub correctness: Correctness
-}
+pub struct AGuess(pub String);
 
-impl TemplateData for Judgement {
+impl TemplateData for AGuess {
     fn name() -> &'static str {
-        "judgement"
+        "guess"
     }
     fn names() -> &'static str {
-        "judgements"
+        "guesses"
     }
 
     fn to_data(&self, builder: MapBuilder) -> MapBuilder {
         builder
-            .insert_str("guess", self.guess.clone())
-            .insert_bool("is_right", self.correctness == Correctness::Right)
-            .insert_bool("is_wrong", self.correctness == Correctness::Wrong)
-            .insert_bool("is_already_solved", self.correctness == Correctness::AlreadySolved)
-            .insert_bool("is_already_guessed", self.correctness == Correctness::AlreadyGuessedThat)
-            .insert_bool("is_out_of_guesses", self.correctness == Correctness::OutOfGuesses)
+            .insert_str("guess", self.0.clone())
     }
 }
 

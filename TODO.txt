@@ -41,7 +41,7 @@ Basics:
           [x] On submit: right, alreadyTried, wrong
           [x] Make "submit-answer" and "judgement" one page
           [ ] Show guesses on submit-answer page. ReleasedPuzzle.guesses.
-          [ ] Clean up submit-answer page.
+          [x] Clean up submit-answer page.
       [x] Stats
           [x] Team Leaderboard
           [x] Puzzle Leaderboard

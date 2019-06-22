@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
+
+<page page-type="puzzler" error="{{error}}">
+  <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
+  <title>Out of Guesses: {{puzzle.name}}</title>
+  <prose>
+    <p>Your team is out of guesses, and cannot submit answers at this time.</p>
+    <p>Talk to the puzzle hunt operators to see if more guesses will be added in the future.</p>
+  </prose>
+</page>

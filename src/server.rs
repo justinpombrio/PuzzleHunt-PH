@@ -4,7 +4,7 @@ use rocket;
 use rocket::request::Request;
 use rocket::http::Cookies;
 
-use data::{Hunt, Team, ReleasedPuzzle};
+use data::{Hunt, Team, ReleasedPuzzle, Correctness, AGuess, AddToData};
 use page::{Page, file, xml, redirect, error, not_found, error_msg};
 use database::Database;
 use forms::*;
@@ -331,13 +331,13 @@ fn get_hint(hunt_key: String, hint_key: String) -> Result<Page, Page> {
 
 #[get("/<hunt_key>/submit-answer/<puzzle_key>", rank=1)]
 fn get_submit_answer(mut cookies: Cookies, hunt_key: String, puzzle_key: String) -> Result<Page, Page> {
-    let db = Database::new();
     let hunt = lookup_hunt(&hunt_key)?;
     let team = authenticate_team(&hunt_key, &mut cookies)?;
     let puzzle = lookup_puzzle(&hunt, &puzzle_key)?;
     // If they're out of guesses, give them the bad news and don't show the form.
-    if let Some(judgement) = db.out_of_guesses(&team) {
-        return Ok(xml("pages/puzzler/submit-answer.xml", vec!(&hunt, &team, &puzzle, &judgement)));
+    if team.guesses <= 0 {
+        return Ok(xml("pages/puzzler/submit-answer-out-of-guesses.xml",
+                      vec!(&hunt, &team, &puzzle)));
     }
     // Otherwise show the regular form.
     Ok(xml("pages/puzzler/submit-answer.xml", vec!(&hunt, &team, &puzzle)))
@@ -359,10 +359,24 @@ fn post_submit_answer(
                            vec!(&hunt, &team, &puzzle, &error_msg(&err))))
         }
     };
-    let judgement = db.submit_guess(&team, &puzzle, &form.guess);
+    let guess = form.guess.to_ascii_uppercase();
+    let correctness = db.submit_guess(&team, &puzzle, &guess);
     // Update team in case the guesses were decremented
     let team = authenticate_team(&hunt_key, &mut cookies)?;
-    Ok(xml("pages/puzzler/submit-answer.xml", vec!(&hunt, &team, &puzzle, &judgement)))
+    let guess_data = AGuess(guess);
+    let data: Vec<&AddToData> = vec!(&hunt, &team, &puzzle, &guess_data);
+    Ok(match correctness {
+        Correctness::Right =>
+            xml("pages/puzzler/answer/right.xml", data),
+        Correctness::Wrong =>
+            xml("pages/puzzler/answer/wrong.xml", data),
+        Correctness::AlreadySolved =>
+            xml("pages/puzzler/answer/already-solved.xml", data),
+        Correctness::AlreadyGuessedThat =>
+            xml("pages/puzzler/answer/already-guessed-that.xml", data),
+        Correctness::OutOfGuesses =>
+            xml("pages/puzzler/answer/out-of-guesses.xml", data)
+    })
 }
 
 
@@ -398,7 +412,7 @@ fn post_signin(hunt_key: String, mut cookies: Cookies, form: SignInForm) -> Resu
         Ok(redirect(format!("/{}/your-team.xml", hunt_key)))
     } else {
         Err(xml(&format!("pages/puzzler/signin.xml"),
-                vec!(&hunt, &error_msg("Failed to sign in."))))
+                vec!(&error_msg("Failed to sign in."))))
     }
 }
 

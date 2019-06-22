@@ -3,9 +3,10 @@
 
 <page page-type="puzzler" error="{{error}}">
   <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
-  <title>Submit Answer: {{puzzle.name}}</title>
+  <title>Answer Submitted: {{puzzle.name}}</title>
   <form>
     <prose>
+      <p>Your team has already guessed <b>{{guess.guess}}</b> for {{puzzle.name}}. That answer is still <b>INCORRECT</b>.</p>
       <p>You have {{team.guesses}} guesses left.</p>
     </prose>
     <section>
