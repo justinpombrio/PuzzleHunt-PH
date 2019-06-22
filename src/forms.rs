@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use rocket::request::Form;
-use crate::expandable_form::{RegularForm, ExpandableForm, RegularFormResult, ExpandableFormToForm};
+use chrono::{Local, DateTime};
+use crate::expandable_form::{RegularForm, ExpandableForm, RegularFormResult, ExpandableFormResult};
 use crate::data::{Wave, Puzzle, Hint};
 
 
@@ -89,7 +90,7 @@ pub type AdminSignInForm = Form<AdminSignIn>;
 pub struct Waves {
     pub waves: Vec<Wave>
 }
-pub type WavesForm = Form<ExpandableFormToForm<Waves>>;
+pub type WavesForm = Form<ExpandableFormResult<Waves>>;
 
 impl ExpandableForm for Waves {
     type Member = Wave;
@@ -102,12 +103,12 @@ impl ExpandableForm for Waves {
         vec!("name", "time", "guesses")
     }
 
-    fn new_member(map: &HashMap<String, String>) -> Wave {
-        Wave {
-            name: map["name"].to_string(),
-            time: map["time"].parse().expect("Could not parse 'datetime'"),
-            guesses: map["guesses"].parse().expect("Could not parse 'guesses'")
-        }
+    fn new_member(map: &HashMap<String, String>) -> Result<Wave, String> {
+        Ok(Wave {
+            name: read_string(map, "name")?,
+            time: read_datetime(map, "time")?,
+            guesses: read_i32(map, "guesses")?
+        })
     }
 
     fn new(_: &HashMap<String, String>, waves: Vec<Wave>) -> Waves {
@@ -122,7 +123,7 @@ impl ExpandableForm for Waves {
 pub struct Puzzles {
     pub puzzles: Vec<Puzzle>
 }
-pub type PuzzlesForm = Form<ExpandableFormToForm<Puzzles>>;
+pub type PuzzlesForm = Form<ExpandableFormResult<Puzzles>>;
 
 impl ExpandableForm for Puzzles {
     type Member = Puzzle;
@@ -135,14 +136,14 @@ impl ExpandableForm for Puzzles {
         vec!("name", "answer", "wave", "key")
     }
     
-    fn new_member(map: &HashMap<String, String>) -> Puzzle {
-        Puzzle {
-            name: map["name"].to_string(),
+    fn new_member(map: &HashMap<String, String>) -> Result<Puzzle, String> {
+        Ok(Puzzle {
+            name: read_string(map, "name")?,
             hunt: 0,
-            answer: map["answer"].to_string(),
-            wave: map["wave"].to_string(),
-            key: map["key"].to_string()
-        }
+            answer: read_string(map, "answer")?,
+            wave: read_string(map, "wave")?,
+            key: read_string(map, "key")?
+        })
     }
     
     fn new(_: &HashMap<String, String>, puzzles: Vec<Puzzle>) -> Puzzles {
@@ -157,7 +158,7 @@ impl ExpandableForm for Puzzles {
 pub struct Hints {
     pub hints: Vec<Hint>
 }
-pub type HintsForm = Form<ExpandableFormToForm<Hints>>;
+pub type HintsForm = Form<ExpandableFormResult<Hints>>;
 
 impl ExpandableForm for Hints {
     type Member = Hint;
@@ -170,16 +171,15 @@ impl ExpandableForm for Hints {
         vec!("hint", "puzzle_name", "number", "hunt", "wave", "key")
     }
     
-    fn new_member(map: &HashMap<String, String>) -> Hint {
-        Hint {
-            hint: map["hint"].to_string(),
-            puzzle_name: map["puzzle_name"].to_string(),
-            number: map["number"].parse()
-                .expect("Could not parse `number`"),
+    fn new_member(map: &HashMap<String, String>) -> Result<Hint, String> {
+        Ok(Hint {
+            hint: read_string(map, "hint")?,
+            puzzle_name: read_string(map, "puzzle_name")?,
+            number: read_i32(map, "number")?,
             hunt: 0,
-            wave: map["wave"].to_string(),
-            key: map["key"].to_string()
-        }
+            wave: read_string(map, "wave")?,
+            key: read_string(map, "key")?
+        })
     }
     
     fn new(_: &HashMap<String, String>, hints: Vec<Hint>) -> Hints {
@@ -200,7 +200,7 @@ pub struct CreateTeam {
     pub password_verify: String,
     pub members: Vec<TeamMember>
 }
-pub type CreateTeamForm = Form<ExpandableFormToForm<CreateTeam>>;
+pub type CreateTeamForm = Form<ExpandableFormResult<CreateTeam>>;
 
 #[derive(Debug)]
 pub struct TeamMember {
@@ -219,11 +219,11 @@ impl ExpandableForm for CreateTeam {
         vec!("member_name", "member_email")
     }
 
-    fn new_member(map: &HashMap<String, String>) -> TeamMember {
-        TeamMember {
-            name: map["member_name"].to_string(),
-            email: map["member_email"].to_string()
-        }
+    fn new_member(map: &HashMap<String, String>) -> Result<TeamMember, String> {
+        Ok(TeamMember {
+            name: read_string(map, "member_name")?,
+            email: read_string(map, "member_email")?
+        })
     }
 
     fn new(map: &HashMap<String, String>, members: Vec<TeamMember>) -> CreateTeam {
@@ -255,7 +255,7 @@ pub struct UpdateTeam {
     pub name: String,
     pub members: Vec<TeamMember>
 }
-pub type UpdateTeamForm = Form<ExpandableFormToForm<UpdateTeam>>;
+pub type UpdateTeamForm = Form<ExpandableFormResult<UpdateTeam>>;
 
 impl ExpandableForm for UpdateTeam {
     type Member = TeamMember;
@@ -268,11 +268,11 @@ impl ExpandableForm for UpdateTeam {
         vec!("member_name", "member_email")
     }
 
-    fn new_member(map: &HashMap<String, String>) -> TeamMember {
-        TeamMember {
-            name: map["member_name"].to_string(),
-            email: map["member_email"].to_string()
-        }
+    fn new_member(map: &HashMap<String, String>) -> Result<TeamMember, String> {
+        Ok(TeamMember {
+            name: read_string(map, "member_name")?,
+            email: read_string(map, "member_email")?
+        })
     }
 
     fn new(map: &HashMap<String, String>, members: Vec<TeamMember>) -> UpdateTeam {
@@ -325,6 +325,16 @@ fn read_i32(map: &HashMap<String, String>, key: &str) -> Result<i32, String> {
     match map.get(key) {
         Some(val) => match val.parse() {
             Ok(n) => Ok(n),
+            Err(_) => Err(format!("Failed to parse value '{}' as a number.", val))
+        },
+        None => Err(format!("Key '{}' not found.", key))
+    }
+}
+
+fn read_datetime(map: &HashMap<String, String>, key: &str) -> Result<DateTime<Local>, String> {
+    match map.get(key) {
+        Some(val) => match val.parse() {
+            Ok(dt) => Ok(dt),
             Err(_) => Err(format!("Failed to parse value '{}' as a number.", val))
         },
         None => Err(format!("Key '{}' not found.", key))

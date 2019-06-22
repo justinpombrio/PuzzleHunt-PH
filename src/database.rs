@@ -111,7 +111,10 @@ impl Database {
             &[&form.name, &form.key, &form.password]);
 
         // Return newly created hunt
-        Ok(self.get_hunt(&form.key))
+        match self.get_hunt(&form.key) {
+            None => Err("Internal error: Failed to find hunt after creation.".to_string()),
+            Some(hunt) => Ok(hunt)
+        }
     }
 
     fn hunt_exists(&self, hunt_key: &str) -> bool {
@@ -121,14 +124,15 @@ impl Database {
         rows.len() >= 1
     }
 
-    pub fn get_hunt(&self, hunt_key: &str) -> Hunt {
+    pub fn get_hunt(&self, hunt_key: &str) -> Option<Hunt> {
         let rows = self.query(
             "select * from Hunt where key = $1",
             &[&hunt_key]);
-        if rows.len() != 1 {
-            panic!("Did not find hunt {}", hunt_key); // TODO: error handling
+        if rows.len() == 1 {
+            Some(Hunt::from_row(rows.get(0)))
+        } else {
+            None
         }
-        Hunt::from_row(rows.get(0))
     }
 
     
@@ -191,7 +195,10 @@ impl Database {
             &[&hunt_key, &form.name, &form.team_size, &form.init_guesses, &form.closed, &form.visible]);
 
         // Return updated hunt
-        Ok(self.get_hunt(&hunt_key))
+        match self.get_hunt(&hunt_key) {
+            None => Err("Internal error: Failed to lookup hunt after edit.".to_string()),
+            Some(hunt) => Ok(hunt)
+        }
     }
     
     pub fn get_teams(&self, hunt_id: i32) -> Vec<Team> {

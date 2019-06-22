@@ -4,9 +4,45 @@ use std::io::Cursor;
 
 use mustache;
 use mustache::MapBuilder;
+use rocket::request::Request;
+use rocket::response;
 use rocket::response::content::Xml;
+use rocket::response::{NamedFile, Redirect, Responder};
+use rocket::response::status::NotFound;
 
 use data::{AddToData, build_data};
+
+
+pub fn redirect(uri: String) -> Page {
+    Page::Redirect(Redirect::to(uri))
+}
+
+pub fn xml<P : AsRef<Path>>(path: P, data: Vec<&AddToData>) -> Page {
+    Page::Xml(Xml(render_mustache(path, build_data(data))))
+}
+
+pub fn error(title: &str, msg: &str) -> Page {
+    xml("pages/site/error.xml", vec!(&ErrorPage::new(title, msg)))
+}
+
+#[derive(Debug)]
+pub enum Page {
+    Redirect(Redirect),
+    Xml(Xml<String>),
+    File(NamedFile),
+    NotFound
+}
+
+impl<'r> Responder<'r> for Page {
+    fn respond_to(self, request: &Request) -> response::Result<'r> {
+        match self {
+            Page::Redirect(redirect) => redirect.respond_to(request),
+            Page::Xml(xml) => xml.respond_to(request),
+            Page::File(file) => file.respond_to(request),
+            Page::NotFound => NotFound("Page not found.").respond_to(request)
+        }
+    }
+}
 
 
 // Regular pages
