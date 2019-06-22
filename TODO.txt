@@ -65,9 +65,7 @@ Basics:
           [x] View all teams
           [x] Plaintext email list
       [-] View Hunt normally
-  [ ] Error handling
-      [ ] Serve puzzler/error.xml
-      [ ] Serve admin/error.xml
+  [x] Error handling
 
 Testing:
   [ ] Timezones

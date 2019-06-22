@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
 
-<page>
+<page page-type="puzzler" error="{{error}}">
   <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
   <title>Teams</title>
   <prose>

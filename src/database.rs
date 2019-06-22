@@ -310,7 +310,11 @@ impl Database {
                             None => false,
                             Some(team) => self.is_solved(hunt_id, team.team_id, &puzzle.key)
                         };
-                        let answer = if solved { self.get_answer(hunt_id, &puzzle.key) } else { "".to_string() };
+                        let answer = if solved {
+                            self.get_answer(hunt_id, &puzzle.key)
+                        } else {
+                            "".to_string()
+                        };
                         puzzles.push(ReleasedPuzzle {
                             hints: self.get_released_hints(hunt_id, &puzzle.name),
                             name: puzzle.name,
@@ -419,10 +423,12 @@ impl Database {
         let rows = self.query(
             "select answer from Puzzle where hunt = $1 and key = $2",
             &[&hunt_id, &puzzle_key]);
-        if rows.len() != 1 {
-            panic!("Puzzle not found {}", puzzle_key);
+        if rows.len() == 1 {
+            rows.get(0).get(0)
+        } else {
+            println!("WARNING! Answer not found! {} {}", hunt_id, puzzle_key);
+            "".to_string()
         }
-        rows.get(0).get(0)
     }
 
     pub fn already_solved(&self, team: &Team, puzzle: &ReleasedPuzzle) -> Option<Judgement> {
@@ -628,7 +634,7 @@ impl Database {
 
         // Return updated team
         match self.get_team(hunt_id, &form.name) {
-            None => Err("Failed to find team.".to_string()),
+            None => Err("Failed to find team after update.".to_string()),
             Some(team) => Ok(team)
         }
     }

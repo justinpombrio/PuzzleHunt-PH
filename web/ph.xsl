@@ -197,7 +197,7 @@
       </head>
       <body>
         <ul class="nav">
-          <xsl:if test="not(@page-type)">
+          <xsl:if test="@page-type = 'puzzler'">
             <li class="nav1">
               <a href="/{hunt/@key}/index.xml"><xsl:value-of select="hunt"/></a>
             </li>

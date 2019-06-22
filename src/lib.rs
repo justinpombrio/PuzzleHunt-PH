@@ -6,7 +6,7 @@ extern crate mustache;
 extern crate chrono;
 extern crate postgres;
 
-mod render_page;
+mod page;
 mod cookies;
 mod server;
 mod data;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="/ph.xsl"?>
 
-<page>
+<page page-type="puzzler" error="{{error}}">
   <hunt key="{{hunt.key}}">{{hunt.name}}</hunt>
   <title>Puzzles</title>
   <prose>
@@ -14,7 +14,7 @@
             <b><a href="/{{hunt.key}}/puzzle/{{key}}">{{name}}</a></b>
             {{#hints}}
               <span class="spacing"/>
-              <a href="/{{hunt.key}}/hint/{{key}}.xml">[hint {{number}}]</a>
+              <a href="/{{hunt.key}}/hint/{{key}}">[hint {{number}}]</a>
             {{/hints}}
             <br/>
             {{#solved}}Answer: {{answer}}{{/solved}}
