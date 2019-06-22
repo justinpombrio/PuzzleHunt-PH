@@ -75,6 +75,7 @@ Testing:
   [x] Make sure table columns are named consistently
 
 Features:
+  [ ] Your Team page - split into "Edit Team" and "Sign Out".
   [ ] Password hashing
   [ ] Make ssl work! Use a ssl[ ]test website.
   [ ] Make the server a nice process. There should be a way to stop and
@@ -82,8 +83,8 @@ Features:
   [ ] Eliminate all (or almost all) JS on the site, making it much more
       compatible with different browsers. (Only expected difficulty:
       adding/deleting rows from forms.)
-  [ ] Align hints?
-  [ ] When submitting a guess, maybe have a popup.
+  [-] Align hints?
+  [-] When submitting a guess, maybe have a popup.
   [ ] View your team's guesses
   [ ] View other teams' guesses, once the hunt is over
   [ ] View solutions, once the hunt is over

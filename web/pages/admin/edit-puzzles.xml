@@ -6,7 +6,7 @@
   <title>Puzzles</title>
   <form>
     <expandable-section hunt="{{hunt.key}}" itemkey="puzzle" item="Puzzle">
-      <input type="number" id="number" name="Ord"/>
+      <input type="number" id="number" name="Num"/>
       <input type="text" id="name" name="Name"/>
       <input type="text" id="answer" name="Answer"/>
       <input type="text" id="wave" name="Wave"/>
@@ -25,7 +25,7 @@
       Update
     </submit-button>
     <prose>
-      <p>"Ord" determines the order of the puzzles. It is not directly visible to puzzlers.</p>
+      <p>"Num" determines the order of the puzzles. It is not directly visible to puzzlers.</p>
     </prose>
   </form>
 </page>

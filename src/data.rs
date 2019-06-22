@@ -383,20 +383,20 @@ impl DBTable for Hint {
 
     fn init_query() -> &'static str {
 "create table Hint (
-  hint varchar NOT NULL,
+  hint varchar NOT NULL primary key,
   puzzle_name varchar NOT NULL,
   number int NOT NULL,
   hunt int NOT NULL,
   wave varchar NOT NULL,
-  key varchar NOT NULL,
-  primary key (hunt, puzzle_name)
+  key varchar NOT NULL
 );
 "        
     }
 
     fn test_init_query() -> &'static str {
 "insert into Hint (hint, puzzle_name, number, hunt, wave, key)
-values ('The answer is \"answer\".', 'Puzzle One', 1, 1, 'Wave One', 'HHH');"
+values ('Really, it is just \"answer\".', 'Puzzle One', 2, 1, 'Wave One', 'HHH'),
+       ('The answer is \"answer\"', 'Puzzle One', 1, 1, 'Wave One', 'III');"
     }
 }
 

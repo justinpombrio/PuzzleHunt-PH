@@ -262,7 +262,7 @@ impl Database {
     pub fn get_hints(&self, hunt_id: i32) -> Vec<Hint> {
         let mut hints: Vec<Hint> = vec!();
         let rows = self.query(
-            "select * from Hint where hunt = $1;",
+            "select * from Hint where hunt = $1 order by number;",
             &[&hunt_id]);
         for row in &rows {
             hints.push(Hint::from_row(row));
@@ -336,7 +336,7 @@ impl Database {
 
     fn get_released_hints(&self, hunt_id: i32, puzzle_name: &str) -> Vec<Hint> {
         self.query(
-            "select * from Hint where hunt = $1 and puzzle_name = $2;",
+            "select * from Hint where hunt = $1 and puzzle_name = $2 order by number;",
             &[&hunt_id, &puzzle_name])
             .into_iter()
             .map(|row| Hint::from_row(row))
